@@ -3,99 +3,91 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Services\TermiiService;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\VerifyOtpRequest;
+use App\Http\Resources\UserResource;
+use App\Services\AuthService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
     use ApiResponse;
 
-    public function register(Request $request): JsonResponse
+    public function __construct(
+        protected AuthService $authService,
+    ) {}
+
+    public function register(RegisterRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users',
-            'phone'    => 'required|string|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'role'     => 'sometimes|in:tenant,landlord,agent',
-        ]);
-
-        $user = User::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
-            'phone'    => $data['phone'],
-            'password' => $data['password'],
-            'role'     => $data['role'] ?? 'tenant',
-        ]);
-
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $user = $this->authService->register($request->validated());
 
         return $this->successResponse([
-            'user'  => $user,
-            'token' => $token,
-        ], 'Registration successful', 201);
+            'user' => new UserResource($user),
+        ], 'Registration successful. Please verify your phone.', 201);
     }
 
-    public function login(Request $request): JsonResponse
+    public function verifyOtp(VerifyOtpRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required|string',
-        ]);
+        $data = $request->validated();
 
-        $user = User::where('email', $data['email'])->first();
+        $verified = $this->authService->verifyOtp(
+            $data['phone'],
+            $data['code'],
+            $data['purpose'],
+        );
 
-        if (!$user || !Hash::check($data['password'], $user->password)) {
-            return $this->errorResponse('Invalid credentials', 401);
+        if (! $verified) {
+            return $this->errorResponse('Invalid or expired OTP.', 422);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        return $this->successResponse(null, 'Phone verified successfully.');
+    }
+
+    public function login(LoginRequest $request): JsonResponse
+    {
+        $result = $this->authService->login($request->validated());
+
+        if (! $result) {
+            return $this->errorResponse('Invalid credentials.', 401);
+        }
 
         return $this->successResponse([
-            'user'  => $user,
-            'token' => $token,
-        ], 'Login successful');
+            'user'          => new UserResource($result['user']),
+            'access_token'  => $result['access_token'],
+            'refresh_token' => $result['refresh_token'],
+        ], 'Login successful.');
     }
 
-    public function sendOtp(Request $request, TermiiService $termii): JsonResponse
+    public function refresh(Request $request): JsonResponse
     {
-        $data = $request->validate(['phone' => 'required|string']);
+        $request->validate(['refresh_token' => 'required|string']);
 
-        $result = $termii->sendOtp($data['phone']);
+        $result = $this->authService->refreshToken($request->refresh_token);
 
-        return $this->successResponse($result, 'OTP sent');
-    }
-
-    public function verifyOtp(Request $request, TermiiService $termii): JsonResponse
-    {
-        $data = $request->validate([
-            'pin_id' => 'required|string',
-            'otp'    => 'required|string',
-        ]);
-
-        $result = $termii->verifyOtp($data['pin_id'], $data['otp']);
-
-        if (($result['verified'] ?? false) === true || ($result['verified'] ?? '') === 'True') {
-            $request->user()?->update(['is_verified' => true]);
-            return $this->successResponse(null, 'Phone verified successfully');
+        if (! $result) {
+            return $this->errorResponse('Invalid refresh token.', 401);
         }
 
-        return $this->errorResponse('Invalid OTP', 422);
+        return $this->successResponse([
+            'access_token'  => $result['access_token'],
+            'refresh_token' => $result['refresh_token'],
+        ], 'Token refreshed.');
     }
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $this->authService->logout($request->user());
 
-        return $this->successResponse(null, 'Logged out');
+        return $this->successResponse(null, 'Logged out.');
     }
 
     public function me(Request $request): JsonResponse
     {
-        return $this->successResponse($request->user()->load('properties'));
+        return $this->successResponse(
+            new UserResource($request->user()->load('agentProfile'))
+        );
     }
 }

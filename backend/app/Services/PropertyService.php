@@ -1,0 +1,159 @@
+<?php
+
+namespace App\Services;
+
+use App\Enums\PropertyStatus;
+use App\Models\AgentProfile;
+use App\Models\PriceHistory;
+use App\Models\Property;
+use App\Models\PropertyImage;
+use App\Models\PropertyView;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
+class PropertyService
+{
+    public function __construct(
+        protected ImageService $imageService,
+    ) {}
+
+    public function getBySlug(string $slug): ?Property
+    {
+        return Property::where('slug', $slug)
+            ->approved()
+            ->with([
+                'propertyType', 'state', 'city', 'area',
+                'images', 'amenities', 'agent.user',
+                'virtualTour',
+            ])
+            ->withCount(['views', 'savedBy'])
+            ->first();
+    }
+
+    public function create(array $data, AgentProfile $agent): Property
+    {
+        return DB::transaction(function () use ($data, $agent) {
+            $slug = $this->generateSlug($data['title']);
+
+            $property = Property::create(array_merge($data, [
+                'agent_id' => $agent->id,
+                'slug'     => $slug,
+                'status'   => PropertyStatus::Pending,
+            ]));
+
+            if (! empty($data['amenity_ids'])) {
+                $property->amenities()->sync($data['amenity_ids']);
+            }
+
+            if (isset($data['latitude'], $data['longitude'])) {
+                $property->setLocation($data['latitude'], $data['longitude']);
+            }
+
+            PriceHistory::create([
+                'property_id' => $property->id,
+                'price_kobo'  => $property->price_kobo,
+                'changed_at'  => now(),
+            ]);
+
+            return $property->load(['propertyType', 'state', 'city', 'area', 'amenities', 'agent.user']);
+        });
+    }
+
+    public function update(Property $property, array $data): Property
+    {
+        return DB::transaction(function () use ($property, $data) {
+            $oldPrice = $property->price_kobo;
+
+            if (isset($data['title']) && $data['title'] !== $property->title) {
+                $data['slug'] = $this->generateSlug($data['title']);
+            }
+
+            $property->update($data);
+
+            if (! empty($data['amenity_ids'])) {
+                $property->amenities()->sync($data['amenity_ids']);
+            }
+
+            if (isset($data['latitude'], $data['longitude'])) {
+                $property->setLocation($data['latitude'], $data['longitude']);
+            }
+
+            if (isset($data['price_kobo']) && $data['price_kobo'] !== $oldPrice) {
+                PriceHistory::create([
+                    'property_id'    => $property->id,
+                    'price_kobo'     => $data['price_kobo'],
+                    'old_price_kobo' => $oldPrice,
+                    'changed_at'     => now(),
+                ]);
+            }
+
+            return $property->load(['propertyType', 'state', 'city', 'area', 'images', 'amenities', 'agent.user']);
+        });
+    }
+
+    public function delete(Property $property): void
+    {
+        DB::transaction(function () use ($property) {
+            foreach ($property->images as $image) {
+                $this->imageService->delete($image->cloudinary_public_id);
+            }
+
+            $property->delete();
+        });
+    }
+
+    public function uploadImages(Property $property, array $files, array $captions = []): array
+    {
+        $currentCount = $property->images()->count();
+        $maxAllowed = 20 - $currentCount;
+        $files = array_slice($files, 0, $maxAllowed);
+
+        $images = [];
+        $isFirst = $currentCount === 0;
+
+        foreach ($files as $index => $file) {
+            $result = $this->imageService->upload($file, 'properties');
+
+            if ($result['url']) {
+                $images[] = $property->images()->create([
+                    'url'                   => $result['url'],
+                    'thumbnail_url'         => $result['thumbnail_url'] ?? $result['url'],
+                    'cloudinary_public_id'  => $result['public_id'],
+                    'caption'               => $captions[$index] ?? null,
+                    'is_cover'              => $isFirst && $index === 0,
+                    'sort_order'            => $currentCount + $index,
+                ]);
+            }
+        }
+
+        return $images;
+    }
+
+    public function removeImage(PropertyImage $image): void
+    {
+        if ($image->cloudinary_public_id) {
+            $this->imageService->delete($image->cloudinary_public_id);
+        }
+
+        $image->delete();
+    }
+
+    public function incrementViewCount(Property $property, array $meta = []): void
+    {
+        PropertyView::create([
+            'property_id' => $property->id,
+            'user_id'     => $meta['user_id'] ?? null,
+            'session_id'  => $meta['session_id'] ?? null,
+            'source'      => $meta['source'] ?? null,
+            'device_type' => $meta['device_type'] ?? null,
+        ]);
+    }
+
+    protected function generateSlug(string $title): string
+    {
+        $slug = Str::slug($title);
+        $count = Property::where('slug', 'like', "{$slug}%")->count();
+
+        return $count > 0 ? "{$slug}-{$count}" : $slug;
+    }
+}

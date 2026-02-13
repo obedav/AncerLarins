@@ -9,20 +9,34 @@ class UserResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $isSelf = $request->user()?->id === $this->id;
+
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'phone' => $this->phone,
-            'role' => $this->role,
+            'id'         => $this->id,
+            'first_name' => $this->first_name,
+            'last_name'  => $this->last_name,
+            'full_name'  => $this->full_name,
+            'phone'      => $isSelf ? $this->phone : $this->maskedPhone(),
+            'email'      => $isSelf ? $this->email : null,
             'avatar_url' => $this->avatar_url,
-            'is_verified' => $this->is_verified,
-            'bio' => $this->when($this->bio, $this->bio),
-            'company_name' => $this->when($this->company_name, $this->company_name),
-            'lga' => $this->lga,
-            'state' => $this->state,
-            'properties_count' => $this->whenCounted('properties'),
+            'role'       => $this->role,
+            'status'     => $this->when($isSelf, $this->status),
+            'phone_verified' => $this->when($isSelf, $this->phone_verified),
+            'preferred_city_id' => $this->when($isSelf, $this->preferred_city_id),
+            'agent_profile' => $this->when(
+                $this->relationLoaded('agentProfile') && $this->agentProfile,
+                fn () => new AgentDetailResource($this->agentProfile)
+            ),
             'created_at' => $this->created_at?->toISOString(),
         ];
+    }
+
+    protected function maskedPhone(): ?string
+    {
+        if (! $this->phone) {
+            return null;
+        }
+
+        return substr($this->phone, 0, 7) . '****' . substr($this->phone, -2);
     }
 }

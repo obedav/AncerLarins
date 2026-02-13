@@ -1,6 +1,11 @@
 <?php
 
+use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureAgent;
+use App\Http\Middleware\EnsurePhoneVerified;
 use App\Http\Middleware\ForceJsonResponse;
+use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\TrackActivity;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -15,8 +20,16 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->prepend(ForceJsonResponse::class);
+        $middleware->append(SetLocale::class);
 
         $middleware->statefulApi();
+
+        $middleware->alias([
+            'ensure.phone_verified' => EnsurePhoneVerified::class,
+            'ensure.agent'          => EnsureAgent::class,
+            'ensure.admin'          => EnsureAdmin::class,
+            'track.activity'        => TrackActivity::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {

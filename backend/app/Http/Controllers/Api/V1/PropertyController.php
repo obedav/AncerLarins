@@ -3,169 +3,187 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\PropertyResource;
+use App\Http\Requests\Property\CreatePropertyRequest;
+use App\Http\Requests\Property\UpdatePropertyRequest;
+use App\Http\Requests\Report\CreateReportRequest;
+use App\Http\Resources\PropertyDetailResource;
+use App\Http\Resources\PropertyListResource;
 use App\Models\Property;
-use App\Services\CloudinaryService;
+use App\Models\PropertyImage;
+use App\Services\LeadService;
+use App\Services\PropertyService;
+use App\Services\ReportService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class PropertyController extends Controller
 {
     use ApiResponse;
 
+    public function __construct(
+        protected PropertyService $propertyService,
+        protected LeadService $leadService,
+        protected ReportService $reportService,
+    ) {}
+
     public function index(Request $request): JsonResponse
     {
-        $query = Property::with(['images', 'user', 'neighborhood'])->available();
+        $properties = Property::query()
+            ->approved()
+            ->with(['propertyType', 'state', 'city', 'area', 'images', 'agent.user'])
+            ->latest('published_at')
+            ->paginate($request->integer('per_page', 20));
 
-        if ($request->filled('city'))          $query->where('city', $request->city);
-        if ($request->filled('lga'))           $query->where('lga', $request->lga);
-        if ($request->filled('listing_type'))  $query->where('listing_type', $request->listing_type);
-        if ($request->filled('property_type')) $query->where('property_type', $request->property_type);
-        if ($request->filled('min_price'))     $query->where('price', '>=', $request->min_price);
-        if ($request->filled('max_price'))     $query->where('price', '<=', $request->max_price);
-        if ($request->filled('bedrooms'))      $query->where('bedrooms', '>=', $request->bedrooms);
-        if ($request->boolean('is_furnished')) $query->where('is_furnished', true);
-
-        $properties = $query->latest()->paginate($request->integer('per_page', 20));
-
-        return $this->paginatedResponse($properties);
-    }
-
-    public function store(Request $request): JsonResponse
-    {
-        $data = $request->validate([
-            'title'         => 'required|string|max:255',
-            'description'   => 'required|string',
-            'price'         => 'required|numeric|min:0',
-            'listing_type'  => 'required|in:sale,rent,shortlet',
-            'property_type' => 'required|in:apartment,house,duplex,bungalow,terrace,penthouse,studio,commercial,land,shortlet',
-            'bedrooms'      => 'required|integer|min:0',
-            'bathrooms'     => 'required|integer|min:0',
-            'toilets'       => 'sometimes|integer|min:0',
-            'area_sqm'      => 'nullable|numeric',
-            'address'       => 'required|string',
-            'city'          => 'sometimes|string',
-            'state'         => 'sometimes|string',
-            'lga'           => 'required|string',
-            'latitude'      => 'nullable|numeric',
-            'longitude'     => 'nullable|numeric',
-            'year_built'    => 'nullable|integer',
-            'is_furnished'  => 'sometimes|boolean',
-            'has_parking'   => 'sometimes|boolean',
-            'has_security'  => 'sometimes|boolean',
-            'has_pool'      => 'sometimes|boolean',
-            'has_gym'       => 'sometimes|boolean',
-        ]);
-
-        $data['slug']    = Str::slug($data['title']) . '-' . Str::random(6);
-        $data['user_id'] = $request->user()->id;
-        $data['city']    = $data['city'] ?? 'Lagos';
-        $data['state']   = $data['state'] ?? 'Lagos';
-
-        $property = Property::create($data);
-
-        return $this->successResponse(
-            new PropertyResource($property->load(['images', 'user'])),
-            'Property created',
-            201
+        return $this->paginatedResponse(
+            $properties->setCollection(
+                $properties->getCollection()->map(fn ($p) => new PropertyListResource($p))
+            )
         );
     }
 
     public function show(string $slug): JsonResponse
     {
-        $property = Property::with(['images', 'user', 'neighborhood', 'reviews.user'])
-            ->where('slug', $slug)
-            ->firstOrFail();
+        $property = $this->propertyService->getBySlug($slug);
 
-        return $this->successResponse(new PropertyResource($property));
-    }
-
-    public function update(Request $request, Property $property): JsonResponse
-    {
-        if ($property->user_id !== $request->user()->id) {
-            return $this->errorResponse('Unauthorized', 403);
+        if (! $property) {
+            return $this->errorResponse('Property not found.', 404);
         }
 
-        $data = $request->validate([
-            'title'         => 'sometimes|string|max:255',
-            'description'   => 'sometimes|string',
-            'price'         => 'sometimes|numeric|min:0',
-            'listing_type'  => 'sometimes|in:sale,rent,shortlet',
-            'property_type' => 'sometimes|in:apartment,house,duplex,bungalow,terrace,penthouse,studio,commercial,land,shortlet',
-            'status'        => 'sometimes|in:available,rented,sold,under_offer,delisted',
-            'bedrooms'      => 'sometimes|integer|min:0',
-            'bathrooms'     => 'sometimes|integer|min:0',
-            'toilets'       => 'sometimes|integer|min:0',
-            'address'       => 'sometimes|string',
-            'lga'           => 'sometimes|string',
-            'is_furnished'  => 'sometimes|boolean',
-            'has_parking'   => 'sometimes|boolean',
-            'has_security'  => 'sometimes|boolean',
+        $this->propertyService->incrementViewCount($property, [
+            'user_id'     => request()->user()?->id,
+            'session_id'  => request()->header('X-Session-Id'),
+            'source'      => request()->header('Referer'),
+            'device_type' => request()->header('X-Device-Type'),
         ]);
 
-        $property->update($data);
+        return $this->successResponse(new PropertyDetailResource($property));
+    }
 
-        return $this->successResponse(new PropertyResource($property->fresh(['images', 'user'])), 'Property updated');
+    public function store(CreatePropertyRequest $request): JsonResponse
+    {
+        $agent = $request->user()->agentProfile;
+
+        if (! $agent) {
+            return $this->errorResponse('Agent profile required.', 403);
+        }
+
+        $property = $this->propertyService->create($request->validated(), $agent);
+
+        return $this->successResponse(
+            new PropertyDetailResource($property),
+            'Property created and pending approval.',
+            201
+        );
+    }
+
+    public function update(UpdatePropertyRequest $request, Property $property): JsonResponse
+    {
+        $property = $this->propertyService->update($property, $request->validated());
+
+        return $this->successResponse(
+            new PropertyDetailResource($property),
+            'Property updated.'
+        );
     }
 
     public function destroy(Request $request, Property $property): JsonResponse
     {
-        if ($property->user_id !== $request->user()->id) {
-            return $this->errorResponse('Unauthorized', 403);
+        if ($request->user()->id !== $property->agent?->user_id) {
+            return $this->errorResponse('Unauthorized.', 403);
         }
 
-        $property->delete();
+        $this->propertyService->delete($property);
 
-        return $this->successResponse(null, 'Property deleted');
+        return $this->successResponse(null, 'Property deleted.');
     }
 
-    public function uploadImages(Request $request, Property $property, CloudinaryService $cloudinary): JsonResponse
+    public function uploadImages(Request $request, Property $property): JsonResponse
     {
-        if ($property->user_id !== $request->user()->id) {
-            return $this->errorResponse('Unauthorized', 403);
-        }
+        $request->validate([
+            'images'   => 'required|array|max:20',
+            'images.*' => 'image|max:5120',
+            'captions' => 'nullable|array',
+        ]);
 
-        $request->validate(['images' => 'required|array|max:10', 'images.*' => 'image|max:5120']);
+        $images = $this->propertyService->uploadImages(
+            $property,
+            $request->file('images'),
+            $request->input('captions', [])
+        );
 
-        $results = $cloudinary->uploadMultiple($request->file('images'));
-        $isFirst = $property->images()->count() === 0;
-
-        foreach ($results as $i => $result) {
-            if ($result['url']) {
-                $property->images()->create([
-                    'image_url'  => $result['url'],
-                    'public_id'  => $result['public_id'],
-                    'is_primary' => $isFirst && $i === 0,
-                    'sort_order' => $i,
-                ]);
-            }
-        }
-
-        return $this->successResponse($property->fresh('images'), 'Images uploaded');
+        return $this->successResponse($images, 'Images uploaded.', 201);
     }
 
-    public function featured(): JsonResponse
+    public function removeImage(Request $request, PropertyImage $image): JsonResponse
     {
-        $properties = Property::with(['images', 'user'])
-            ->available()
-            ->where('is_featured', true)
-            ->latest()
-            ->limit(12)
+        if ($request->user()->id !== $image->property?->agent?->user_id) {
+            return $this->errorResponse('Unauthorized.', 403);
+        }
+
+        $this->propertyService->removeImage($image);
+
+        return $this->successResponse(null, 'Image removed.');
+    }
+
+    public function save(Request $request, Property $property): JsonResponse
+    {
+        $existing = $request->user()->savedProperties()
+            ->where('property_id', $property->id)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+            return $this->successResponse(['saved' => false], 'Property unsaved.');
+        }
+
+        $request->user()->savedProperties()->create(['property_id' => $property->id]);
+
+        return $this->successResponse(['saved' => true], 'Property saved.', 201);
+    }
+
+    public function contact(Request $request, Property $property): JsonResponse
+    {
+        $request->validate(['contact_type' => 'required|in:whatsapp,call,form']);
+
+        $lead = $this->leadService->create(
+            $property,
+            $request->user(),
+            $request->contact_type,
+            $request->source,
+        );
+
+        $response = ['lead_id' => $lead->id];
+
+        if ($request->contact_type === 'whatsapp') {
+            $response['whatsapp_url'] = $this->leadService->generateWhatsAppLink($property);
+        }
+
+        return $this->successResponse($response, 'Contact logged.');
+    }
+
+    public function report(CreateReportRequest $request): JsonResponse
+    {
+        $report = $this->reportService->create($request->user(), $request->validated());
+
+        return $this->successResponse($report, 'Report submitted.', 201);
+    }
+
+    public function similar(Property $property): JsonResponse
+    {
+        $similar = Property::query()
+            ->approved()
+            ->where('id', '!=', $property->id)
+            ->where('city_id', $property->city_id)
+            ->where('listing_type', $property->listing_type)
+            ->priceBetween(
+                (int) ($property->price_kobo * 0.7),
+                (int) ($property->price_kobo * 1.3)
+            )
+            ->with(['propertyType', 'city', 'images', 'agent.user'])
+            ->limit(6)
             ->get();
 
-        return $this->successResponse(PropertyResource::collection($properties));
-    }
-
-    public function myProperties(Request $request): JsonResponse
-    {
-        $properties = $request->user()
-            ->properties()
-            ->with('images')
-            ->latest()
-            ->paginate(20);
-
-        return $this->paginatedResponse($properties);
+        return $this->successResponse(PropertyListResource::collection($similar));
     }
 }

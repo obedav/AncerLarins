@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Services;
+
+class ImageService
+{
+    public function __construct(
+        protected CloudinaryService $cloudinaryService,
+    ) {}
+
+    public function upload($file, string $folder = 'properties'): array
+    {
+        $result = $this->cloudinaryService->uploadImage($file, $folder);
+
+        return [
+            'url'           => $result['url'],
+            'thumbnail_url' => $result['url'] ? $this->generateThumbnailUrl($result['url']) : null,
+            'public_id'     => $result['public_id'],
+        ];
+    }
+
+    public function delete(?string $publicId): bool
+    {
+        if (! $publicId) {
+            return false;
+        }
+
+        return $this->cloudinaryService->deleteImage($publicId);
+    }
+
+    protected function generateThumbnailUrl(string $url): string
+    {
+        return str_replace('/upload/', '/upload/c_fill,w_400,h_300,q_auto/', $url);
+    }
+}
