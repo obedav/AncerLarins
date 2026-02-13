@@ -7,41 +7,37 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations;
 
-class PropertyImage extends Model
+class PropertyType extends Model
 {
     use HasUuids;
 
-    public $timestamps = false;
-
-    protected $fillable = [
-        'property_id', 'image_url', 'thumbnail_url', 'watermarked_url',
-        'caption', 'sort_order', 'is_cover', 'width', 'height', 'file_size_bytes',
-    ];
+    protected $fillable = ['name', 'slug', 'icon', 'sort_order', 'is_active'];
 
     protected function casts(): array
     {
         return [
-            'is_cover' => 'boolean',
             'sort_order' => 'integer',
-            'width' => 'integer',
-            'height' => 'integer',
-            'file_size_bytes' => 'integer',
-            'created_at' => 'datetime',
+            'is_active'  => 'boolean',
         ];
     }
 
     // ── Relationships ────────────────────────────────────
 
-    public function property(): Relations\BelongsTo
+    public function properties(): Relations\HasMany
     {
-        return $this->belongsTo(Property::class);
+        return $this->hasMany(Property::class);
+    }
+
+    public function savedSearches(): Relations\HasMany
+    {
+        return $this->hasMany(SavedSearch::class);
     }
 
     // ── Scopes ───────────────────────────────────────────
 
-    public function scopeCovers(Builder $query): Builder
+    public function scopeActive(Builder $query): Builder
     {
-        return $query->where('is_cover', true);
+        return $query->where('is_active', true);
     }
 
     public function scopeOrdered(Builder $query): Builder

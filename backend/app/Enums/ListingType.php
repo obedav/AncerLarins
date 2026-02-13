@@ -4,7 +4,6 @@ namespace App\Enums;
 
 enum ListingType: string
 {
-    case SALE     = 'sale';
-    case RENT     = 'rent';
-    case SHORTLET = 'shortlet';
+    case Rent = 'rent';
+    case Sale = 'sale';
 }
