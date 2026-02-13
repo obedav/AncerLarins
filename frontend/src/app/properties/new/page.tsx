@@ -2,46 +2,66 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/layout/Navbar';
-import api from '@/lib/api';
+import Footer from '@/components/layout/Footer';
+import { useCreatePropertyMutation } from '@/store/api/propertyApi';
+import type { CreatePropertyPayload, ListingType, Furnishing, RentPeriod } from '@/types';
 
-const PROPERTY_TYPES = [
-  'apartment', 'house', 'duplex', 'bungalow', 'terrace',
-  'penthouse', 'studio', 'commercial', 'land', 'shortlet',
+const FURNISHING_OPTIONS: { value: Furnishing; label: string }[] = [
+  { value: 'unfurnished', label: 'Unfurnished' },
+  { value: 'semi_furnished', label: 'Semi-Furnished' },
+  { value: 'furnished', label: 'Furnished' },
 ];
 
-const LISTING_TYPES = ['rent', 'sale', 'shortlet'];
+const RENT_PERIOD_OPTIONS: { value: RentPeriod; label: string }[] = [
+  { value: 'yearly', label: 'Per Year' },
+  { value: 'monthly', label: 'Per Month' },
+  { value: 'quarterly', label: 'Per Quarter' },
+];
 
 export default function NewPropertyPage() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [images, setImages] = useState<File[]>([]);
+  const [createProperty, { isLoading }] = useCreatePropertyMutation();
+  const [error, setError] = useState('');
 
   const [form, setForm] = useState({
+    listing_type: 'rent' as ListingType,
+    property_type_id: '',
     title: '',
     description: '',
-    price: '',
-    listing_type: 'rent',
-    property_type: 'apartment',
-    bedrooms: '1',
-    bathrooms: '1',
-    toilets: '1',
-    area_sqm: '',
+    price_kobo: '',
+    price_negotiable: false,
+    rent_period: 'yearly' as RentPeriod,
+    agency_fee_pct: '',
+    caution_fee_kobo: '',
+    service_charge_kobo: '',
+    state_id: '',
+    city_id: '',
+    area_id: '',
     address: '',
-    city: 'Lagos',
-    state: 'Lagos',
-    lga: '',
-    latitude: '',
-    longitude: '',
+    landmark_note: '',
+    bedrooms: '',
+    bathrooms: '',
+    toilets: '',
+    sitting_rooms: '',
+    floor_area_sqm: '',
+    land_area_sqm: '',
     year_built: '',
-    is_furnished: false,
-    has_parking: false,
-    has_security: false,
-    has_pool: false,
+    furnishing: 'unfurnished' as Furnishing,
+    parking_spaces: '',
+    has_bq: false,
+    has_swimming_pool: false,
     has_gym: false,
+    has_cctv: false,
+    has_generator: false,
+    has_water_supply: false,
+    has_prepaid_meter: false,
+    is_serviced: false,
+    is_new_build: false,
+    inspection_available: true,
   });
 
   useEffect(() => {
@@ -56,307 +76,326 @@ export default function NewPropertyPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
-    setError(null);
+    setError('');
+
+    const payload: CreatePropertyPayload = {
+      listing_type: form.listing_type,
+      property_type_id: form.property_type_id,
+      title: form.title,
+      description: form.description,
+      price_kobo: Number(form.price_kobo) * 100,
+      price_negotiable: form.price_negotiable,
+      state_id: form.state_id,
+      city_id: form.city_id,
+      address: form.address,
+      furnishing: form.furnishing,
+      inspection_available: form.inspection_available,
+      has_bq: form.has_bq,
+      has_swimming_pool: form.has_swimming_pool,
+      has_gym: form.has_gym,
+      has_cctv: form.has_cctv,
+      has_generator: form.has_generator,
+      has_water_supply: form.has_water_supply,
+      has_prepaid_meter: form.has_prepaid_meter,
+      is_serviced: form.is_serviced,
+      is_new_build: form.is_new_build,
+    };
+
+    if (form.listing_type === 'rent') payload.rent_period = form.rent_period;
+    if (form.area_id) payload.area_id = form.area_id;
+    if (form.landmark_note) payload.landmark_note = form.landmark_note;
+    if (form.bedrooms) payload.bedrooms = Number(form.bedrooms);
+    if (form.bathrooms) payload.bathrooms = Number(form.bathrooms);
+    if (form.toilets) payload.toilets = Number(form.toilets);
+    if (form.sitting_rooms) payload.sitting_rooms = Number(form.sitting_rooms);
+    if (form.floor_area_sqm) payload.floor_area_sqm = Number(form.floor_area_sqm);
+    if (form.land_area_sqm) payload.land_area_sqm = Number(form.land_area_sqm);
+    if (form.year_built) payload.year_built = Number(form.year_built);
+    if (form.parking_spaces) payload.parking_spaces = Number(form.parking_spaces);
+    if (form.agency_fee_pct) payload.agency_fee_pct = Number(form.agency_fee_pct);
+    if (form.caution_fee_kobo) payload.caution_fee_kobo = Number(form.caution_fee_kobo) * 100;
+    if (form.service_charge_kobo) payload.service_charge_kobo = Number(form.service_charge_kobo) * 100;
 
     try {
-      const payload = {
-        ...form,
-        price: Number(form.price),
-        bedrooms: Number(form.bedrooms),
-        bathrooms: Number(form.bathrooms),
-        toilets: Number(form.toilets),
-        area_sqm: form.area_sqm ? Number(form.area_sqm) : null,
-        latitude: form.latitude ? Number(form.latitude) : null,
-        longitude: form.longitude ? Number(form.longitude) : null,
-        year_built: form.year_built ? Number(form.year_built) : null,
-      };
-
-      const { data } = await api.post('/properties', payload);
-      const propertyId = data.data.id;
-
-      // Upload images if any
-      if (images.length > 0 && propertyId) {
-        const formData = new FormData();
-        images.forEach((img) => formData.append('images[]', img));
-        await api.post(`/properties/${propertyId}/images`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+      const result = await createProperty(payload).unwrap();
+      if (result.data?.slug) {
+        router.push(`/properties/${result.data.slug}`);
+      } else {
+        router.push('/dashboard');
       }
-
-      router.push(`/properties/${data.data.slug}`);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create property');
-    } finally {
-      setSubmitting(false);
+    } catch (err: unknown) {
+      const apiErr = err as { data?: { message?: string; errors?: Record<string, string[]> } };
+      if (apiErr?.data?.errors) {
+        const firstErr = Object.values(apiErr.data.errors)[0]?.[0];
+        setError(firstErr || apiErr?.data?.message || 'Failed to create property.');
+      } else {
+        setError(apiErr?.data?.message || 'Failed to create property.');
+      }
     }
   };
 
-  if (!isAuthenticated) return null;
+  if (!isAuthenticated || !user) return null;
+
+  const inputClass = 'w-full px-4 py-3 border border-border rounded-xl bg-background focus:outline-none focus:border-accent-dark text-text-primary text-sm';
+  const labelClass = 'block text-sm font-medium text-text-secondary mb-1.5';
 
   return (
     <>
       <Navbar />
-      <main className="max-w-3xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">List a New Property</h1>
-
-        {error && (
-          <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-6 text-sm">{error}</div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Info */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
-            <h2 className="font-semibold text-gray-900">Basic Information</h2>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-              <input
-                type="text"
-                required
-                value={form.title}
-                onChange={(e) => updateField('title', e.target.value)}
-                placeholder="e.g. Spacious 3 Bedroom Apartment in Lekki"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea
-                required
-                rows={4}
-                value={form.description}
-                onChange={(e) => updateField('description', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Listing Type</label>
-                <select
-                  value={form.listing_type}
-                  onChange={(e) => updateField('listing_type', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                >
-                  {LISTING_TYPES.map((t) => (
-                    <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Property Type</label>
-                <select
-                  value={form.property_type}
-                  onChange={(e) => updateField('property_type', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                >
-                  {PROPERTY_TYPES.map((t) => (
-                    <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Price (NGN)</label>
-              <input
-                type="number"
-                required
-                min="0"
-                value={form.price}
-                onChange={(e) => updateField('price', e.target.value)}
-                placeholder="e.g. 3500000"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
+      <main className="min-h-screen bg-background">
+        <div className="bg-primary py-8">
+          <div className="container-app">
+            <h1 className="text-2xl font-bold text-white">List a New Property</h1>
+            <p className="text-white/60 mt-1">Fill in the details below to publish your listing</p>
           </div>
+        </div>
 
-          {/* Property Details */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
-            <h2 className="font-semibold text-gray-900">Property Details</h2>
+        <div className="container-app py-8">
+          <div className="max-w-3xl">
+            {error && (
+              <div className="bg-error/10 text-error p-3 rounded-xl mb-6 text-sm">{error}</div>
+            )}
 
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={form.bedrooms}
-                  onChange={(e) => updateField('bedrooms', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Bathrooms</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={form.bathrooms}
-                  onChange={(e) => updateField('bathrooms', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Toilets</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={form.toilets}
-                  onChange={(e) => updateField('toilets', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-            </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Basic Info */}
+              <section className="bg-surface border border-border rounded-xl p-6 space-y-4">
+                <h2 className="font-semibold text-text-primary">Basic Information</h2>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Area (sqm)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={form.area_sqm}
-                  onChange={(e) => updateField('area_sqm', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Year Built</label>
-                <input
-                  type="number"
-                  min="1900"
-                  max="2026"
-                  value={form.year_built}
-                  onChange={(e) => updateField('year_built', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
+                <div>
+                  <label className={labelClass}>Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.title}
+                    onChange={(e) => updateField('title', e.target.value)}
+                    placeholder="e.g. Spacious 3 Bedroom Apartment in Lekki Phase 1"
+                    className={inputClass}
+                  />
+                </div>
 
-          {/* Location */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
-            <h2 className="font-semibold text-gray-900">Location</h2>
+                <div>
+                  <label className={labelClass}>Description</label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={form.description}
+                    onChange={(e) => updateField('description', e.target.value)}
+                    placeholder="Describe the property in detail..."
+                    className={inputClass}
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-              <input
-                type="text"
-                required
-                value={form.address}
-                onChange={(e) => updateField('address', e.target.value)}
-                placeholder="e.g. 15 Admiralty Way"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Listing Type</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['rent', 'sale'] as ListingType[]).map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => updateField('listing_type', type)}
+                          className={`px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${
+                            form.listing_type === type
+                              ? 'bg-primary text-white border-primary'
+                              : 'bg-background text-text-secondary border-border hover:border-accent-dark'
+                          }`}
+                        >
+                          {type === 'rent' ? 'For Rent' : 'For Sale'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                <input
-                  type="text"
-                  value={form.city}
-                  onChange={(e) => updateField('city', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                <input
-                  type="text"
-                  value={form.state}
-                  onChange={(e) => updateField('state', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">LGA</label>
-                <input
-                  type="text"
-                  required
-                  value={form.lga}
-                  onChange={(e) => updateField('lga', e.target.value)}
-                  placeholder="e.g. Eti-Osa"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-            </div>
+                  <div>
+                    <label className={labelClass}>Furnishing</label>
+                    <select
+                      value={form.furnishing}
+                      onChange={(e) => updateField('furnishing', e.target.value)}
+                      className={inputClass}
+                    >
+                      {FURNISHING_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
-                <input
-                  type="number"
-                  step="any"
-                  value={form.latitude}
-                  onChange={(e) => updateField('latitude', e.target.value)}
-                  placeholder="e.g. 6.4412"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
-                <input
-                  type="number"
-                  step="any"
-                  value={form.longitude}
-                  onChange={(e) => updateField('longitude', e.target.value)}
-                  placeholder="e.g. 3.4718"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Price (NGN)</label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      value={form.price_kobo}
+                      onChange={(e) => updateField('price_kobo', e.target.value)}
+                      placeholder="e.g. 3500000"
+                      className={inputClass}
+                    />
+                  </div>
+                  {form.listing_type === 'rent' && (
+                    <div>
+                      <label className={labelClass}>Rent Period</label>
+                      <select
+                        value={form.rent_period}
+                        onChange={(e) => updateField('rent_period', e.target.value)}
+                        className={inputClass}
+                      >
+                        {RENT_PERIOD_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
 
-          {/* Amenities */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
-            <h2 className="font-semibold text-gray-900">Amenities</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {[
-                { key: 'is_furnished', label: 'Furnished' },
-                { key: 'has_parking', label: 'Parking Space' },
-                { key: 'has_security', label: '24/7 Security' },
-                { key: 'has_pool', label: 'Swimming Pool' },
-                { key: 'has_gym', label: 'Gym' },
-              ].map(({ key, label }) => (
-                <label key={key} className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={form[key as keyof typeof form] as boolean}
-                    onChange={(e) => updateField(key, e.target.checked)}
-                    className="w-4 h-4 text-green-700 border-gray-300 rounded focus:ring-green-500"
+                    checked={form.price_negotiable}
+                    onChange={(e) => updateField('price_negotiable', e.target.checked)}
+                    className="w-4 h-4 text-accent-dark border-border rounded focus:ring-accent-dark"
                   />
-                  <span className="text-sm text-gray-700">{label}</span>
+                  <span className="text-sm text-text-secondary">Price is negotiable</span>
                 </label>
-              ))}
-            </div>
-          </div>
+              </section>
 
-          {/* Images */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
-            <h2 className="font-semibold text-gray-900">Photos</h2>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={(e) => setImages(Array.from(e.target.files || []))}
-              className="text-sm text-gray-600"
-            />
-            {images.length > 0 && (
-              <p className="text-sm text-gray-500">{images.length} image{images.length !== 1 ? 's' : ''} selected</p>
-            )}
-          </div>
+              {/* Property Details */}
+              <section className="bg-surface border border-border rounded-xl p-6 space-y-4">
+                <h2 className="font-semibold text-text-primary">Property Details</h2>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-green-700 text-white py-3 rounded-lg hover:bg-green-800 disabled:opacity-50 font-medium text-lg"
-          >
-            {submitting ? 'Publishing...' : 'Publish Property'}
-          </button>
-        </form>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div>
+                    <label className={labelClass}>Bedrooms</label>
+                    <input type="number" min="0" value={form.bedrooms} onChange={(e) => updateField('bedrooms', e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Bathrooms</label>
+                    <input type="number" min="0" value={form.bathrooms} onChange={(e) => updateField('bathrooms', e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Toilets</label>
+                    <input type="number" min="0" value={form.toilets} onChange={(e) => updateField('toilets', e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Sitting Rooms</label>
+                    <input type="number" min="0" value={form.sitting_rooms} onChange={(e) => updateField('sitting_rooms', e.target.value)} className={inputClass} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className={labelClass}>Floor Area (sqm)</label>
+                    <input type="number" min="0" value={form.floor_area_sqm} onChange={(e) => updateField('floor_area_sqm', e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Land Area (sqm)</label>
+                    <input type="number" min="0" value={form.land_area_sqm} onChange={(e) => updateField('land_area_sqm', e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Parking Spaces</label>
+                    <input type="number" min="0" value={form.parking_spaces} onChange={(e) => updateField('parking_spaces', e.target.value)} className={inputClass} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Year Built</label>
+                    <input type="number" min="1900" max="2026" value={form.year_built} onChange={(e) => updateField('year_built', e.target.value)} className={inputClass} />
+                  </div>
+                </div>
+              </section>
+
+              {/* Location */}
+              <section className="bg-surface border border-border rounded-xl p-6 space-y-4">
+                <h2 className="font-semibold text-text-primary">Location</h2>
+
+                <div>
+                  <label className={labelClass}>Address</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.address}
+                    onChange={(e) => updateField('address', e.target.value)}
+                    placeholder="e.g. 15 Admiralty Way, Lekki Phase 1"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Landmark Note</label>
+                  <input
+                    type="text"
+                    value={form.landmark_note}
+                    onChange={(e) => updateField('landmark_note', e.target.value)}
+                    placeholder="e.g. Near Lekki Conservation Centre"
+                    className={inputClass}
+                  />
+                </div>
+              </section>
+
+              {/* Additional Costs */}
+              {form.listing_type === 'rent' && (
+                <section className="bg-surface border border-border rounded-xl p-6 space-y-4">
+                  <h2 className="font-semibold text-text-primary">Additional Costs (NGN)</h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className={labelClass}>Agency Fee (%)</label>
+                      <input type="number" min="0" max="100" value={form.agency_fee_pct} onChange={(e) => updateField('agency_fee_pct', e.target.value)} className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Caution Fee</label>
+                      <input type="number" min="0" value={form.caution_fee_kobo} onChange={(e) => updateField('caution_fee_kobo', e.target.value)} className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Service Charge</label>
+                      <input type="number" min="0" value={form.service_charge_kobo} onChange={(e) => updateField('service_charge_kobo', e.target.value)} className={inputClass} />
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Amenities */}
+              <section className="bg-surface border border-border rounded-xl p-6 space-y-4">
+                <h2 className="font-semibold text-text-primary">Amenities & Features</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {[
+                    { key: 'has_bq', label: 'BQ (Boys Quarter)' },
+                    { key: 'has_swimming_pool', label: 'Swimming Pool' },
+                    { key: 'has_gym', label: 'Gym' },
+                    { key: 'has_cctv', label: 'CCTV Security' },
+                    { key: 'has_generator', label: 'Generator' },
+                    { key: 'has_water_supply', label: '24/7 Water Supply' },
+                    { key: 'has_prepaid_meter', label: 'Prepaid Meter' },
+                    { key: 'is_serviced', label: 'Serviced' },
+                    { key: 'is_new_build', label: 'New Build' },
+                    { key: 'inspection_available', label: 'Inspection Available' },
+                  ].map(({ key, label }) => (
+                    <label key={key} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={form[key as keyof typeof form] as boolean}
+                        onChange={(e) => updateField(key, e.target.checked)}
+                        className="w-4 h-4 text-accent-dark border-border rounded focus:ring-accent-dark"
+                      />
+                      <span className="text-sm text-text-secondary">{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </section>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-accent hover:bg-accent-dark text-primary py-3.5 rounded-xl font-semibold transition-colors disabled:opacity-50 text-base"
+              >
+                {isLoading ? 'Publishing...' : 'Publish Property'}
+              </button>
+            </form>
+          </div>
+        </div>
       </main>
+      <Footer />
     </>
   );
 }

@@ -2,116 +2,159 @@ import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 
+const POPULAR_AREAS = [
+  { name: 'Lekki', description: 'Modern living & beachfront', gradient: 'from-blue-900/80 to-blue-700/60' },
+  { name: 'Ikoyi', description: 'Luxury & exclusivity', gradient: 'from-emerald-900/80 to-emerald-700/60' },
+  { name: 'Victoria Island', description: 'Business & nightlife hub', gradient: 'from-purple-900/80 to-purple-700/60' },
+  { name: 'Yaba', description: 'Tech hub & affordable', gradient: 'from-orange-900/80 to-orange-700/60' },
+  { name: 'Ikeja', description: 'City center & commercial', gradient: 'from-rose-900/80 to-rose-700/60' },
+];
+
+const HOW_IT_WORKS = [
+  { step: '01', title: 'Search', desc: 'Browse thousands of verified properties across Lagos' },
+  { step: '02', title: 'View', desc: 'See detailed photos, features, and neighborhood info' },
+  { step: '03', title: 'Contact', desc: 'Connect with agents instantly via WhatsApp or call' },
+];
+
 export default function Home() {
   return (
     <>
       <Navbar />
       <main>
-        {/* Hero Section */}
-        <section className="bg-gradient-to-br from-green-800 to-green-950 text-white py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Find Your Perfect Home in Lagos
+        {/* Hero */}
+        <section className="bg-primary relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-primary-light)_0%,_transparent_50%)]" />
+          <div className="container-app relative py-16 md:py-24 text-center">
+            <div className="inline-block bg-accent/10 border border-accent/20 rounded-full px-4 py-1.5 mb-6">
+              <span className="text-accent text-sm font-medium">Lagos-First Real Estate Platform</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-5 leading-tight">
+              Find Your Next Home<br />
+              <span className="text-accent">in Lagos</span>
             </h1>
-            <p className="text-lg md:text-xl text-green-100 mb-8 max-w-2xl mx-auto">
-              Buy, rent, or shortlet properties across Nigeria&apos;s most vibrant city.
-              Thousands of verified listings at your fingertips.
+            <p className="text-white/60 text-lg md:text-xl mb-10 max-w-2xl mx-auto">
+              Premium properties. Verified agents. Connect instantly via WhatsApp.
             </p>
 
             {/* Search Bar */}
-            <div className="max-w-3xl mx-auto bg-white rounded-xl p-2 flex flex-col sm:flex-row gap-2">
-              <input
-                type="text"
-                placeholder="Search by location, property type..."
-                className="flex-1 px-4 py-3 text-gray-800 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-              <select className="px-4 py-3 text-gray-600 rounded-lg bg-gray-50">
-                <option value="">All Types</option>
-                <option value="rent">For Rent</option>
-                <option value="sale">For Sale</option>
-                <option value="shortlet">Shortlet</option>
-              </select>
-              <Link
-                href="/search"
-                className="bg-green-700 text-white px-8 py-3 rounded-lg hover:bg-green-800 font-medium"
-              >
-                Search
-              </Link>
+            <div className="max-w-2xl mx-auto">
+              <form action="/properties" method="GET" className="bg-surface rounded-2xl p-2 flex flex-col sm:flex-row gap-2 shadow-2xl">
+                <input
+                  type="text"
+                  name="q"
+                  placeholder="Search by area, property type..."
+                  className="flex-1 px-5 py-3.5 text-text-primary rounded-xl bg-background border border-border focus:outline-none focus:border-accent-dark text-base"
+                />
+                <button
+                  type="submit"
+                  className="bg-accent hover:bg-accent-dark text-primary px-8 py-3.5 rounded-xl font-semibold transition-colors text-base whitespace-nowrap"
+                >
+                  Search
+                </button>
+              </form>
+
+              {/* Quick Filters */}
+              <div className="flex justify-center gap-3 mt-5">
+                <Link
+                  href="/properties?listing_type=rent"
+                  className="bg-white/10 hover:bg-accent/20 text-white hover:text-accent border border-white/20 px-6 py-2.5 rounded-full text-sm font-medium transition-all"
+                >
+                  Rent
+                </Link>
+                <Link
+                  href="/properties?listing_type=sale"
+                  className="bg-white/10 hover:bg-accent/20 text-white hover:text-accent border border-white/20 px-6 py-2.5 rounded-full text-sm font-medium transition-all"
+                >
+                  Buy
+                </Link>
+              </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="mt-12 grid grid-cols-3 gap-8 max-w-xl mx-auto">
+            {/* Stats */}
+            <div className="mt-14 grid grid-cols-3 gap-8 max-w-lg mx-auto">
               <div>
-                <p className="text-3xl font-bold">10K+</p>
-                <p className="text-green-200 text-sm">Properties</p>
+                <p className="text-3xl font-bold text-accent">10K+</p>
+                <p className="text-white/40 text-sm mt-1">Properties</p>
               </div>
               <div>
-                <p className="text-3xl font-bold">20+</p>
-                <p className="text-green-200 text-sm">LGAs Covered</p>
+                <p className="text-3xl font-bold text-accent">500+</p>
+                <p className="text-white/40 text-sm mt-1">Verified Agents</p>
               </div>
               <div>
-                <p className="text-3xl font-bold">5K+</p>
-                <p className="text-green-200 text-sm">Happy Tenants</p>
+                <p className="text-3xl font-bold text-accent">20+</p>
+                <p className="text-white/40 text-sm mt-1">Areas Covered</p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Browse by Type */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Browse by Category</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { name: 'Apartments', type: 'apartment', icon: '🏢' },
-                { name: 'Houses', type: 'house', icon: '🏠' },
-                { name: 'Duplexes', type: 'duplex', icon: '🏘️' },
-                { name: 'Shortlets', type: 'shortlet', icon: '🏨' },
-              ].map((cat) => (
-                <Link
-                  key={cat.type}
-                  href={`/search?property_type=${cat.type}`}
-                  className="bg-white rounded-xl p-6 text-center hover:shadow-md transition-shadow border border-gray-100"
-                >
-                  <span className="text-4xl">{cat.icon}</span>
-                  <p className="mt-2 font-semibold text-gray-800">{cat.name}</p>
-                </Link>
+        {/* How it Works */}
+        <section className="py-16 md:py-20">
+          <div className="container-app">
+            <h2 className="text-2xl md:text-3xl font-bold text-text-primary text-center mb-4">How It Works</h2>
+            <p className="text-text-muted text-center mb-12 max-w-lg mx-auto">
+              Finding your perfect home in Lagos has never been easier
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {HOW_IT_WORKS.map((item) => (
+                <div key={item.step} className="text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-4">
+                    <span className="text-xl font-bold text-accent-dark">{item.step}</span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-text-primary mb-2">{item.title}</h3>
+                  <p className="text-text-muted text-sm">{item.desc}</p>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
         {/* Popular Areas */}
-        <section className="py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Popular Areas in Lagos</h2>
+        <section className="py-16 md:py-20 bg-surface">
+          <div className="container-app">
+            <h2 className="text-2xl md:text-3xl font-bold text-text-primary text-center mb-4">Popular Areas in Lagos</h2>
+            <p className="text-text-muted text-center mb-12 max-w-lg mx-auto">
+              Explore the most sought-after neighborhoods
+            </p>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {['Lekki', 'Victoria Island', 'Ikeja', 'Ikoyi', 'Yaba', 'Surulere', 'Ajah', 'Gbagada', 'Maryland', 'Magodo'].map((area) => (
+              {POPULAR_AREAS.map((area) => (
                 <Link
-                  key={area}
-                  href={`/search?lga=${encodeURIComponent(area)}`}
-                  className="bg-green-50 rounded-lg px-4 py-3 text-center text-green-800 font-medium hover:bg-green-100 transition-colors"
+                  key={area.name}
+                  href={`/properties?area=${encodeURIComponent(area.name.toLowerCase().replace(/\s+/g, '-'))}`}
+                  className="group relative h-40 md:h-48 rounded-xl overflow-hidden bg-primary"
                 >
-                  {area}
+                  <div className={`absolute inset-0 bg-gradient-to-t ${area.gradient} group-hover:opacity-80 transition-opacity`} />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-4">
+                    <h3 className="font-bold text-lg">{area.name}</h3>
+                    <p className="text-white/70 text-xs mt-1 text-center">{area.description}</p>
+                  </div>
                 </Link>
               ))}
             </div>
           </div>
         </section>
 
-        {/* CTA */}
-        <section className="bg-green-700 text-white py-16">
-          <div className="max-w-7xl mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold mb-4">List Your Property Today</h2>
-            <p className="text-green-100 mb-8 max-w-xl mx-auto">
-              Join thousands of landlords and agents on AncerLarins. Reach verified tenants faster.
+        {/* WhatsApp CTA */}
+        <section className="py-16 md:py-20 bg-primary">
+          <div className="container-app text-center">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">List Your Property Today</h2>
+            <p className="text-white/60 mb-8 max-w-xl mx-auto">
+              Join hundreds of verified agents on AncerLarins. Reach thousands of potential buyers and tenants.
             </p>
-            <Link
-              href="/register?role=landlord"
-              className="bg-white text-green-700 px-8 py-3 rounded-lg font-semibold hover:bg-green-50"
-            >
-              Get Started Free
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/register?role=agent"
+                className="bg-accent hover:bg-accent-dark text-primary px-8 py-3.5 rounded-xl font-semibold transition-colors text-base"
+              >
+                Get Started Free
+              </Link>
+              <Link
+                href="/properties"
+                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-3.5 rounded-xl font-semibold transition-colors text-base"
+              >
+                Browse Properties
+              </Link>
+            </div>
           </div>
         </section>
       </main>

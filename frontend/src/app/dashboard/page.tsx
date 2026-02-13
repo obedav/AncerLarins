@@ -1,266 +1,227 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import PropertyCard from '@/components/property/PropertyCard';
-import api from '@/lib/api';
-import { formatNaira, formatDate } from '@/lib/utils';
-import type { Property, Booking, Payment } from '@/types';
+import { useGetAgentDashboardQuery, useGetAgentLeadsQuery } from '@/store/api/agentApi';
+import { useGetPropertiesQuery } from '@/store/api/propertyApi';
+import { formatPrice, formatDate, formatRelativeTime } from '@/lib/utils';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isAuthenticated, fetchMe } = useAuth();
-  const [myProperties, setMyProperties] = useState<Property[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [favorites, setFavorites] = useState<Property[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'properties' | 'bookings' | 'payments' | 'favorites'>('overview');
-  const [loading, setLoading] = useState(true);
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/login');
-      return;
     }
-    fetchMe();
-  }, [isAuthenticated, router, fetchMe]);
-
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    setLoading(true);
-    Promise.all([
-      api.get('/my/properties').catch(() => ({ data: { data: [] } })),
-      api.get('/bookings').catch(() => ({ data: { data: [] } })),
-      api.get('/payments/history').catch(() => ({ data: { data: [] } })),
-      api.get('/favorites').catch(() => ({ data: { data: [] } })),
-    ])
-      .then(([propRes, bookRes, payRes, favRes]) => {
-        setMyProperties(propRes.data.data || []);
-        setBookings(bookRes.data.data || []);
-        setPayments(payRes.data.data || []);
-        setFavorites(favRes.data.data || []);
-      })
-      .finally(() => setLoading(false));
-  }, [isAuthenticated]);
+  }, [isAuthenticated, router]);
 
   if (!isAuthenticated || !user) {
     return null;
   }
 
-  const tabs = [
-    { id: 'overview' as const, label: 'Overview' },
-    { id: 'properties' as const, label: `My Properties (${myProperties.length})` },
-    { id: 'bookings' as const, label: `Bookings (${bookings.length})` },
-    { id: 'payments' as const, label: `Payments (${payments.length})` },
-    { id: 'favorites' as const, label: `Favorites (${favorites.length})` },
-  ];
+  const isAgent = user.role === 'agent';
 
   return (
     <>
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Profile Header */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6 flex items-center gap-4">
-          {user.avatar_url ? (
-            <img src={user.avatar_url} alt={user.name} className="w-16 h-16 rounded-full object-cover" />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center text-green-700 text-2xl font-bold">
-              {user.name.charAt(0)}
+      <main className="min-h-screen bg-background">
+        <div className="bg-primary py-8">
+          <div className="container-app">
+            <div className="flex items-center gap-4">
+              {user.avatar_url ? (
+                <img src={user.avatar_url} alt={user.full_name} className="w-14 h-14 rounded-full object-cover border-2 border-accent/30" />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-accent/20 flex items-center justify-center text-accent text-xl font-bold">
+                  {user.first_name.charAt(0)}
+                </div>
+              )}
+              <div>
+                <h1 className="text-xl font-bold text-white">{user.full_name}</h1>
+                <p className="text-white/60 text-sm capitalize">{user.role}{user.email ? ` · ${user.email}` : ''}</p>
+              </div>
             </div>
-          )}
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">{user.name}</h1>
-            <p className="text-sm text-gray-500 capitalize">{user.role} &middot; {user.email}</p>
-            {user.phone && <p className="text-sm text-gray-400">{user.phone}</p>}
           </div>
+        </div>
+
+        <div className="container-app py-8">
+          {isAgent ? <AgentDashboard /> : <UserDashboard />}
+        </div>
+      </main>
+      <Footer />
+    </>
+  );
+}
+
+function AgentDashboard() {
+  const { data: dashData, isLoading: dashLoading } = useGetAgentDashboardQuery();
+  const { data: leadsData } = useGetAgentLeadsQuery({ per_page: 5 });
+  const { data: myProps } = useGetPropertiesQuery({ scope: 'mine', per_page: 6 });
+
+  const stats = dashData?.data;
+  const leads = leadsData?.data || [];
+  const properties = myProps?.data || [];
+
+  if (dashLoading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="bg-surface border border-border rounded-xl p-6 animate-pulse">
+            <div className="h-8 bg-border/50 rounded w-1/2 mb-2" />
+            <div className="h-4 bg-border/50 rounded w-3/4" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard label="Total Listings" value={Number(stats?.total_listings ?? 0)} />
+        <StatCard label="Active Listings" value={Number(stats?.active_listings ?? 0)} color="text-green-600" />
+        <StatCard label="Total Views" value={Number(stats?.total_views ?? 0)} color="text-blue-600" />
+        <StatCard label="Total Leads" value={Number(stats?.total_leads ?? 0)} color="text-accent-dark" />
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-accent/10 border border-accent/20 rounded-xl p-6">
+        <h3 className="font-semibold text-text-primary mb-2">List a New Property</h3>
+        <p className="text-sm text-text-muted mb-4">
+          Reach thousands of buyers and tenants across Lagos.
+        </p>
+        <Link
+          href="/properties/new"
+          className="inline-block bg-accent hover:bg-accent-dark text-primary px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+        >
+          Add New Property
+        </Link>
+      </div>
+
+      {/* Recent Leads */}
+      {leads.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold text-text-primary mb-4">Recent Leads</h2>
+          <div className="bg-surface border border-border rounded-xl overflow-hidden">
+            <div className="divide-y divide-border">
+              {leads.map((lead) => (
+                <div key={lead.id} className="px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-text-primary">
+                      {lead.user?.full_name || 'Anonymous'}
+                    </p>
+                    <p className="text-xs text-text-muted">
+                      {lead.property?.title} · {lead.contact_type} · {formatRelativeTime(lead.created_at)}
+                    </p>
+                  </div>
+                  {lead.user?.phone && (
+                    <a
+                      href={`https://wa.me/${lead.user.phone.replace(/[^0-9+]/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs bg-whatsapp/10 text-whatsapp px-3 py-1.5 rounded-lg font-medium hover:bg-whatsapp/20 transition-colors"
+                    >
+                      WhatsApp
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* My Properties */}
+      {properties.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-text-primary">My Listings</h2>
+            <Link href="/properties?scope=mine" className="text-sm text-accent-dark font-medium hover:underline">
+              View all
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {properties.map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function UserDashboard() {
+  const { data: savedData, isLoading } = useGetPropertiesQuery({ scope: 'saved', per_page: 6 });
+  const savedProperties = savedData?.data || [];
+
+  return (
+    <div className="space-y-8">
+      <div className="grid grid-cols-2 gap-4">
+        <StatCard label="Saved Properties" value={savedProperties.length} />
+        <div className="bg-surface border border-border rounded-xl p-6 flex items-center justify-center">
           <Link
-            href="/profile/edit"
-            className="ml-auto text-sm text-green-700 hover:underline"
+            href="/properties"
+            className="text-accent-dark font-medium hover:underline text-sm"
           >
-            Edit Profile
+            Browse Properties
           </Link>
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="flex gap-6 overflow-x-auto">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`pb-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-green-700 text-green-700'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {loading ? (
-          <div className="text-center py-20 text-gray-500">Loading...</div>
-        ) : (
-          <>
-            {/* Overview Tab */}
-            {activeTab === 'overview' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-                    <p className="text-3xl font-bold text-green-700">{myProperties.length}</p>
-                    <p className="text-sm text-gray-500">Properties</p>
-                  </div>
-                  <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-                    <p className="text-3xl font-bold text-blue-600">{bookings.length}</p>
-                    <p className="text-sm text-gray-500">Bookings</p>
-                  </div>
-                  <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-                    <p className="text-3xl font-bold text-amber-600">{payments.length}</p>
-                    <p className="text-sm text-gray-500">Payments</p>
-                  </div>
-                  <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-                    <p className="text-3xl font-bold text-red-500">{favorites.length}</p>
-                    <p className="text-sm text-gray-500">Favorites</p>
-                  </div>
+      {/* Saved Properties */}
+      <div>
+        <h2 className="text-lg font-semibold text-text-primary mb-4">Saved Properties</h2>
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-surface rounded-xl border border-border animate-pulse">
+                <div className="h-48 bg-border/50 rounded-t-xl" />
+                <div className="p-4 space-y-3">
+                  <div className="h-5 bg-border/50 rounded w-1/2" />
+                  <div className="h-4 bg-border/50 rounded w-3/4" />
                 </div>
-
-                {(user.role === 'landlord' || user.role === 'agent') && (
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-6">
-                    <h3 className="font-semibold text-green-900 mb-2">List a Property</h3>
-                    <p className="text-sm text-green-700 mb-4">
-                      Reach thousands of tenants and buyers across Lagos.
-                    </p>
-                    <Link
-                      href="/properties/new"
-                      className="inline-block bg-green-700 text-white px-6 py-2 rounded-lg hover:bg-green-800 text-sm font-medium"
-                    >
-                      Add New Property
-                    </Link>
-                  </div>
-                )}
               </div>
-            )}
-
-            {/* Properties Tab */}
-            {activeTab === 'properties' && (
-              <div>
-                {myProperties.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {myProperties.map((property) => (
-                      <PropertyCard key={property.id} property={property} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-20 text-gray-500">
-                    <p>You haven&apos;t listed any properties yet.</p>
-                    {(user.role === 'landlord' || user.role === 'agent') && (
-                      <Link href="/properties/new" className="text-green-700 font-medium hover:underline mt-2 inline-block">
-                        List your first property
-                      </Link>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Bookings Tab */}
-            {activeTab === 'bookings' && (
-              <div>
-                {bookings.length > 0 ? (
-                  <div className="space-y-4">
-                    {bookings.map((booking) => (
-                      <div key={booking.id} className="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-gray-900">{booking.property?.title || 'Property'}</p>
-                          <p className="text-sm text-gray-500">
-                            Scheduled: {formatDate(booking.scheduled_at)}
-                          </p>
-                          {booking.notes && <p className="text-sm text-gray-400 mt-1">{booking.notes}</p>}
-                        </div>
-                        <span className={`text-xs px-3 py-1 rounded-full font-medium ${
-                          booking.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                          booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                          'bg-yellow-100 text-yellow-700'
-                        }`}>
-                          {booking.status}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-20 text-gray-500">No bookings yet.</div>
-                )}
-              </div>
-            )}
-
-            {/* Payments Tab */}
-            {activeTab === 'payments' && (
-              <div>
-                {payments.length > 0 ? (
-                  <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="text-left px-4 py-3 font-medium text-gray-600">Reference</th>
-                          <th className="text-left px-4 py-3 font-medium text-gray-600">Amount</th>
-                          <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                          <th className="text-left px-4 py-3 font-medium text-gray-600">Date</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {payments.map((payment) => (
-                          <tr key={payment.id}>
-                            <td className="px-4 py-3 font-mono text-xs text-gray-600">{payment.reference}</td>
-                            <td className="px-4 py-3 font-medium text-gray-900">{payment.formatted_amount}</td>
-                            <td className="px-4 py-3">
-                              <span className={`text-xs px-2 py-1 rounded-full ${
-                                payment.status === 'success' ? 'bg-green-100 text-green-700' :
-                                payment.status === 'failed' ? 'bg-red-100 text-red-700' :
-                                'bg-yellow-100 text-yellow-700'
-                              }`}>
-                                {payment.status}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-gray-500">{formatDate(payment.created_at)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="text-center py-20 text-gray-500">No payment history.</div>
-                )}
-              </div>
-            )}
-
-            {/* Favorites Tab */}
-            {activeTab === 'favorites' && (
-              <div>
-                {favorites.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {favorites.map((property) => (
-                      <PropertyCard key={property.id} property={property} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-20 text-gray-500">
-                    <p>No favorite properties yet.</p>
-                    <Link href="/search" className="text-green-700 font-medium hover:underline mt-2 inline-block">
-                      Browse properties
-                    </Link>
-                  </div>
-                )}
-              </div>
-            )}
-          </>
+            ))}
+          </div>
+        ) : savedProperties.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {savedProperties.map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <svg className="w-12 h-12 text-text-muted mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+            </svg>
+            <h3 className="text-text-primary font-semibold mb-1">No saved properties</h3>
+            <p className="text-text-muted text-sm mb-4">Save properties you like to view them here later.</p>
+            <Link
+              href="/properties"
+              className="inline-block bg-accent hover:bg-accent-dark text-primary px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+            >
+              Browse Properties
+            </Link>
+          </div>
         )}
-      </main>
-    </>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, color }: { label: string; value: number | string; color?: string }) {
+  return (
+    <div className="bg-surface border border-border rounded-xl p-6">
+      <p className={`text-3xl font-bold ${color || 'text-text-primary'}`}>{value}</p>
+      <p className="text-sm text-text-muted mt-1">{label}</p>
+    </div>
   );
 }

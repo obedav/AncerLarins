@@ -22,8 +22,11 @@ const searchSlice = createSlice({
     removeFilter(state, action: PayloadAction<keyof SearchFilters>) {
       delete state.filters[action.payload];
     },
+    setListingType(state, action: PayloadAction<'rent' | 'sale' | undefined>) {
+      state.filters.listing_type = action.payload;
+    },
   },
 });
 
-export const { setFilters, clearFilters, removeFilter } = searchSlice.actions;
+export const { setFilters, clearFilters, removeFilter, setListingType } = searchSlice.actions;
 export default searchSlice.reducer;

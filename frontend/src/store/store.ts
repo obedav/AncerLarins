@@ -1,14 +1,18 @@
 import { configureStore } from '@reduxjs/toolkit';
+import { baseApi } from './api/baseApi';
 import authReducer from './slices/authSlice';
-import propertyReducer from './slices/propertySlice';
 import searchReducer from './slices/searchSlice';
+import uiReducer from './slices/uiSlice';
 
 export const store = configureStore({
   reducer: {
+    [baseApi.reducerPath]: baseApi.reducer,
     auth: authReducer,
-    property: propertyReducer,
     search: searchReducer,
+    ui: uiReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(baseApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

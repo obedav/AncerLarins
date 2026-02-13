@@ -1,114 +1,203 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useRegisterMutation, useVerifyOtpMutation } from '@/store/api/authApi';
 import { useAuth } from '@/hooks/useAuth';
 
-export default function RegisterPage() {
+function RegisterContent() {
   const router = useRouter();
-  const { register, loading, error } = useAuth();
-  const [form, setForm] = useState({
-    name: '', email: '', phone: '', password: '', password_confirmation: '', role: 'tenant',
-  });
+  const searchParams = useSearchParams();
+  const { loginSuccess } = useAuth();
+  const [registerApi, { isLoading: regLoading }] = useRegisterMutation();
+  const [verifyOtp, { isLoading: otpLoading }] = useVerifyOtpMutation();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const defaultRole = searchParams.get('role') || 'user';
+
+  const [step, setStep] = useState<'info' | 'otp'>('info');
+  const [form, setForm] = useState({
+    first_name: '',
+    last_name: '',
+    phone: '',
+    email: '',
+    role: defaultRole,
+  });
+  const [otp, setOtp] = useState('');
+  const [error, setError] = useState('');
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await register(form);
-    if (result.meta.requestStatus === 'fulfilled') {
-      router.push('/dashboard');
+    setError('');
+    try {
+      await registerApi(form).unwrap();
+      setStep('otp');
+    } catch (err: unknown) {
+      const apiErr = err as { data?: { message?: string; errors?: Record<string, string[]> } };
+      if (apiErr?.data?.errors) {
+        const firstErr = Object.values(apiErr.data.errors)[0]?.[0];
+        setError(firstErr || apiErr?.data?.message || 'Registration failed.');
+      } else {
+        setError(apiErr?.data?.message || 'Registration failed.');
+      }
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const result = await verifyOtp({ phone: form.phone, code: otp, purpose: 'registration' }).unwrap();
+      if (result.data) {
+        loginSuccess(result.data.user, {
+          access_token: result.data.access_token,
+          refresh_token: result.data.refresh_token,
+        });
+        router.push('/dashboard');
+      }
+    } catch (err: unknown) {
+      const apiErr = err as { data?: { message?: string } };
+      setError(apiErr?.data?.message || 'Invalid OTP.');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-sm p-8 border border-gray-100">
-        <Link href="/" className="text-2xl font-bold text-green-700 block text-center mb-8">
-          AncerLarins
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
+      <div className="w-full max-w-md bg-surface rounded-2xl shadow-sm p-8 border border-border">
+        <Link href="/" className="flex items-center justify-center gap-1 mb-10">
+          <span className="text-2xl font-bold text-accent-dark">Ancer</span>
+          <span className="text-2xl font-bold text-primary">Larins</span>
         </Link>
 
-        <h1 className="text-xl font-semibold text-gray-900 mb-6">Create your account</h1>
+        <h1 className="text-xl font-semibold text-text-primary mb-2">
+          {step === 'info' ? 'Create your account' : 'Verify your phone'}
+        </h1>
+        <p className="text-sm text-text-muted mb-6">
+          {step === 'info'
+            ? 'Join AncerLarins to find your perfect property'
+            : `Enter the 6-digit code sent to ${form.phone}`}
+        </p>
 
-        {error && <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-4 text-sm">{error}</div>}
+        {error && (
+          <div className="bg-error/10 text-error p-3 rounded-lg mb-4 text-sm">{error}</div>
+        )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-            <input
-              type="text"
-              required
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              required
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Phone (e.g. 2348012345678)</label>
-            <input
-              type="tel"
-              required
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">I am a...</label>
-            <select
-              value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+        {step === 'info' ? (
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1.5">First Name</label>
+                <input
+                  type="text"
+                  required
+                  value={form.first_name}
+                  onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                  className="w-full px-4 py-3 border border-border rounded-xl bg-background focus:outline-none focus:border-accent-dark text-text-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1.5">Last Name</label>
+                <input
+                  type="text"
+                  required
+                  value={form.last_name}
+                  onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                  className="w-full px-4 py-3 border border-border rounded-xl bg-background focus:outline-none focus:border-accent-dark text-text-primary"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Phone Number</label>
+              <input
+                type="tel"
+                required
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                placeholder="+234 801 234 5678"
+                className="w-full px-4 py-3 border border-border rounded-xl bg-background focus:outline-none focus:border-accent-dark text-text-primary"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Email (optional)</label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="w-full px-4 py-3 border border-border rounded-xl bg-background focus:outline-none focus:border-accent-dark text-text-primary"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">I am a...</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, role: 'user' })}
+                  className={`px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${form.role === 'user' ? 'bg-primary text-white border-primary' : 'bg-background text-text-secondary border-border hover:border-accent-dark'}`}
+                >
+                  Buyer / Tenant
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, role: 'agent' })}
+                  className={`px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${form.role === 'agent' ? 'bg-primary text-white border-primary' : 'bg-background text-text-secondary border-border hover:border-accent-dark'}`}
+                >
+                  Agent
+                </button>
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={regLoading}
+              className="w-full bg-accent hover:bg-accent-dark text-primary py-3 rounded-xl font-semibold transition-colors disabled:opacity-50"
             >
-              <option value="tenant">Tenant / Buyer</option>
-              <option value="landlord">Landlord</option>
-              <option value="agent">Agent</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-            <input
-              type="password"
-              required
-              value={form.password_confirmation}
-              onChange={(e) => setForm({ ...form, password_confirmation: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 disabled:opacity-50 font-medium"
-          >
-            {loading ? 'Creating account...' : 'Create Account'}
-          </button>
-        </form>
+              {regLoading ? 'Creating account...' : 'Create Account'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyOtp} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Verification Code</label>
+              <input
+                type="text"
+                required
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                placeholder="000000"
+                className="w-full px-4 py-3 border border-border rounded-xl bg-background focus:outline-none focus:border-accent-dark text-text-primary text-center text-2xl tracking-[0.5em] font-mono"
+                autoFocus
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={otpLoading || otp.length !== 6}
+              className="w-full bg-accent hover:bg-accent-dark text-primary py-3 rounded-xl font-semibold transition-colors disabled:opacity-50"
+            >
+              {otpLoading ? 'Verifying...' : 'Verify & Continue'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setStep('info'); setOtp(''); setError(''); }}
+              className="w-full text-text-muted hover:text-text-secondary text-sm py-2"
+            >
+              Back to registration
+            </button>
+          </form>
+        )}
 
-        <p className="text-sm text-gray-500 mt-6 text-center">
+        <p className="text-sm text-text-muted mt-8 text-center">
           Already have an account?{' '}
-          <Link href="/login" className="text-green-700 font-medium">Sign in</Link>
+          <Link href="/login" className="text-accent-dark font-medium hover:underline">Sign in</Link>
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterContent />
+    </Suspense>
   );
 }

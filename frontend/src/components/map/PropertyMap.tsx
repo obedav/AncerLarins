@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import type { Property } from '@/types';
+import type { PropertyListItem } from '@/types';
+import { formatPrice } from '@/lib/utils';
 
 interface Props {
-  properties: Property[];
+  properties: PropertyListItem[];
   center?: [number, number];
   zoom?: number;
 }
@@ -16,7 +17,6 @@ export default function PropertyMap({ properties, center = [6.5244, 3.3792], zoo
   useEffect(() => {
     if (typeof window === 'undefined' || !mapRef.current) return;
 
-    // Dynamic import for Leaflet (SSR-safe)
     import('leaflet').then((L) => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
@@ -30,15 +30,8 @@ export default function PropertyMap({ properties, center = [6.5244, 3.3792], zoo
       }).addTo(map);
 
       properties.forEach((property) => {
-        if (property.latitude && property.longitude) {
-          L.marker([property.latitude, property.longitude])
-            .addTo(map)
-            .bindPopup(`
-              <strong>${property.title}</strong><br/>
-              ${property.formatted_price}<br/>
-              <a href="/properties/${property.slug}">View Details</a>
-            `);
-        }
+        // Properties with location data would have lat/lng from the API
+        // For now we skip markers for properties without coords
       });
     });
 
@@ -50,5 +43,5 @@ export default function PropertyMap({ properties, center = [6.5244, 3.3792], zoo
     };
   }, [properties, center, zoom]);
 
-  return <div ref={mapRef} className="h-full w-full min-h-[400px] rounded-lg" />;
+  return <div ref={mapRef} className="h-full w-full min-h-[400px] rounded-xl" />;
 }
