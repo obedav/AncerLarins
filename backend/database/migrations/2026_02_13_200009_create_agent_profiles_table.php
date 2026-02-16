@@ -11,7 +11,8 @@ return new class extends Migration
         Schema::create('agent_profiles', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->unique()->constrained()->cascadeOnDelete();
-            $table->string('business_name')->nullable();
+            $table->string('company_name')->nullable();
+            $table->string('logo_url')->nullable();
             $table->string('license_number')->nullable();
             $table->enum('verification_status', ['unverified', 'pending', 'verified', 'rejected'])->default('unverified');
             $table->timestampTz('verified_at')->nullable();

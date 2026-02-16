@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useLoginMutation, useVerifyOtpMutation } from '@/store/api/authApi';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, getRoleRedirect } from '@/hooks/useAuth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,7 +39,7 @@ export default function LoginPage() {
           access_token: result.data.access_token,
           refresh_token: result.data.refresh_token,
         });
-        router.push('/dashboard');
+        router.push(getRoleRedirect(result.data.user.role));
       }
     } catch (err: unknown) {
       const apiErr = err as { data?: { message?: string } };

@@ -104,7 +104,7 @@ class PropertyDetailResource extends JsonResource
             ),
             'agent' => $this->when(
                 $this->relationLoaded('agent'),
-                fn () => $this->agent ? new AgentListResource($this->agent->load('user')) : null
+                fn () => $this->agent ? new AgentDetailResource($this->agent->load('user')) : null
             ),
             'virtual_tour' => $this->when(
                 $this->relationLoaded('virtualTour') && $this->virtualTour,
@@ -117,6 +117,7 @@ class PropertyDetailResource extends JsonResource
             'meta_description' => $this->meta_description,
             'views_count'      => $this->when(isset($this->views_count), $this->views_count),
             'saves_count'      => $this->when(isset($this->saved_by_count), $this->saved_by_count),
+            'similar_count'    => $this->when(isset($this->similar_count), $this->similar_count),
             'published_at'     => $this->published_at?->toISOString(),
             'expires_at'       => $this->expires_at?->toISOString(),
             'created_at'       => $this->created_at?->toISOString(),

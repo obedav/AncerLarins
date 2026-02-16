@@ -61,6 +61,7 @@ class AdminPropertyResource extends JsonResource
                     'is_cover'      => $img->is_cover,
                 ])
             ),
+            'report_count' => $this->when(isset($this->reports_count), $this->reports_count),
             'approved_by'  => $this->approved_by,
             'approved_at'  => $this->approved_at?->toISOString(),
             'published_at' => $this->published_at?->toISOString(),

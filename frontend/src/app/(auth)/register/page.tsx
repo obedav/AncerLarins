@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useRegisterMutation, useVerifyOtpMutation } from '@/store/api/authApi';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, getRoleRedirect } from '@/hooks/useAuth';
 
 function RegisterContent() {
   const router = useRouter();
@@ -53,7 +53,7 @@ function RegisterContent() {
           access_token: result.data.access_token,
           refresh_token: result.data.refresh_token,
         });
-        router.push('/dashboard');
+        router.push(getRoleRedirect(result.data.user.role));
       }
     } catch (err: unknown) {
       const apiErr = err as { data?: { message?: string } };

@@ -22,6 +22,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/register', [AuthController::class, 'register']);
         Route::post('/login', [AuthController::class, 'login']);
         Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+        Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
     });
 
@@ -41,6 +42,12 @@ Route::prefix('v1')->group(function () {
     Route::get('/agents/{agent}/listings', [AgentController::class, 'listings']);
     Route::get('/agents/{agent}/reviews', [AgentController::class, 'reviews']);
 
+    // ── Webhooks (no auth, verified by signature) ──────
+    Route::prefix('webhooks')->group(function () {
+        Route::post('/paystack', [App\Http\Controllers\Api\V1\WebhookController::class, 'paystack']);
+        Route::post('/termii', [App\Http\Controllers\Api\V1\WebhookController::class, 'termii']);
+    });
+
     // ── Public: Locations ───────────────────────────────
     Route::get('/states', [LocationController::class, 'states']);
     Route::get('/cities', [LocationController::class, 'cities']);
@@ -48,7 +55,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/areas/{area}', [LocationController::class, 'areaDetail']);
 
     // ── Protected: Authenticated users ──────────────────
-    Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+    Route::middleware(['auth:sanctum', 'throttle:60,1', 'ensure.phone_verified', 'track.activity'])->group(function () {
 
         // Auth
         Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -68,8 +75,16 @@ Route::prefix('v1')->group(function () {
 
         // Notifications
         Route::get('/me/notifications', [UserController::class, 'notifications']);
+        Route::get('/me/notifications/unread-count', [UserController::class, 'unreadNotificationsCount']);
         Route::patch('/me/notifications/{notification}/read', [UserController::class, 'markNotificationRead']);
         Route::post('/me/notifications/read-all', [UserController::class, 'markAllNotificationsRead']);
+
+        // Push tokens
+        Route::post('/me/push-tokens', [UserController::class, 'registerPushToken']);
+        Route::delete('/me/push-tokens', [UserController::class, 'removePushToken']);
+
+        // Reviews
+        Route::post('/agents/{agent}/reviews', [AgentController::class, 'createReview']);
 
         // Contact / leads
         Route::post('/properties/{property}/contact', [PropertyController::class, 'contact']);
@@ -82,6 +97,7 @@ Route::prefix('v1')->group(function () {
 
             Route::get('/dashboard', [AgentController::class, 'dashboard']);
             Route::get('/leads', [AgentController::class, 'leads']);
+            Route::put('/leads/{lead}/respond', [AgentController::class, 'respondToLead']);
             Route::put('/profile', [AgentController::class, 'updateProfile']);
             Route::post('/verification', [AgentController::class, 'submitVerification']);
 

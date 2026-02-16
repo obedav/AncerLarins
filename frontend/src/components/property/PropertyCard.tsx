@@ -7,13 +7,17 @@ import { formatPrice } from '@/lib/utils';
 
 interface Props {
   property: PropertyListItem;
+  source?: string;
 }
 
-export default function PropertyCard({ property }: Props) {
+export default function PropertyCard({ property, source }: Props) {
   const coverUrl = property.cover_image?.thumbnail_url || property.cover_image?.url;
+  const href = source
+    ? `/properties/${property.slug}?ref=${source}`
+    : `/properties/${property.slug}`;
 
   return (
-    <Link href={`/properties/${property.slug}`} className="group block">
+    <Link href={href} className="group block">
       <div className="bg-surface rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-border">
         {/* Image */}
         <div className="relative h-52 sm:h-48 bg-border/50">

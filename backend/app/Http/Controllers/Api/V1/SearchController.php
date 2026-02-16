@@ -21,16 +21,25 @@ class SearchController extends Controller
 
     public function index(SearchPropertyRequest $request): JsonResponse
     {
-        $results = $this->searchService->search(
+        $data = $this->searchService->search(
             $request->validated(),
             $request->user()?->id,
         );
 
-        return $this->paginatedResponse(
-            $results->setCollection(
-                $results->getCollection()->map(fn ($p) => new PropertyListResource($p))
-            )
-        );
+        $results = $data['results'];
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Success',
+            'data'    => $results->getCollection()->map(fn ($p) => new PropertyListResource($p)),
+            'meta'    => [
+                'current_page' => $results->currentPage(),
+                'last_page'    => $results->lastPage(),
+                'per_page'     => $results->perPage(),
+                'total'        => $results->total(),
+            ],
+            'facets'  => $data['facets'],
+        ]);
     }
 
     public function suggestions(Request $request): JsonResponse

@@ -19,7 +19,7 @@ class UserResource extends JsonResource
             'phone'      => $isSelf ? $this->phone : $this->maskedPhone(),
             'email'      => $isSelf ? $this->email : null,
             'avatar_url' => $this->avatar_url,
-            'role'       => $this->role,
+            'role'       => $this->role->value,
             'status'     => $this->when($isSelf, $this->status),
             'phone_verified' => $this->when($isSelf, $this->phone_verified),
             'preferred_city_id' => $this->when($isSelf, $this->preferred_city_id),

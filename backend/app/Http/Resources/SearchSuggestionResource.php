@@ -10,11 +10,11 @@ class SearchSuggestionResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'type'  => $this['type'],
-            'id'    => $this['id'],
-            'label' => $this['label'],
-            'slug'  => $this['slug'] ?? null,
-            'extra' => $this['extra'] ?? null,
+            'type'        => $this['type'],
+            'id'          => $this['id'],
+            'name'        => $this['label'],
+            'slug'        => $this['slug'] ?? null,
+            'parent_name' => $this['parent_name'] ?? $this['extra'] ?? null,
         ];
     }
 }

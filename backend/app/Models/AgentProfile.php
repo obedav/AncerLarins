@@ -15,7 +15,7 @@ class AgentProfile extends Model
     use HasUuids;
 
     protected $fillable = [
-        'user_id', 'business_name', 'license_number',
+        'user_id', 'company_name', 'logo_url', 'license_number',
         'verification_status', 'verified_at', 'verified_by', 'rejection_reason',
         'id_document_type', 'id_document_url', 'cac_document_url',
         'whatsapp_number', 'office_address', 'office_area_id',

@@ -12,10 +12,11 @@ class ReviewResource extends JsonResource
         return [
             'id'                    => $this->id,
             'overall_rating'        => $this->overall_rating,
-            'communication_rating'  => $this->communication_rating,
-            'responsiveness_rating' => $this->responsiveness_rating,
-            'negotiation_rating'    => $this->negotiation_rating,
+            'responsiveness'        => $this->responsiveness,
+            'honesty'               => $this->honesty,
+            'professionalism'       => $this->professionalism,
             'comment'               => $this->comment,
+            'verified_interaction'  => $this->verified_interaction,
             'status'                => $this->status,
             'user' => $this->when(
                 $this->relationLoaded('user'),

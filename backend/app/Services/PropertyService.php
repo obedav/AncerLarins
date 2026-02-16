@@ -3,11 +3,13 @@
 namespace App\Services;
 
 use App\Enums\PropertyStatus;
+use App\Enums\UserRole;
 use App\Models\AgentProfile;
 use App\Models\PriceHistory;
 use App\Models\Property;
 use App\Models\PropertyImage;
 use App\Models\PropertyView;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -15,11 +17,12 @@ class PropertyService
 {
     public function __construct(
         protected ImageService $imageService,
+        protected NotificationService $notificationService,
     ) {}
 
     public function getBySlug(string $slug): ?Property
     {
-        return Property::where('slug', $slug)
+        $property = Property::where('slug', $slug)
             ->approved()
             ->with([
                 'propertyType', 'state', 'city', 'area',
@@ -28,6 +31,16 @@ class PropertyService
             ])
             ->withCount(['views', 'savedBy'])
             ->first();
+
+        if ($property) {
+            $property->similar_count = Property::approved()
+                ->where('id', '!=', $property->id)
+                ->where('city_id', $property->city_id)
+                ->where('listing_type', $property->listing_type)
+                ->count();
+        }
+
+        return $property;
     }
 
     public function create(array $data, AgentProfile $agent): Property
@@ -55,7 +68,25 @@ class PropertyService
                 'changed_at'  => now(),
             ]);
 
-            return $property->load(['propertyType', 'state', 'city', 'area', 'amenities', 'agent.user']);
+            $property->load(['propertyType', 'state', 'city', 'area', 'amenities', 'agent.user']);
+
+            // Notify admins about new pending property
+            $admins = User::whereIn('role', [UserRole::Admin, UserRole::SuperAdmin])->get();
+            foreach ($admins as $admin) {
+                $this->notificationService->send(
+                    $admin,
+                    'New Property Pending Review',
+                    "'{$property->title}' by {$property->agent->user->full_name} needs review.",
+                    'property_pending',
+                    [
+                        'action_type' => 'property',
+                        'action_id'   => $property->id,
+                        'action_url'  => "/admin/properties/pending",
+                    ]
+                );
+            }
+
+            return $property;
         });
     }
 
@@ -136,6 +167,20 @@ class PropertyService
         }
 
         $image->delete();
+    }
+
+    public function markAsSold(Property $property): Property
+    {
+        $property->update(['status' => PropertyStatus::Sold]);
+
+        return $property->fresh();
+    }
+
+    public function markAsRented(Property $property): Property
+    {
+        $property->update(['status' => PropertyStatus::Rented]);
+
+        return $property->fresh();
     }
 
     public function incrementViewCount(Property $property, array $meta = []): void

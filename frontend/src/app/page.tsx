@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import HeroSearch from '@/components/search/HeroSearch';
 
 const POPULAR_AREAS = [
   { name: 'Lekki', description: 'Modern living & beachfront', gradient: 'from-blue-900/80 to-blue-700/60' },
@@ -37,32 +38,19 @@ export default function Home() {
             </p>
 
             {/* Search Bar */}
-            <div className="max-w-2xl mx-auto">
-              <form action="/properties" method="GET" className="bg-surface rounded-2xl p-2 flex flex-col sm:flex-row gap-2 shadow-2xl">
-                <input
-                  type="text"
-                  name="q"
-                  placeholder="Search by area, property type..."
-                  className="flex-1 px-5 py-3.5 text-text-primary rounded-xl bg-background border border-border focus:outline-none focus:border-accent-dark text-base"
-                />
-                <button
-                  type="submit"
-                  className="bg-accent hover:bg-accent-dark text-primary px-8 py-3.5 rounded-xl font-semibold transition-colors text-base whitespace-nowrap"
-                >
-                  Search
-                </button>
-              </form>
+            <HeroSearch />
 
+            <div className="max-w-2xl mx-auto">
               {/* Quick Filters */}
               <div className="flex justify-center gap-3 mt-5">
                 <Link
-                  href="/properties?listing_type=rent"
+                  href="/properties?listing_type=rent&ref=home"
                   className="bg-white/10 hover:bg-accent/20 text-white hover:text-accent border border-white/20 px-6 py-2.5 rounded-full text-sm font-medium transition-all"
                 >
                   Rent
                 </Link>
                 <Link
-                  href="/properties?listing_type=sale"
+                  href="/properties?listing_type=sale&ref=home"
                   className="bg-white/10 hover:bg-accent/20 text-white hover:text-accent border border-white/20 px-6 py-2.5 rounded-full text-sm font-medium transition-all"
                 >
                   Buy
@@ -120,7 +108,7 @@ export default function Home() {
               {POPULAR_AREAS.map((area) => (
                 <Link
                   key={area.name}
-                  href={`/properties?area=${encodeURIComponent(area.name.toLowerCase().replace(/\s+/g, '-'))}`}
+                  href={`/properties?area=${encodeURIComponent(area.name.toLowerCase().replace(/\s+/g, '-'))}&ref=home`}
                   className="group relative h-40 md:h-48 rounded-xl overflow-hidden bg-primary"
                 >
                   <div className={`absolute inset-0 bg-gradient-to-t ${area.gradient} group-hover:opacity-80 transition-opacity`} />

@@ -52,8 +52,30 @@ export interface Notification {
   title: string;
   body: string;
   type: string;
-  data: Record<string, unknown> | null;
+  action_url: string | null;
+  action_type: string | null;
+  action_id: string | null;
   is_read: boolean;
   read_at: string | null;
+  created_at: string;
+}
+
+export interface SavedSearch {
+  id: string;
+  name: string;
+  listing_type: string | null;
+  property_type_id: string | null;
+  property_type?: { id: string; name: string } | null;
+  city_id: string | null;
+  city?: { id: string; name: string } | null;
+  area_ids: string[] | null;
+  min_price_kobo: number | null;
+  max_price_kobo: number | null;
+  min_bedrooms: number | null;
+  max_bedrooms: number | null;
+  furnishing: string | null;
+  frequency: 'instant' | 'daily' | 'weekly';
+  match_count: number;
+  is_active: boolean;
   created_at: string;
 }

@@ -22,7 +22,7 @@ class CreatePropertyRequest extends FormRequest
             'property_type_id'   => ['required', 'uuid', 'exists:property_types,id'],
             'title'              => ['required', 'string', 'max:255'],
             'description'        => ['required', 'string', 'max:5000'],
-            'price_kobo'         => ['required', 'integer', 'min:0'],
+            'price_kobo'         => ['required', 'integer', 'min:1'],
             'price_negotiable'   => ['sometimes', 'boolean'],
             'rent_period'        => ['required_if:listing_type,rent', 'nullable', Rule::in(array_column(RentPeriod::cases(), 'value'))],
             'agency_fee_pct'     => ['nullable', 'numeric', 'min:0', 'max:100'],
@@ -61,6 +61,8 @@ class CreatePropertyRequest extends FormRequest
             'inspection_available' => ['sometimes', 'boolean'],
             'amenity_ids'        => ['nullable', 'array'],
             'amenity_ids.*'      => ['uuid', 'exists:amenities,id'],
+            'images'             => ['nullable', 'array', 'max:20'],
+            'images.*'           => ['image', 'max:5120'],
         ];
     }
 

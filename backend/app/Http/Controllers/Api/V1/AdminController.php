@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ApprovePropertyRequest;
+use App\Http\Requests\Admin\BanUserRequest;
 use App\Http\Requests\Admin\RejectAgentRequest;
 use App\Http\Requests\Admin\RejectPropertyRequest;
 use App\Http\Requests\Admin\VerifyAgentRequest;
@@ -41,6 +42,7 @@ class AdminController extends Controller
     {
         $properties = Property::pending()
             ->with(['propertyType', 'city', 'area', 'agent.user', 'images'])
+            ->withCount('reports')
             ->latest()
             ->paginate($request->integer('per_page', 20));
 
@@ -116,15 +118,12 @@ class AdminController extends Controller
         return $this->successResponse(null, 'Agent verification rejected.');
     }
 
-    public function banUser(Request $request): JsonResponse
+    public function banUser(BanUserRequest $request): JsonResponse
     {
-        $request->validate([
-            'user_id'    => 'required|uuid|exists:users,id',
-            'ban_reason' => 'required|string|max:1000',
-        ]);
+        $data = $request->validated();
 
-        $user = User::findOrFail($request->user_id);
-        $this->adminService->banUser($user, $request->ban_reason, $request->user());
+        $user = User::findOrFail($data['user_id']);
+        $this->adminService->banUser($user, $data['ban_reason'], $request->user());
 
         return $this->successResponse(null, 'User banned.');
     }

@@ -22,8 +22,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prepend(ForceJsonResponse::class);
         $middleware->append(SetLocale::class);
 
-        $middleware->statefulApi();
-
         $middleware->alias([
             'ensure.phone_verified' => EnsurePhoneVerified::class,
             'ensure.agent'          => EnsureAgent::class,

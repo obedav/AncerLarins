@@ -11,7 +11,11 @@ use App\Http\Resources\LeadResource;
 use App\Http\Resources\PropertyListResource;
 use App\Http\Resources\ReviewResource;
 use App\Models\AgentProfile;
+use App\Models\Lead;
+use App\Http\Requests\Review\CreateReviewRequest;
 use App\Services\AgentService;
+use App\Services\LeadService;
+use App\Services\ReviewService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,6 +26,8 @@ class AgentController extends Controller
 
     public function __construct(
         protected AgentService $agentService,
+        protected LeadService $leadService,
+        protected ReviewService $reviewService,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -74,6 +80,20 @@ class AgentController extends Controller
             $reviews->setCollection(
                 $reviews->getCollection()->map(fn ($r) => new ReviewResource($r))
             )
+        );
+    }
+
+    public function createReview(CreateReviewRequest $request, AgentProfile $agent): JsonResponse
+    {
+        $data = $request->validated();
+        $data['agent_profile_id'] = $agent->id;
+
+        $review = $this->reviewService->create($request->user(), $data);
+
+        return $this->successResponse(
+            new ReviewResource($review),
+            'Review submitted and pending approval.',
+            201
         );
     }
 
@@ -137,6 +157,23 @@ class AgentController extends Controller
             $leads->setCollection(
                 $leads->getCollection()->map(fn ($l) => new LeadResource($l))
             )
+        );
+    }
+
+    public function respondToLead(Request $request, Lead $lead): JsonResponse
+    {
+        $agent = $request->user()->agentProfile;
+
+        if (! $agent || $lead->agent_id !== $agent->id) {
+            return $this->errorResponse('Unauthorized.', 403);
+        }
+
+        $this->leadService->markResponded($lead);
+        $this->agentService->recalculateResponseMetrics($agent);
+
+        return $this->successResponse(
+            new LeadResource($lead->fresh()->load(['property.images', 'user'])),
+            'Lead marked as responded.'
         );
     }
 }

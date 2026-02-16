@@ -8,6 +8,8 @@ use App\Models\Property;
 use App\Models\PropertyType;
 use App\Models\SearchLog;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class SearchService
@@ -16,7 +18,116 @@ class SearchService
         protected GeoSearchService $geoSearchService,
     ) {}
 
-    public function search(array $filters, ?string $userId = null): LengthAwarePaginator
+    /**
+     * @return array{results: LengthAwarePaginator, facets: array}
+     */
+    public function search(array $filters, ?string $userId = null): array
+    {
+        $query = $this->buildSearchQuery($filters);
+
+        // Clone query before pagination to compute facets
+        $facetBaseQuery = (clone $query)->getQuery();
+
+        $sortBy = $filters['sort_by'] ?? 'newest';
+        match ($sortBy) {
+            'price_asc'  => $query->orderBy('price_kobo', 'asc'),
+            'price_desc' => $query->orderBy('price_kobo', 'desc'),
+            'popular'    => $query->withCount('views')->orderByDesc('views_count'),
+            default      => $query->latest('published_at'),
+        };
+
+        $results = $query->paginate($filters['per_page'] ?? 20);
+
+        $facets = $this->computeFacets($facetBaseQuery);
+
+        $this->logSearch($filters, $userId, $results->total());
+
+        return [
+            'results' => $results,
+            'facets'  => $facets,
+        ];
+    }
+
+    public function suggestions(string $query): array
+    {
+        $cacheKey = 'search_suggestions:' . mb_strtolower(trim($query));
+
+        return Cache::remember($cacheKey, 3600, function () use ($query) {
+            $areas = Area::where('name', 'ilike', "%{$query}%")
+                ->active()
+                ->with('city')
+                ->limit(4)
+                ->get()
+                ->map(fn ($a) => [
+                    'type'        => 'area',
+                    'id'          => $a->id,
+                    'label'       => $a->name,
+                    'slug'        => $a->slug,
+                    'parent_name' => $a->city?->name,
+                ]);
+
+            $cities = City::where('name', 'ilike', "%{$query}%")
+                ->active()
+                ->with('state')
+                ->limit(3)
+                ->get()
+                ->map(fn ($c) => [
+                    'type'        => 'city',
+                    'id'          => $c->id,
+                    'label'       => $c->name,
+                    'slug'        => $c->slug,
+                    'parent_name' => $c->state?->name,
+                ]);
+
+            $propertyTypes = PropertyType::where('name', 'ilike', "%{$query}%")
+                ->active()
+                ->limit(3)
+                ->get()
+                ->map(fn ($pt) => [
+                    'type'        => 'property_type',
+                    'id'          => $pt->id,
+                    'label'       => $pt->name,
+                    'slug'        => $pt->slug,
+                    'parent_name' => null,
+                ]);
+
+            return array_merge(
+                $areas->toArray(),
+                $cities->toArray(),
+                $propertyTypes->toArray(),
+            );
+        });
+    }
+
+    public function mapSearch(float $north, float $south, float $east, float $west, array $filters = []): array
+    {
+        $query = $this->geoSearchService->searchByBounds($north, $south, $east, $west);
+
+        $query->approved();
+
+        if (! empty($filters['listing_type'])) {
+            $query->where('listing_type', $filters['listing_type']);
+        }
+
+        if (! empty($filters['property_type_id'])) {
+            $query->where('property_type_id', $filters['property_type_id']);
+        }
+
+        if (! empty($filters['min_price']) || ! empty($filters['max_price'])) {
+            $query->priceBetween(
+                $filters['min_price'] ?? null,
+                $filters['max_price'] ?? null,
+            );
+        }
+
+        return $query->select(['id', 'title', 'slug', 'price_kobo', 'listing_type', 'bedrooms', 'bathrooms'])
+            ->selectRaw('ST_Y(location::geometry) as latitude, ST_X(location::geometry) as longitude')
+            ->limit(200)
+            ->get()
+            ->toArray();
+    }
+
+    protected function buildSearchQuery(array $filters): Builder
     {
         $query = Property::query()->approved()
             ->with(['propertyType', 'city', 'area', 'images', 'agent.user']);
@@ -67,102 +178,38 @@ class SearchService
             $query->where('furnishing', $filters['furnishing']);
         }
 
-        if (isset($filters['is_serviced'])) {
-            $query->where('is_serviced', $filters['is_serviced']);
+        foreach (['is_serviced', 'has_bq', 'has_generator', 'has_water_supply', 'is_new_build'] as $flag) {
+            if (isset($filters[$flag])) {
+                $query->where($flag, $filters[$flag]);
+            }
         }
 
-        if (isset($filters['has_bq'])) {
-            $query->where('has_bq', $filters['has_bq']);
-        }
-
-        $sortBy = $filters['sort_by'] ?? 'newest';
-        match ($sortBy) {
-            'price_asc'  => $query->orderBy('price_kobo', 'asc'),
-            'price_desc' => $query->orderBy('price_kobo', 'desc'),
-            'popular'    => $query->withCount('views')->orderByDesc('views_count'),
-            default      => $query->latest('published_at'),
-        };
-
-        $this->logSearch($filters, $userId);
-
-        return $query->paginate($filters['per_page'] ?? 20);
+        return $query;
     }
 
-    public function suggestions(string $query): array
+    protected function computeFacets($baseQuery): array
     {
-        $results = [];
-
-        $areas = Area::where('name', 'ilike', "%{$query}%")
-            ->active()
-            ->limit(3)
-            ->get()
-            ->map(fn ($a) => [
-                'type'  => 'area',
-                'id'    => $a->id,
-                'label' => $a->name,
-                'slug'  => $a->slug,
-                'extra' => $a->city?->name,
-            ]);
-
-        $cities = City::where('name', 'ilike', "%{$query}%")
-            ->active()
-            ->limit(3)
-            ->get()
-            ->map(fn ($c) => [
-                'type'  => 'city',
-                'id'    => $c->id,
-                'label' => $c->name,
-                'slug'  => $c->slug,
-                'extra' => $c->state?->name,
-            ]);
-
-        $propertyTypes = PropertyType::where('name', 'ilike', "%{$query}%")
-            ->active()
-            ->limit(3)
-            ->get()
-            ->map(fn ($pt) => [
-                'type'  => 'property_type',
-                'id'    => $pt->id,
-                'label' => $pt->name,
-                'slug'  => $pt->slug,
-            ]);
-
-        return array_merge(
-            $areas->toArray(),
-            $cities->toArray(),
-            $propertyTypes->toArray(),
-        );
-    }
-
-    public function mapSearch(float $north, float $south, float $east, float $west, array $filters = []): array
-    {
-        $query = $this->geoSearchService->searchByBounds($north, $south, $east, $west);
-
-        $query->approved();
-
-        if (! empty($filters['listing_type'])) {
-            $query->where('listing_type', $filters['listing_type']);
-        }
-
-        if (! empty($filters['property_type_id'])) {
-            $query->where('property_type_id', $filters['property_type_id']);
-        }
-
-        if (! empty($filters['min_price']) || ! empty($filters['max_price'])) {
-            $query->priceBetween(
-                $filters['min_price'] ?? null,
-                $filters['max_price'] ?? null,
-            );
-        }
-
-        return $query->select(['id', 'title', 'slug', 'price_kobo', 'listing_type', 'bedrooms', 'bathrooms'])
-            ->selectRaw('ST_Y(location::geometry) as latitude, ST_X(location::geometry) as longitude')
-            ->limit(200)
-            ->get()
+        $byType = DB::table(DB::raw("({$baseQuery->toSql()}) as filtered"))
+            ->mergeBindings($baseQuery)
+            ->select('property_type_id', DB::raw('count(*) as count'))
+            ->groupBy('property_type_id')
+            ->pluck('count', 'property_type_id')
             ->toArray();
+
+        $byArea = DB::table(DB::raw("({$baseQuery->toSql()}) as filtered"))
+            ->mergeBindings($baseQuery)
+            ->select('area_id', DB::raw('count(*) as count'))
+            ->groupBy('area_id')
+            ->pluck('count', 'area_id')
+            ->toArray();
+
+        return [
+            'by_property_type' => $byType,
+            'by_area'          => $byArea,
+        ];
     }
 
-    protected function logSearch(array $filters, ?string $userId): void
+    protected function logSearch(array $filters, ?string $userId, int $resultsCount = 0): void
     {
         SearchLog::create([
             'user_id'          => $userId,
@@ -174,7 +221,7 @@ class SearchService
             'min_price'        => $filters['min_price'] ?? null,
             'max_price'        => $filters['max_price'] ?? null,
             'min_bedrooms'     => $filters['min_bedrooms'] ?? null,
-            'results_count'    => 0,
+            'results_count'    => $resultsCount,
         ]);
     }
 }

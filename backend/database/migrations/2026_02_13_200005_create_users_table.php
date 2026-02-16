@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('email')->unique()->nullable();
             $table->string('phone')->unique();
             $table->string('avatar_url')->nullable();
-            $table->string('password_hash');
+            $table->string('password_hash')->nullable();
             $table->boolean('phone_verified')->default(false);
             $table->boolean('email_verified')->default(false);
             $table->enum('role', ['user', 'agent', 'admin', 'super_admin'])->default('user');
@@ -29,11 +29,15 @@ return new class extends Migration
             $table->timestampsTz();
             $table->softDeletesTz();
 
-            $table->foreign('banned_by')->references('id')->on('users')->nullOnDelete();
             $table->foreign('preferred_city_id')->references('id')->on('cities')->nullOnDelete();
 
             $table->index('role');
             $table->index('status');
+        });
+
+        // Self-referencing FK must be added after table creation
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreign('banned_by')->references('id')->on('users')->nullOnDelete();
         });
     }
 

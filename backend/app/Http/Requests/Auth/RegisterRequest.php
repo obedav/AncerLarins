@@ -20,6 +20,7 @@ class RegisterRequest extends FormRequest
             'last_name'  => ['required', 'string', 'max:100'],
             'phone'      => ['required', 'string', 'regex:/^(\+234|0)[789]\d{9}$/', 'unique:users,phone'],
             'email'      => ['nullable', 'email', 'max:255', 'unique:users,email'],
+            'password'   => ['required', 'string', 'min:8'],
             'role'       => ['sometimes', Rule::in([UserRole::User->value, UserRole::Agent->value])],
         ];
     }

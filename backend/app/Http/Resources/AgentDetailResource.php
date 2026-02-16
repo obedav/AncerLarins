@@ -24,6 +24,7 @@ class AgentDetailResource extends JsonResource
             'years_experience'    => $this->years_experience,
             'avg_rating'          => $this->avg_rating ? round($this->avg_rating, 1) : null,
             'total_reviews'       => $this->total_reviews,
+            'avg_response_time'   => $this->avg_response_time,
             'user' => $this->when(
                 $this->relationLoaded('user'),
                 fn () => [

@@ -52,4 +52,9 @@ class OtpCode extends Model
     {
         $this->update(['verified_at' => now()]);
     }
+
+    public function incrementAttempts(): void
+    {
+        $this->increment('attempts');
+    }
 }

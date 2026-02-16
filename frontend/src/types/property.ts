@@ -48,7 +48,9 @@ export interface PropertyListItem {
     is_verified: boolean;
   } | null;
   views_count?: number;
+  leads_count?: number;
   published_at: string | null;
+  created_at?: string;
 }
 
 export interface Amenity {
@@ -140,4 +142,5 @@ export interface CreatePropertyPayload {
   available_from?: string;
   inspection_available?: boolean;
   amenity_ids?: string[];
+  status?: PropertyStatus;
 }

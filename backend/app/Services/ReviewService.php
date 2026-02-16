@@ -11,9 +11,13 @@ class ReviewService
 {
     public function create(User $user, array $data): AgentReview
     {
+        $verifiedInteraction = ! empty($data['lead_id']);
+
         $review = AgentReview::create(array_merge($data, [
-            'user_id' => $user->id,
-            'status'  => ReviewStatus::Pending,
+            'user_id'              => $user->id,
+            'agent_id'             => $data['agent_profile_id'],
+            'status'               => ReviewStatus::Pending,
+            'verified_interaction' => $verifiedInteraction,
         ]));
 
         return $review;

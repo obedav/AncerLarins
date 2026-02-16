@@ -45,4 +45,17 @@ class AgentSubscription extends Model
         return $query->where('status', SubscriptionStatus::Active)
             ->where('ends_at', '>', now());
     }
+
+    // ── Helpers ──────────────────────────────────────────
+
+    public function isActive(): bool
+    {
+        return $this->status === SubscriptionStatus::Active
+            && $this->ends_at->isFuture();
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->ends_at->isPast();
+    }
 }

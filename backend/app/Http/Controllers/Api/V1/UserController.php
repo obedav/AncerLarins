@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SavedSearch\CreateSavedSearchRequest;
+use App\Http\Requests\User\UpdateProfileRequest;
 use App\Http\Resources\NotificationResource;
 use App\Http\Resources\PropertyListResource;
 use App\Http\Resources\UserResource;
 use App\Models\Notification;
+use App\Models\PushToken;
 use App\Models\SavedSearch;
 use App\Services\NotificationService;
 use App\Services\SavedSearchService;
@@ -31,17 +33,9 @@ class UserController extends Controller
         );
     }
 
-    public function update(Request $request): JsonResponse
+    public function update(UpdateProfileRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'first_name'        => 'sometimes|string|max:100',
-            'last_name'         => 'sometimes|string|max:100',
-            'email'             => 'nullable|email|unique:users,email,' . $request->user()->id,
-            'avatar_url'        => 'nullable|url',
-            'preferred_city_id' => 'nullable|uuid|exists:cities,id',
-        ]);
-
-        $request->user()->update($data);
+        $request->user()->update($request->validated());
 
         return $this->successResponse(
             new UserResource($request->user()->fresh()),
@@ -88,7 +82,7 @@ class UserController extends Controller
 
         $this->savedSearchService->delete($savedSearch);
 
-        return $this->successResponse(null, 'Saved search deleted.');
+        return response()->json(null, 204);
     }
 
     public function notifications(Request $request): JsonResponse
@@ -121,5 +115,46 @@ class UserController extends Controller
         $this->notificationService->markAllAsRead($request->user()->id);
 
         return $this->successResponse(null, 'All notifications marked as read.');
+    }
+
+    public function unreadNotificationsCount(Request $request): JsonResponse
+    {
+        $count = $this->notificationService->getUnreadCount($request->user()->id);
+
+        return $this->successResponse(['count' => $count]);
+    }
+
+    public function registerPushToken(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'token'       => ['required', 'string', 'max:500'],
+            'device_type' => ['required', 'string', 'in:web,android,ios'],
+        ]);
+
+        PushToken::updateOrCreate(
+            [
+                'user_id' => $request->user()->id,
+                'token'   => $data['token'],
+            ],
+            [
+                'device_type' => $data['device_type'],
+                'is_active'   => true,
+            ]
+        );
+
+        return $this->successResponse(null, 'Push token registered.');
+    }
+
+    public function removePushToken(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'token' => ['required', 'string'],
+        ]);
+
+        PushToken::where('user_id', $request->user()->id)
+            ->where('token', $data['token'])
+            ->delete();
+
+        return response()->json(null, 204);
     }
 }

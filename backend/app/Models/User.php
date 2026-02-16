@@ -9,10 +9,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasApiTokens, HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
         'first_name', 'last_name', 'email', 'phone', 'avatar_url',

@@ -51,6 +51,11 @@ class Notification extends Model
         return $query->whereNotNull('read_at');
     }
 
+    public function scopeByType(Builder $query, string $type): Builder
+    {
+        return $query->where('type', $type);
+    }
+
     // ── Helpers ──────────────────────────────────────────
 
     public function markRead(): void

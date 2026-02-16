@@ -72,7 +72,7 @@ class DatabaseSeeder extends Seeder
         DB::table('agent_profiles')->insert([
             'id' => Str::uuid()->toString(),
             'user_id' => $agentUserId,
-            'business_name' => 'Test Properties Ltd',
+            'company_name' => 'Test Properties Ltd',
             'verification_status' => 'verified',
             'verified_at' => $now,
             'whatsapp_number' => '2348000000003',

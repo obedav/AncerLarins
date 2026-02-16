@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Enums\VerificationStatus;
 use App\Models\AgentProfile;
+use App\Models\Lead;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class AgentService
@@ -52,6 +54,34 @@ class AgentService
 
             return $agent->fresh();
         });
+    }
+
+    public function getLeads(AgentProfile $agent, int $perPage = 15): LengthAwarePaginator
+    {
+        return Lead::where('agent_id', $agent->id)
+            ->with(['property:id,title,slug', 'property.images' => fn ($q) => $q->where('is_cover', true), 'user:id,first_name,last_name,phone'])
+            ->latest('created_at')
+            ->paginate($perPage);
+    }
+
+    public function recalculateResponseMetrics(AgentProfile $agent): void
+    {
+        $totalLeads = Lead::where('agent_id', $agent->id)->count();
+        $respondedLeads = Lead::where('agent_id', $agent->id)->responded()->count();
+
+        $responseRate = $totalLeads > 0
+            ? round(($respondedLeads / $totalLeads) * 100, 1)
+            : 0;
+
+        $avgResponseTime = Lead::where('agent_id', $agent->id)
+            ->responded()
+            ->whereNotNull('response_time_min')
+            ->avg('response_time_min');
+
+        $agent->update([
+            'response_rate'     => $responseRate,
+            'avg_response_time' => $avgResponseTime ? (int) round($avgResponseTime) : null,
+        ]);
     }
 
     public function getDashboardStats(AgentProfile $agent): array

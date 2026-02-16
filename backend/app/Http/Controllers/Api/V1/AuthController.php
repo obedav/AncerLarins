@@ -33,17 +33,24 @@ class AuthController extends Controller
     {
         $data = $request->validated();
 
-        $verified = $this->authService->verifyOtp(
+        $result = $this->authService->verifyOtp(
             $data['phone'],
             $data['code'],
             $data['purpose'],
         );
 
-        if (! $verified) {
+        if (! $result) {
             return $this->errorResponse('Invalid or expired OTP.', 422);
         }
 
-        return $this->successResponse(null, 'Phone verified successfully.');
+        $response = ['user' => new UserResource($result['user'])];
+
+        if (isset($result['access_token'])) {
+            $response['access_token']  = $result['access_token'];
+            $response['refresh_token'] = $result['refresh_token'];
+        }
+
+        return $this->successResponse($response, 'Phone verified successfully.');
     }
 
     public function login(LoginRequest $request): JsonResponse
@@ -54,11 +61,18 @@ class AuthController extends Controller
             return $this->errorResponse('Invalid credentials.', 401);
         }
 
-        return $this->successResponse([
-            'user'          => new UserResource($result['user']),
-            'access_token'  => $result['access_token'],
-            'refresh_token' => $result['refresh_token'],
-        ], 'Login successful.');
+        return $this->successResponse(null, 'OTP sent to your phone.');
+    }
+
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'phone' => ['required', 'string'],
+        ]);
+
+        $this->authService->forgotPassword($request->phone);
+
+        return $this->successResponse(null, 'If an account exists, an OTP has been sent.');
     }
 
     public function refresh(Request $request): JsonResponse
@@ -84,10 +98,4 @@ class AuthController extends Controller
         return $this->successResponse(null, 'Logged out.');
     }
 
-    public function me(Request $request): JsonResponse
-    {
-        return $this->successResponse(
-            new UserResource($request->user()->load('agentProfile'))
-        );
-    }
 }

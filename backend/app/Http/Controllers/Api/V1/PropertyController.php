@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Lead\ContactAgentRequest;
 use App\Http\Requests\Property\CreatePropertyRequest;
 use App\Http\Requests\Property\UpdatePropertyRequest;
 use App\Http\Requests\Report\CreateReportRequest;
@@ -95,7 +96,7 @@ class PropertyController extends Controller
 
         $this->propertyService->delete($property);
 
-        return $this->successResponse(null, 'Property deleted.');
+        return response()->json(null, 204);
     }
 
     public function uploadImages(Request $request, Property $property): JsonResponse
@@ -123,7 +124,7 @@ class PropertyController extends Controller
 
         $this->propertyService->removeImage($image);
 
-        return $this->successResponse(null, 'Image removed.');
+        return response()->json(null, 204);
     }
 
     public function save(Request $request, Property $property): JsonResponse
@@ -142,22 +143,30 @@ class PropertyController extends Controller
         return $this->successResponse(['saved' => true], 'Property saved.', 201);
     }
 
-    public function contact(Request $request, Property $property): JsonResponse
+    public function contact(ContactAgentRequest $request, Property $property): JsonResponse
     {
-        $request->validate(['contact_type' => 'required|in:whatsapp,call,form']);
+        $data = $request->validated();
 
         $lead = $this->leadService->create(
             $property,
             $request->user(),
-            $request->contact_type,
-            $request->source,
+            $data['contact_type'],
+            $data['source'] ?? null,
+            $data['utm_campaign'] ?? null,
         );
 
         $response = ['lead_id' => $lead->id];
 
         if ($request->contact_type === 'whatsapp') {
-            $response['whatsapp_url'] = $this->leadService->generateWhatsAppLink($property);
+            $response['whatsapp_url'] = $this->leadService->generateWhatsAppLink($property, $lead->id);
         }
+
+        if ($request->contact_type === 'call') {
+            $agent = $property->agent;
+            $response['phone'] = $agent?->whatsapp_number ?? $agent?->user?->phone ?? '';
+        }
+
+        $response['avg_response_time'] = $property->agent?->avg_response_time;
 
         return $this->successResponse($response, 'Contact logged.');
     }

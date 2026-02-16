@@ -31,8 +31,11 @@ class SearchPropertyRequest extends FormRequest
             'furnishing'       => ['nullable', Rule::in(array_column(Furnishing::cases(), 'value'))],
             'is_serviced'      => ['nullable', 'boolean'],
             'has_bq'           => ['nullable', 'boolean'],
+            'has_generator'    => ['nullable', 'boolean'],
+            'has_water_supply' => ['nullable', 'boolean'],
+            'is_new_build'     => ['nullable', 'boolean'],
             'sort_by'          => ['nullable', Rule::in(['price_asc', 'price_desc', 'newest', 'popular'])],
-            'per_page'         => ['nullable', 'integer', 'min:1', 'max:100'],
+            'per_page'         => ['nullable', 'integer', 'min:1', 'max:50'],
         ];
     }
 }

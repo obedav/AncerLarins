@@ -49,8 +49,8 @@ export const propertyApi = baseApi.injectEndpoints({
     }),
 
     contactAgent: builder.mutation<
-      ApiResponse<{ lead_id: string; whatsapp_url?: string }>,
-      { propertyId: string; contact_type: string; source?: string }
+      ApiResponse<{ lead_id: string; whatsapp_url?: string; phone?: string; avg_response_time?: number | null }>,
+      { propertyId: string; contact_type: string; source?: string; utm_campaign?: string }
     >({
       query: ({ propertyId, ...body }) => ({
         url: `/properties/${propertyId}/contact`,

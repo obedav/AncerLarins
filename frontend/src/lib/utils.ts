@@ -60,3 +60,12 @@ export function generateWhatsAppLink(phone: string, message: string): string {
 export function pluralize(count: number, singular: string, plural?: string): string {
   return count === 1 ? singular : (plural || singular + 's');
 }
+
+export function setLeadSource(source: string): void {
+  localStorage.setItem('lead_source', source);
+}
+
+export function getLeadSource(): string {
+  if (typeof window === 'undefined') return 'direct';
+  return localStorage.getItem('lead_source') || 'direct';
+}

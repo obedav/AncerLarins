@@ -1,18 +1,28 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useMemo, Suspense } from 'react';
+import { useState, useMemo, useCallback, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import PropertyCard from '@/components/property/PropertyCard';
-import { useSearchPropertiesQuery } from '@/store/api/searchApi';
-import { SORT_OPTIONS, BEDROOM_OPTIONS } from '@/lib/constants';
-import type { SearchFilters } from '@/types';
+import SearchFiltersPanel from '@/components/search/SearchFiltersPanel';
+import SearchAutocomplete from '@/components/search/SearchAutocomplete';
+import SaveSearchButton from '@/components/search/SaveSearchButton';
+import { useSearchPropertiesQuery, useGetMapPropertiesQuery } from '@/store/api/searchApi';
+import { SORT_OPTIONS } from '@/lib/constants';
+import type { SearchFilters, MapBounds } from '@/types';
+
+const PropertyMap = dynamic(() => import('@/components/map/PropertyMap'), { ssr: false });
+
+type ViewMode = 'grid' | 'list' | 'map';
 
 function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
 
   const filters: SearchFilters = useMemo(() => ({
     q: searchParams.get('q') || undefined,
@@ -23,6 +33,9 @@ function SearchContent() {
     min_price: searchParams.get('min_price') ? Number(searchParams.get('min_price')) : undefined,
     max_price: searchParams.get('max_price') ? Number(searchParams.get('max_price')) : undefined,
     min_bedrooms: searchParams.get('min_bedrooms') ? Number(searchParams.get('min_bedrooms')) : undefined,
+    furnishing: (searchParams.get('furnishing') as SearchFilters['furnishing']) || undefined,
+    is_serviced: searchParams.get('is_serviced') === 'true' ? true : undefined,
+    has_bq: searchParams.get('has_bq') === 'true' ? true : undefined,
     sort_by: (searchParams.get('sort_by') as SearchFilters['sort_by']) || 'newest',
     page: searchParams.get('page') ? Number(searchParams.get('page')) : 1,
     per_page: 20,
@@ -32,161 +45,296 @@ function SearchContent() {
   const properties = data?.data || [];
   const meta = data?.meta;
 
-  const updateFilter = (key: string, value: string | undefined) => {
+  // Map view data — only fetch when map is visible and we have bounds
+  const { data: mapData } = useGetMapPropertiesQuery(
+    { ...mapBounds!, listing_type: filters.listing_type } as MapBounds & Record<string, unknown>,
+    { skip: viewMode !== 'map' || !mapBounds },
+  );
+  const mapProperties = mapData?.data || [];
+
+  const updateFilter = useCallback((key: string, value: string | boolean | undefined) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set(key, value);
+    if (value !== undefined && value !== '') {
+      params.set(key, String(value));
     } else {
       params.delete(key);
     }
     params.delete('page');
     router.push(`/properties?${params.toString()}`);
-  };
+  }, [searchParams, router]);
 
-  const setPage = (page: number) => {
+  const clearAll = useCallback(() => {
+    router.push('/properties');
+  }, [router]);
+
+  const setPage = useCallback((page: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', String(page));
     router.push(`/properties?${params.toString()}`);
-  };
+  }, [searchParams, router]);
+
+  // Active filter chips
+  const activeFilters = useMemo(() => {
+    const chips: { key: string; label: string }[] = [];
+    if (filters.q) chips.push({ key: 'q', label: `"${filters.q}"` });
+    if (filters.listing_type) chips.push({ key: 'listing_type', label: filters.listing_type === 'rent' ? 'For Rent' : 'For Sale' });
+    if (filters.min_bedrooms !== undefined) chips.push({ key: 'min_bedrooms', label: `${filters.min_bedrooms}+ Beds` });
+    if (filters.min_price || filters.max_price) chips.push({ key: 'price', label: 'Price filtered' });
+    if (filters.furnishing) chips.push({ key: 'furnishing', label: filters.furnishing.replace('_', ' ') });
+    if (filters.is_serviced) chips.push({ key: 'is_serviced', label: 'Serviced' });
+    if (filters.has_bq) chips.push({ key: 'has_bq', label: 'BQ' });
+    return chips;
+  }, [filters]);
+
+  const removeChip = useCallback((key: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (key === 'price') {
+      params.delete('min_price');
+      params.delete('max_price');
+    } else {
+      params.delete(key);
+    }
+    params.delete('page');
+    router.push(`/properties?${params.toString()}`);
+  }, [searchParams, router]);
+
+  // Result count label
+  const resultLabel = useMemo(() => {
+    if (!meta) return '';
+    const parts: string[] = [];
+    parts.push(`${meta.total.toLocaleString()} propert${meta.total === 1 ? 'y' : 'ies'}`);
+    if (filters.listing_type === 'rent') parts.push('for rent');
+    if (filters.listing_type === 'sale') parts.push('for sale');
+    return parts.join(' ');
+  }, [meta, filters.listing_type]);
 
   return (
     <>
       <Navbar />
       <main className="min-h-screen">
         {/* Header */}
-        <div className="bg-primary py-8">
+        <div className="bg-primary py-6">
           <div className="container-app">
-            <h1 className="text-2xl md:text-3xl font-bold text-white">
-              {filters.listing_type === 'rent' ? 'Properties for Rent' :
-               filters.listing_type === 'sale' ? 'Properties for Sale' :
-               'All Properties'}
-            </h1>
-            {meta && (
-              <p className="text-white/60 mt-1">{meta.total.toLocaleString()} properties found</p>
-            )}
+            <div className="max-w-xl">
+              <SearchAutocomplete placeholder="Search areas, property types..." />
+            </div>
           </div>
         </div>
 
         <div className="container-app py-6">
-          {/* Filter Bar */}
-          <div className="flex flex-wrap items-center gap-3 mb-6">
-            {/* Listing Type Toggle */}
-            <div className="flex bg-surface border border-border rounded-lg overflow-hidden">
-              <button
-                onClick={() => updateFilter('listing_type', filters.listing_type === 'rent' ? undefined : 'rent')}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${filters.listing_type === 'rent' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-background'}`}
-              >
-                Rent
-              </button>
-              <button
-                onClick={() => updateFilter('listing_type', filters.listing_type === 'sale' ? undefined : 'sale')}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${filters.listing_type === 'sale' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-background'}`}
-              >
-                Buy
-              </button>
-            </div>
+          <div className="flex gap-6">
+            {/* Desktop Sidebar Filters */}
+            <aside className="hidden lg:block w-64 flex-shrink-0">
+              <div className="sticky top-20 bg-surface rounded-xl border border-border p-5 max-h-[calc(100vh-6rem)] overflow-y-auto">
+                <h2 className="text-base font-bold text-text-primary mb-4">Filters</h2>
+                <SearchFiltersPanel
+                  filters={filters}
+                  onFilterChange={updateFilter}
+                  onClearAll={clearAll}
+                />
+              </div>
+            </aside>
 
-            {/* Bedrooms */}
-            <select
-              value={filters.min_bedrooms || ''}
-              onChange={(e) => updateFilter('min_bedrooms', e.target.value || undefined)}
-              className="bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-secondary focus:outline-none focus:border-accent-dark"
-            >
-              <option value="">Bedrooms</option>
-              {BEDROOM_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}+ Bed</option>
-              ))}
-            </select>
-
-            {/* Sort */}
-            <select
-              value={filters.sort_by || 'newest'}
-              onChange={(e) => updateFilter('sort_by', e.target.value)}
-              className="bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-secondary focus:outline-none focus:border-accent-dark ml-auto"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-
-            {/* Mobile Filter Toggle */}
-            <button
-              onClick={() => setFiltersOpen(!filtersOpen)}
-              className="md:hidden bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-secondary"
-            >
-              Filters
-            </button>
-          </div>
-
-          {/* Active Filters */}
-          {(filters.q || filters.min_price || filters.max_price) && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {filters.q && (
-                <span className="bg-accent/10 text-accent-dark px-3 py-1 rounded-full text-sm flex items-center gap-1">
-                  &quot;{filters.q}&quot;
-                  <button onClick={() => updateFilter('q', undefined)} className="hover:text-error">&times;</button>
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Results */}
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-surface rounded-xl border border-border animate-pulse">
-                  <div className="h-48 bg-border/50 rounded-t-xl" />
-                  <div className="p-4 space-y-3">
-                    <div className="h-5 bg-border/50 rounded w-1/2" />
-                    <div className="h-4 bg-border/50 rounded w-3/4" />
-                    <div className="h-4 bg-border/50 rounded w-1/3" />
-                  </div>
+            {/* Main Content */}
+            <div className="flex-1 min-w-0">
+              {/* Toolbar */}
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div>
+                  {resultLabel && (
+                    <p className="text-sm font-medium text-text-primary">{resultLabel}</p>
+                  )}
                 </div>
-              ))}
-            </div>
-          ) : properties.length === 0 ? (
-            <div className="text-center py-20">
-              <svg className="w-16 h-16 text-text-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-              </svg>
-              <h3 className="text-lg font-semibold text-text-primary mb-2">No properties found</h3>
-              <p className="text-text-muted">Try adjusting your filters or search terms</p>
-            </div>
-          ) : (
-            <>
-              <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 ${isFetching ? 'opacity-60' : ''}`}>
-                {properties.map((property) => (
-                  <PropertyCard key={property.id} property={property} />
-                ))}
+
+                <div className="flex items-center gap-2">
+                  {/* Mobile filter toggle */}
+                  <button
+                    onClick={() => setMobileFiltersOpen(true)}
+                    className="lg:hidden flex items-center gap-1.5 bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-secondary"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    Filters
+                  </button>
+
+                  {/* View toggles */}
+                  <div className="flex bg-surface border border-border rounded-lg overflow-hidden">
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`px-2.5 py-2 transition-colors ${viewMode === 'grid' ? 'bg-primary text-white' : 'text-text-muted hover:text-text-primary'}`}
+                      aria-label="Grid view"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setViewMode('list')}
+                      className={`px-2.5 py-2 transition-colors ${viewMode === 'list' ? 'bg-primary text-white' : 'text-text-muted hover:text-text-primary'}`}
+                      aria-label="List view"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setViewMode('map')}
+                      className={`px-2.5 py-2 transition-colors ${viewMode === 'map' ? 'bg-primary text-white' : 'text-text-muted hover:text-text-primary'}`}
+                      aria-label="Map view"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Sort */}
+                  <select
+                    value={filters.sort_by || 'newest'}
+                    onChange={(e) => updateFilter('sort_by', e.target.value)}
+                    className="bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-secondary focus:outline-none focus:border-accent-dark"
+                  >
+                    {SORT_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+
+                  <SaveSearchButton filters={filters} />
+                </div>
               </div>
 
-              {/* Pagination */}
-              {meta && meta.last_page > 1 && (
-                <div className="flex justify-center items-center gap-2 mt-10">
-                  <button
-                    onClick={() => setPage(meta.current_page - 1)}
-                    disabled={meta.current_page === 1}
-                    className="px-4 py-2 rounded-lg border border-border text-sm font-medium disabled:opacity-40 hover:bg-surface transition-colors"
-                  >
-                    Previous
-                  </button>
-                  <span className="text-sm text-text-muted px-4">
-                    Page {meta.current_page} of {meta.last_page}
-                  </span>
-                  <button
-                    onClick={() => setPage(meta.current_page + 1)}
-                    disabled={meta.current_page === meta.last_page}
-                    className="px-4 py-2 rounded-lg border border-border text-sm font-medium disabled:opacity-40 hover:bg-surface transition-colors"
-                  >
-                    Next
-                  </button>
+              {/* Active Filter Chips */}
+              {activeFilters.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {activeFilters.map((chip) => (
+                    <span key={chip.key} className="bg-accent/10 text-accent-dark px-3 py-1 rounded-full text-sm flex items-center gap-1.5 capitalize">
+                      {chip.label}
+                      <button onClick={() => removeChip(chip.key)} className="hover:text-error font-bold">&times;</button>
+                    </span>
+                  ))}
+                  {activeFilters.length > 1 && (
+                    <button onClick={clearAll} className="text-xs text-text-muted hover:text-error px-2 py-1">
+                      Clear all
+                    </button>
+                  )}
                 </div>
               )}
-            </>
-          )}
+
+              {/* Results */}
+              {viewMode === 'map' ? (
+                /* Map View */
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4" style={{ minHeight: '600px' }}>
+                  <div className="order-2 lg:order-1 space-y-4 max-h-[600px] overflow-y-auto pr-1">
+                    {properties.map((property) => (
+                      <PropertyCard key={property.id} property={property} source="map" />
+                    ))}
+                    {properties.length === 0 && !isLoading && (
+                      <p className="text-center text-text-muted py-10">No properties in this area</p>
+                    )}
+                  </div>
+                  <div className="order-1 lg:order-2 h-[400px] lg:h-auto lg:sticky lg:top-20 rounded-xl overflow-hidden">
+                    <PropertyMap
+                      properties={mapProperties}
+                      onBoundsChange={setMapBounds}
+                    />
+                  </div>
+                </div>
+              ) : isLoading ? (
+                /* Loading skeleton */
+                <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="bg-surface rounded-xl border border-border animate-pulse">
+                      <div className={`bg-border/50 ${viewMode === 'list' ? 'h-32' : 'h-48'} rounded-t-xl`} />
+                      <div className="p-4 space-y-3">
+                        <div className="h-5 bg-border/50 rounded w-1/2" />
+                        <div className="h-4 bg-border/50 rounded w-3/4" />
+                        <div className="h-4 bg-border/50 rounded w-1/3" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : properties.length === 0 ? (
+                /* Empty state */
+                <div className="text-center py-20">
+                  <svg className="w-16 h-16 text-text-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                  </svg>
+                  <h3 className="text-lg font-semibold text-text-primary mb-2">No properties found</h3>
+                  <p className="text-text-muted mb-4">Try adjusting your filters or search terms</p>
+                  <button onClick={clearAll} className="text-accent-dark font-medium hover:underline">
+                    Clear all filters
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className={`${isFetching ? 'opacity-60' : ''} grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
+                    {properties.map((property) => (
+                      <PropertyCard key={property.id} property={property} source="search" />
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {meta && meta.last_page > 1 && (
+                    <div className="flex justify-center items-center gap-2 mt-10">
+                      <button
+                        onClick={() => setPage(meta.current_page - 1)}
+                        disabled={meta.current_page === 1}
+                        className="px-4 py-2 rounded-lg border border-border text-sm font-medium disabled:opacity-40 hover:bg-surface transition-colors"
+                      >
+                        Previous
+                      </button>
+                      <span className="text-sm text-text-muted px-4">
+                        Page {meta.current_page} of {meta.last_page}
+                      </span>
+                      <button
+                        onClick={() => setPage(meta.current_page + 1)}
+                        disabled={meta.current_page === meta.last_page}
+                        className="px-4 py-2 rounded-lg border border-border text-sm font-medium disabled:opacity-40 hover:bg-surface transition-colors"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </main>
+
+      {/* Mobile Filter Bottom Sheet */}
+      {mobileFiltersOpen && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileFiltersOpen(false)} />
+          <div className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up">
+            <div className="sticky top-0 bg-surface border-b border-border px-5 py-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-text-primary">Filters</h2>
+              <button onClick={() => setMobileFiltersOpen(false)} className="text-text-muted hover:text-text-primary">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-5">
+              <SearchFiltersPanel
+                filters={filters}
+                onFilterChange={(key, value) => { updateFilter(key, value); }}
+                onClearAll={() => { clearAll(); setMobileFiltersOpen(false); }}
+              />
+            </div>
+            <div className="sticky bottom-0 bg-surface border-t border-border px-5 py-4">
+              <button
+                onClick={() => setMobileFiltersOpen(false)}
+                className="w-full bg-primary text-white py-3 rounded-xl font-semibold"
+              >
+                Show {meta?.total.toLocaleString() || ''} Results
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </>
   );

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ContactType;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations;
@@ -49,6 +50,28 @@ class Lead extends Model
     public function review(): Relations\HasOne
     {
         return $this->hasOne(AgentReview::class);
+    }
+
+    // ── Scopes ───────────────────────────────────────────
+
+    public function scopeByAgent(Builder $query, string $agentId): Builder
+    {
+        return $query->where('agent_id', $agentId);
+    }
+
+    public function scopeByContactType(Builder $query, ContactType $type): Builder
+    {
+        return $query->where('contact_type', $type);
+    }
+
+    public function scopeResponded(Builder $query): Builder
+    {
+        return $query->whereNotNull('responded_at');
+    }
+
+    public function scopeUnresponded(Builder $query): Builder
+    {
+        return $query->whereNull('responded_at');
     }
 
     // ── Helpers ──────────────────────────────────────────

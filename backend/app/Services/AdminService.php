@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\PropertyStatus;
 use App\Enums\UserStatus;
 use App\Enums\VerificationStatus;
+use App\Jobs\MatchSavedSearchesJob;
 use App\Models\AgentProfile;
 use App\Models\Lead;
 use App\Models\Property;
@@ -49,9 +50,12 @@ class AdminService
                 'Property Approved',
                 "Your property \"{$property->title}\" has been approved and published.",
                 'property_approved',
-                ['property_id' => $property->id]
+                ['action_type' => 'property', 'action_id' => $property->id, 'action_url' => "/properties/{$property->slug}"]
             );
         }
+
+        // Match against saved searches asynchronously
+        MatchSavedSearchesJob::dispatch($property->id);
 
         return $property->fresh();
     }
@@ -71,7 +75,7 @@ class AdminService
                 'Property Rejected',
                 "Your property \"{$property->title}\" was rejected: {$reason}",
                 'property_rejected',
-                ['property_id' => $property->id]
+                ['action_type' => 'property', 'action_id' => $property->id]
             );
         }
 

@@ -8,6 +8,18 @@ import { useGetMeQuery, useLogoutMutation } from '@/store/api/authApi';
 import { setTokens, clearTokens, isAuthenticated as checkAuth } from '@/lib/auth';
 import type { User, AuthTokens } from '@/types';
 
+export function getRoleRedirect(role?: string): string {
+  switch (role) {
+    case 'admin':
+    case 'super_admin':
+      return '/admin';
+    case 'agent':
+      return '/dashboard';
+    default:
+      return '/dashboard';
+  }
+}
+
 export function useAuth() {
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
