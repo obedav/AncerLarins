@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,7 +10,7 @@ import type { RootState } from '@/store/store';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 
 /* ------------------------------------------------------------------ */
-/*  Dropdown data                                                      */
+/*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
 interface DropdownLink {
@@ -29,6 +29,10 @@ interface NavItem {
   href: string;
   sections?: DropdownSection[];
 }
+
+/* ------------------------------------------------------------------ */
+/*  Navigation data                                                    */
+/* ------------------------------------------------------------------ */
 
 const NAV_ITEMS: NavItem[] = [
   {
@@ -107,21 +111,21 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     label: 'Sell',
-    href: '/register?role=agent',
+    href: '/dashboard/listings/new',
     sections: [
       {
         title: 'List a Property',
         links: [
-          { label: 'List Your Property', href: '/dashboard/listings/new', desc: 'Reach thousands of buyers' },
-          { label: 'Agent Dashboard', href: '/dashboard', desc: 'Manage listings & leads' },
+          { label: 'List Your Property', href: '/dashboard/listings/new', desc: 'Reach thousands of buyers & renters' },
           { label: 'Agent Sign Up', href: '/register?role=agent', desc: 'Create your agent profile' },
+          { label: 'Agent Dashboard', href: '/dashboard', desc: 'Manage listings & leads' },
         ],
       },
       {
-        title: 'Resources',
+        title: 'Seller Resources',
         links: [
+          { label: 'AncerEstimate', href: '/properties?listing_type=sale', desc: 'Know your property\'s value' },
           { label: 'Market Trends', href: '/neighborhoods', desc: 'Price data by area' },
-          { label: 'Mortgage Calculator', href: '/properties?listing_type=sale', desc: 'Estimate monthly payments' },
         ],
       },
     ],
@@ -134,13 +138,13 @@ const NAV_ITEMS: NavItem[] = [
         title: 'Find Agents',
         links: [
           { label: 'All Agents', href: '/agents', desc: 'Browse verified agents' },
-          { label: 'Verified Agents', href: '/agents', desc: 'Trusted & verified professionals' },
+          { label: 'Top-Rated Agents', href: '/agents?sort=rating', desc: 'Highest rated professionals' },
         ],
       },
       {
         title: 'Become an Agent',
         links: [
-          { label: 'Agent Sign Up', href: '/register?role=agent', desc: 'Create your agent profile' },
+          { label: 'Agent Sign Up', href: '/register?role=agent', desc: 'Join our agent network' },
           { label: 'Agent Dashboard', href: '/dashboard', desc: 'Manage your listings' },
         ],
       },
@@ -182,42 +186,83 @@ function NavDropdown({
   isOpen,
   onOpen,
   onClose,
+  align = 'center',
 }: {
   item: NavItem;
   isOpen: boolean;
   onOpen: () => void;
   onClose: () => void;
+  align?: 'left' | 'center' | 'right';
 }) {
-  const timeout = useRef<ReturnType<typeof setTimeout>>(null);
+  const closeTimeout = useRef<ReturnType<typeof setTimeout>>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleEnter = useCallback(() => {
-    if (timeout.current) clearTimeout(timeout.current);
+  const scheduleOpen = useCallback(() => {
+    if (closeTimeout.current) clearTimeout(closeTimeout.current);
     onOpen();
   }, [onOpen]);
 
-  const handleLeave = useCallback(() => {
-    timeout.current = setTimeout(onClose, 150);
+  const scheduleClose = useCallback(() => {
+    closeTimeout.current = setTimeout(onClose, 150);
   }, [onClose]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        e.preventDefault();
+        onClose();
+        containerRef.current?.querySelector<HTMLAnchorElement>(':scope > a')?.focus();
+      }
+    },
+    [isOpen, onClose],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (closeTimeout.current) clearTimeout(closeTimeout.current);
+    };
+  }, []);
+
+  const hasSections = !!item.sections;
+
+  const alignClass =
+    align === 'left'
+      ? 'left-0'
+      : align === 'right'
+        ? 'right-0'
+        : 'left-1/2 -translate-x-1/2';
 
   return (
     <div
+      ref={containerRef}
       className="relative"
-      onMouseEnter={handleEnter}
-      onMouseLeave={handleLeave}
+      onMouseEnter={scheduleOpen}
+      onMouseLeave={scheduleClose}
+      onKeyDown={handleKeyDown}
     >
       <Link
         href={item.href}
-        className={`flex items-center gap-1 text-sm font-medium tracking-wide uppercase transition-colors ${
+        onFocus={scheduleOpen}
+        onBlur={(e) => {
+          if (!containerRef.current?.contains(e.relatedTarget as Node)) {
+            scheduleClose();
+          }
+        }}
+        aria-haspopup={hasSections ? 'true' : undefined}
+        aria-expanded={hasSections ? isOpen : undefined}
+        className={`inline-flex items-center gap-1 text-sm font-medium tracking-wide uppercase rounded transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent ${
           isOpen ? 'text-accent' : 'text-white/80 hover:text-accent'
         }`}
       >
         {item.label}
       </Link>
 
-      {/* Dropdown panel */}
-      {item.sections && (
+      {hasSections && (
         <div
-          className={`absolute top-full left-1/2 -translate-x-1/2 pt-3 transition-all duration-200 ${
+          role="menu"
+          aria-label={`${item.label} submenu`}
+          aria-hidden={!isOpen}
+          className={`absolute top-full ${alignClass} pt-3 motion-safe:transition-all motion-safe:duration-200 ${
             isOpen
               ? 'opacity-100 translate-y-0 pointer-events-auto'
               : 'opacity-0 -translate-y-1 pointer-events-none'
@@ -228,7 +273,7 @@ function NavDropdown({
             <div className="h-0.5 bg-accent" />
 
             <div className="grid grid-cols-2 gap-0 divide-x divide-border">
-              {item.sections.map((section) => (
+              {item.sections!.map((section) => (
                 <div key={section.title} className="p-4">
                   <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
                     {section.title}
@@ -238,8 +283,10 @@ function NavDropdown({
                       <Link
                         key={link.label}
                         href={link.href}
+                        role="menuitem"
+                        tabIndex={isOpen ? 0 : -1}
                         onClick={onClose}
-                        className="block px-3 py-2 rounded-lg hover:bg-accent-dark/5 transition-colors group"
+                        className="block px-3 py-2 rounded-lg hover:bg-accent-dark/5 transition-colors group focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] focus-visible:rounded-lg"
                       >
                         <span className="text-sm font-medium text-text-primary group-hover:text-accent-dark transition-colors">
                           {link.label}
@@ -278,7 +325,7 @@ function MobileNavItem({
       <Link
         href={item.href}
         onClick={onNavigate}
-        className="text-white/80 hover:text-accent px-3 py-2.5 rounded-lg hover:bg-white/5 font-medium"
+        className="text-white/80 hover:text-accent px-3 py-2.5 rounded-lg hover:bg-white/5 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
         {item.label}
       </Link>
@@ -289,20 +336,29 @@ function MobileNavItem({
     <div>
       <button
         onClick={() => setExpanded((prev) => !prev)}
-        className="w-full flex items-center justify-between text-white/80 hover:text-accent px-3 py-2.5 rounded-lg hover:bg-white/5 font-medium"
+        aria-expanded={expanded}
+        className="w-full flex items-center justify-between text-white/80 hover:text-accent px-3 py-2.5 rounded-lg hover:bg-white/5 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
         {item.label}
         <svg
-          className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 motion-safe:transition-transform motion-safe:duration-200 ${expanded ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
-      {expanded && (
+      {/* Animated accordion panel */}
+      <div
+        role="region"
+        aria-label={`${item.label} links`}
+        className={`overflow-hidden motion-safe:transition-all motion-safe:duration-200 ease-in-out ${
+          expanded ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+        }`}
+      >
         <div className="ml-3 pl-3 border-l border-white/10 mt-1 mb-2 space-y-1">
           {item.sections.map((section) => (
             <div key={section.title}>
@@ -314,7 +370,8 @@ function MobileNavItem({
                   key={link.label}
                   href={link.href}
                   onClick={onNavigate}
-                  className="block text-white/60 hover:text-accent text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition-colors"
+                  tabIndex={expanded ? 0 : -1}
+                  className="block text-white/60 hover:text-accent text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   {link.label}
                   {link.desc && (
@@ -325,7 +382,7 @@ function MobileNavItem({
             </div>
           ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -345,44 +402,80 @@ export default function Navbar() {
     setOpenDropdown(null);
   }, [dispatch]);
 
+  // Global Escape key handler
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (openDropdown) setOpenDropdown(null);
+        if (mobileMenuOpen) dispatch(closeMobileMenu());
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [openDropdown, mobileMenuOpen, dispatch]);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
+  // Viewport-aware dropdown alignment
+  const getAlign = (index: number): 'left' | 'center' | 'right' => {
+    if (index <= 1) return 'left';
+    if (index >= NAV_ITEMS.length - 1) return 'right';
+    return 'center';
+  };
+
   return (
     <nav className="bg-[#0F1D35] sticky top-0 z-50 shadow-lg" aria-label="Main navigation">
       <div className="container-app">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2" onClick={() => setOpenDropdown(null)}>
+          <Link
+            href="/"
+            className="flex items-center gap-2 rounded focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+            onClick={() => setOpenDropdown(null)}
+          >
             <Image src="/images/logo-white.png" alt="AncerLarins" width={36} height={36} className="h-9 w-auto" />
             <span className="text-2xl font-bold text-accent">Ancer</span>
             <span className="text-2xl font-bold text-white">Larins</span>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-7">
-            {NAV_ITEMS.map((item) => (
+          {/* Desktop Nav — lg breakpoint to fit 6 items */}
+          <div className="hidden lg:flex items-center gap-5 xl:gap-7">
+            {NAV_ITEMS.map((item, index) => (
               <NavDropdown
                 key={item.label}
                 item={item}
                 isOpen={openDropdown === item.label}
                 onOpen={() => setOpenDropdown(item.label)}
                 onClose={() => setOpenDropdown(null)}
+                align={getAlign(index)}
               />
             ))}
           </div>
 
           {/* Desktop Auth */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-4">
             <ThemeToggle />
             {isAuthenticated ? (
               <>
                 <Link
                   href="/dashboard"
-                  className="text-white/80 hover:text-accent transition-colors text-sm font-medium"
+                  className="text-white/80 hover:text-accent transition-colors text-sm font-medium rounded focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
                 >
                   Dashboard
                 </Link>
                 <button
                   onClick={logout}
-                  className="text-white/60 hover:text-white text-sm"
+                  className="text-white/60 hover:text-white text-sm rounded focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
                 >
                   Logout
                 </button>
@@ -396,13 +489,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/login"
-                  className="text-white/80 hover:text-white transition-colors text-sm font-medium"
+                  className="text-white/80 hover:text-white transition-colors text-sm font-medium rounded focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
                 >
                   Login
                 </Link>
                 <Link
                   href="/register"
-                  className="bg-accent text-primary px-5 py-2 rounded-lg hover:bg-accent-dark transition-colors text-sm font-semibold"
+                  className="bg-accent text-primary px-5 py-2 rounded-lg hover:bg-accent-dark transition-colors text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   Sign Up
                 </Link>
@@ -413,11 +506,12 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => dispatch(toggleMobileMenu())}
-            className="md:hidden text-white p-2"
+            className="lg:hidden text-white p-2 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               {mobileMenuOpen ? (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               ) : (
@@ -429,8 +523,13 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden pb-4 border-t border-white/10 mt-2" role="menu">
-            <div className="flex flex-col gap-1 pt-3">
+          <div
+            id="mobile-menu"
+            role="menu"
+            aria-label="Mobile navigation"
+            className="lg:hidden pb-4 border-t border-white/10 mt-2"
+          >
+            <div className="flex flex-col gap-1 pt-3 max-h-[calc(100vh-5rem)] overflow-y-auto">
               {NAV_ITEMS.map((item) => (
                 <MobileNavItem key={item.label} item={item} onNavigate={handleNavigate} />
               ))}
@@ -446,13 +545,13 @@ export default function Navbar() {
                   <Link
                     href="/dashboard"
                     onClick={handleNavigate}
-                    className="text-white/80 hover:text-accent px-3 py-2.5 rounded-lg hover:bg-white/5 font-medium"
+                    className="text-white/80 hover:text-accent px-3 py-2.5 rounded-lg hover:bg-white/5 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                   >
                     Dashboard
                   </Link>
                   <button
                     onClick={() => { logout(); handleNavigate(); }}
-                    className="text-left text-white/60 hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/5"
+                    className="text-left text-white/60 hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                   >
                     Logout
                   </button>
@@ -462,14 +561,14 @@ export default function Navbar() {
                   <Link
                     href="/login"
                     onClick={handleNavigate}
-                    className="text-white/80 hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/5 font-medium"
+                    className="text-white/80 hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/5 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                   >
                     Login
                   </Link>
                   <Link
                     href="/register"
                     onClick={handleNavigate}
-                    className="bg-accent text-primary px-3 py-2.5 rounded-lg font-semibold text-center mt-1"
+                    className="bg-accent text-primary px-3 py-2.5 rounded-lg font-semibold text-center mt-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                   >
                     Sign Up
                   </Link>
@@ -483,8 +582,9 @@ export default function Navbar() {
       {/* Overlay to close dropdowns when clicking outside */}
       {openDropdown && (
         <div
-          className="fixed inset-0 z-[-1] hidden md:block"
+          className="fixed inset-0 z-[-1] hidden lg:block"
           onClick={() => setOpenDropdown(null)}
+          aria-hidden="true"
         />
       )}
     </nav>
