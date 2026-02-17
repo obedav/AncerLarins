@@ -53,6 +53,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/cities', [LocationController::class, 'cities']);
     Route::get('/areas', [LocationController::class, 'areas']);
     Route::get('/areas/{area}', [LocationController::class, 'areaDetail']);
+    Route::get('/areas/{area}/insights', [LocationController::class, 'areaInsights']);
+    Route::get('/areas/{area}/trends', [LocationController::class, 'areaTrends']);
 
     // ── Protected: Authenticated users ──────────────────
     Route::middleware(['auth:sanctum', 'throttle:60,1', 'ensure.phone_verified', 'track.activity'])->group(function () {
@@ -85,6 +87,9 @@ Route::prefix('v1')->group(function () {
 
         // Reviews
         Route::post('/agents/{agent}/reviews', [AgentController::class, 'createReview']);
+
+        // Neighborhood reviews
+        Route::post('/areas/{area}/reviews', [LocationController::class, 'submitAreaReview']);
 
         // Contact / leads
         Route::post('/properties/{property}/contact', [PropertyController::class, 'contact']);

@@ -18,6 +18,7 @@ class PropertyService
     public function __construct(
         protected ImageService $imageService,
         protected NotificationService $notificationService,
+        protected ValuationService $valuationService,
     ) {}
 
     public function getBySlug(string $slug): ?Property
@@ -38,6 +39,8 @@ class PropertyService
                 ->where('city_id', $property->city_id)
                 ->where('listing_type', $property->listing_type)
                 ->count();
+
+            $property->ancer_estimate = $this->valuationService->estimate($property);
         }
 
         return $property;

@@ -37,6 +37,13 @@ class PropertyImage extends Model
         return $this->belongsTo(Property::class);
     }
 
+    // ── Accessors ──────────────────────────────────────────
+
+    public function getUrlAttribute(): ?string
+    {
+        return $this->image_url;
+    }
+
     // ── Scopes ───────────────────────────────────────────
 
     public function scopeCovers(Builder $query): Builder

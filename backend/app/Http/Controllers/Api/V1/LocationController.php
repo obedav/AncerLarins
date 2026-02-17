@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Neighborhood\CreateNeighborhoodReviewRequest;
 use App\Http\Resources\AreaResource;
 use App\Models\Area;
 use App\Models\City;
 use App\Models\State;
+use App\Services\MarketTrendService;
+use App\Services\NeighborhoodService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +17,11 @@ use Illuminate\Http\Request;
 class LocationController extends Controller
 {
     use ApiResponse;
+
+    public function __construct(
+        protected NeighborhoodService $neighborhoodService,
+        protected MarketTrendService $marketTrendService,
+    ) {}
 
     public function states(): JsonResponse
     {
@@ -49,5 +57,40 @@ class LocationController extends Controller
         $area->load(['city.state', 'landmarks', 'properties' => fn ($q) => $q->approved()->count()]);
 
         return $this->successResponse(new AreaResource($area));
+    }
+
+    public function areaInsights(Area $area): JsonResponse
+    {
+        $insights = $this->neighborhoodService->getAreaInsights($area);
+
+        return $this->successResponse($insights);
+    }
+
+    public function submitAreaReview(CreateNeighborhoodReviewRequest $request, Area $area): JsonResponse
+    {
+        $review = $this->neighborhoodService->submitReview(
+            $request->user(),
+            $area,
+            $request->validated()
+        );
+
+        return $this->successResponse(
+            ['id' => $review->id],
+            'Review submitted and pending approval.',
+            201
+        );
+    }
+
+    public function areaTrends(Area $area, Request $request): JsonResponse
+    {
+        $listingType = $request->query('listing_type');
+
+        $trends = $this->marketTrendService->getAreaTrends($area->id, $listingType);
+        $stats = $this->marketTrendService->getAreaStats($area->id, $listingType);
+
+        return $this->successResponse([
+            'trends' => $trends,
+            'stats'  => $stats,
+        ]);
     }
 }

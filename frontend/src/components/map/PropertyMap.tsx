@@ -21,29 +21,42 @@ export default function PropertyMap({
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any>(null);
 
+  const onBoundsChangeRef = useRef(onBoundsChange);
+  onBoundsChangeRef.current = onBoundsChange;
+
   const emitBounds = useCallback((map: any) => {
-    if (!onBoundsChange) return;
-    const b = map.getBounds();
-    onBoundsChange({
-      north: b.getNorth(),
-      south: b.getSouth(),
-      east: b.getEast(),
-      west: b.getWest(),
-    });
-  }, [onBoundsChange]);
+    if (!onBoundsChangeRef.current) return;
+    if (!map || !map.getContainer() || !map.getSize().x) return;
+    try {
+      map.invalidateSize({ animate: false });
+      const b = map.getBounds();
+      onBoundsChangeRef.current({
+        north: b.getNorth(),
+        south: b.getSouth(),
+        east: b.getEast(),
+        west: b.getWest(),
+      });
+    } catch {
+      // Map not ready or already removed
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !mapRef.current) return;
+
+    let cancelled = false;
 
     Promise.all([
       import('leaflet'),
       import('leaflet/dist/leaflet.css'),
     ]).then(([L]) => {
+      if (cancelled || !mapRef.current) return;
+
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
       }
 
-      const map = L.map(mapRef.current!, { zoomControl: true }).setView(center, zoom);
+      const map = L.map(mapRef.current, { zoomControl: true }).setView(center, zoom);
       mapInstanceRef.current = map;
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -54,19 +67,27 @@ export default function PropertyMap({
       // Emit bounds on move/zoom
       map.on('moveend', () => emitBounds(map));
 
-      // Initial bounds
-      setTimeout(() => emitBounds(map), 300);
+      // Initial bounds — defer until container has layout
+      const tryEmit = () => {
+        if (cancelled) return;
+        if (map.getSize().x > 0) {
+          emitBounds(map);
+        } else {
+          requestAnimationFrame(tryEmit);
+        }
+      };
+      map.whenReady(() => requestAnimationFrame(tryEmit));
     });
 
     return () => {
+      cancelled = true;
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
     };
-  // Only re-create map if center/zoom changes
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [center[0], center[1], zoom]);
+  }, [center[0], center[1], zoom, emitBounds]);
 
   // Update markers when properties change
   useEffect(() => {

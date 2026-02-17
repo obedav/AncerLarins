@@ -60,6 +60,71 @@ export interface Amenity {
   category: string | null;
 }
 
+export interface AncerEstimate {
+  estimate_kobo: number;
+  formatted_estimate: string;
+  confidence: number;
+  price_range: {
+    low_kobo: number;
+    high_kobo: number;
+  };
+  comparable_count: number;
+}
+
+export interface AreaInsights {
+  area: { id: string; name: string; slug: string };
+  scores: {
+    overall: number;
+    safety: number;
+    transport: number;
+    amenities: number;
+    noise: number;
+  };
+  review_count: number;
+  rent_averages: {
+    '1br': number | null;
+    '2br': number | null;
+    '3br': number | null;
+  };
+  recent_reviews: AreaReview[];
+}
+
+export interface AreaReview {
+  id: string;
+  overall: number;
+  safety: number;
+  transport: number;
+  amenities: number;
+  noise: number;
+  comment: string | null;
+  lived_duration: string | null;
+  user_name: string;
+  created_at: string;
+}
+
+export interface AreaTrendsResponse {
+  trends: AreaTrendMonth[];
+  stats: AreaStats;
+}
+
+export interface AreaTrendMonth {
+  month: string;
+  avg_price_kobo: number;
+  listing_count: number;
+}
+
+export interface AreaStats {
+  total_listings: number;
+  avg_price_kobo: number;
+  median_price_kobo: number;
+  avg_days_on_market: number;
+  city_comparison: {
+    percentage: number;
+    direction: 'above' | 'below';
+    label: string;
+  } | null;
+}
+
 export interface PropertyDetail extends Omit<PropertyListItem, 'agent'> {
   description: string;
   agency_fee_pct: number | null;
@@ -94,6 +159,7 @@ export interface PropertyDetail extends Omit<PropertyListItem, 'agent'> {
   meta_title: string | null;
   meta_description: string | null;
   saves_count?: number;
+  ancer_estimate?: AncerEstimate | null;
   expires_at: string | null;
   created_at: string;
   updated_at: string;

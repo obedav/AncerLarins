@@ -28,6 +28,8 @@ export interface AgentDetail extends AgentListItem {
   website: string | null;
   whatsapp_number: string | null;
   avg_response_time: number | null;
+  total_listings?: number;
+  total_leads?: number;
   office_area?: { id: string; name: string } | null;
   recent_properties?: PropertyListItem[];
   created_at: string;

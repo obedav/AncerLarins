@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUpdateAgentProfileMutation, useSubmitVerificationMutation } from '@/store/api/agentApi';
 import { VerificationBadge } from '@/components/dashboard/StatusBadge';
+import { ProfileCompleteness } from '@/components/dashboard/AgentOnboarding';
 
 const SPECIALIZATION_OPTIONS = [
   'Residential', 'Commercial', 'Luxury', 'Land', 'Short-let',
@@ -104,6 +105,9 @@ export default function ProfilePage() {
         <h1 className="text-xl font-bold text-text-primary">Agent Profile</h1>
         <p className="text-sm text-text-muted mt-1">Manage your business details and verification.</p>
       </div>
+
+      {/* Profile Completeness Meter */}
+      {user && <ProfileCompleteness user={user} />}
 
       {success && (
         <div className="bg-green-50 text-green-700 p-3 rounded-xl text-sm">{success}</div>

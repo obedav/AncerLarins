@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { useContactAgentMutation, useSavePropertyMutation } from '@/store/api/propertyApi';
+import { useToast } from '@/components/ui/Toast';
 import { getLeadSource } from '@/lib/utils';
 import type { PropertyDetail } from '@/types';
 
@@ -12,6 +13,7 @@ interface ContactAgentProps {
 export default function ContactAgent({ property }: ContactAgentProps) {
   const [contactAgent] = useContactAgentMutation();
   const [saveProperty] = useSavePropertyMutation();
+  const { toast } = useToast();
   const [loading, setLoading] = useState<'whatsapp' | 'call' | null>(null);
   const cooldownRef = useRef(false);
 
@@ -43,6 +45,7 @@ export default function ContactAgent({ property }: ContactAgentProps) {
       } else {
         window.location.href = `tel:${phone}`;
       }
+      toast('Could not log contact — opened directly', 'info');
     } finally {
       setLoading(null);
       setTimeout(() => { cooldownRef.current = false; }, 2000);
@@ -131,7 +134,15 @@ export default function ContactAgent({ property }: ContactAgentProps) {
 
           {/* Save Button */}
           <button
-            onClick={() => property.id && saveProperty(property.id)}
+            onClick={async () => {
+              if (!property.id) return;
+              try {
+                await saveProperty(property.id).unwrap();
+                toast('Property saved!', 'success');
+              } catch {
+                toast('Could not save property', 'error');
+              }
+            }}
             className="w-full flex items-center justify-center gap-2 bg-surface border border-border hover:border-accent-dark text-text-secondary py-3 rounded-xl font-medium text-sm transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>

@@ -276,23 +276,51 @@ function SearchContent() {
 
                   {/* Pagination */}
                   {meta && meta.last_page > 1 && (
-                    <div className="flex justify-center items-center gap-2 mt-10">
+                    <div className="flex justify-center items-center gap-1.5 mt-10">
                       <button
                         onClick={() => setPage(meta.current_page - 1)}
                         disabled={meta.current_page === 1}
-                        className="px-4 py-2 rounded-lg border border-border text-sm font-medium disabled:opacity-40 hover:bg-surface transition-colors"
+                        className="w-9 h-9 flex items-center justify-center rounded-lg border border-border text-sm disabled:opacity-30 hover:bg-surface transition-colors"
+                        aria-label="Previous page"
                       >
-                        Previous
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                       </button>
-                      <span className="text-sm text-text-muted px-4">
-                        Page {meta.current_page} of {meta.last_page}
-                      </span>
+                      {(() => {
+                        const pages: (number | 'ellipsis')[] = [];
+                        const current = meta.current_page;
+                        const last = meta.last_page;
+                        pages.push(1);
+                        if (current > 3) pages.push('ellipsis');
+                        for (let p = Math.max(2, current - 1); p <= Math.min(last - 1, current + 1); p++) {
+                          pages.push(p);
+                        }
+                        if (current < last - 2) pages.push('ellipsis');
+                        if (last > 1) pages.push(last);
+                        return pages.map((p, i) =>
+                          p === 'ellipsis' ? (
+                            <span key={`e${i}`} className="w-9 h-9 flex items-center justify-center text-text-muted text-sm">...</span>
+                          ) : (
+                            <button
+                              key={p}
+                              onClick={() => setPage(p)}
+                              className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+                                p === current
+                                  ? 'bg-primary text-white'
+                                  : 'border border-border hover:bg-surface text-text-secondary'
+                              }`}
+                            >
+                              {p}
+                            </button>
+                          )
+                        );
+                      })()}
                       <button
                         onClick={() => setPage(meta.current_page + 1)}
                         disabled={meta.current_page === meta.last_page}
-                        className="px-4 py-2 rounded-lg border border-border text-sm font-medium disabled:opacity-40 hover:bg-surface transition-colors"
+                        className="w-9 h-9 flex items-center justify-center rounded-lg border border-border text-sm disabled:opacity-30 hover:bg-surface transition-colors"
+                        aria-label="Next page"
                       >
-                        Next
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                       </button>
                     </div>
                   )}

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import PropertyCard from '@/components/property/PropertyCard';
+import AgentOnboarding from '@/components/dashboard/AgentOnboarding';
 import { useGetAgentDashboardQuery, useGetAgentLeadsQuery } from '@/store/api/agentApi';
 import { useGetPropertiesQuery } from '@/store/api/propertyApi';
 import { formatRelativeTime } from '@/lib/utils';
@@ -15,6 +16,7 @@ export default function DashboardPage() {
 }
 
 function AgentOverview() {
+  const { user } = useAuth();
   const { data: dashData, isLoading: dashLoading } = useGetAgentDashboardQuery();
   const { data: leadsData } = useGetAgentLeadsQuery({ per_page: 10 });
   const { data: myProps } = useGetPropertiesQuery({ scope: 'mine', per_page: 3 });
@@ -40,6 +42,9 @@ function AgentOverview() {
 
   return (
     <div className="space-y-8">
+      {/* Agent Onboarding Checklist */}
+      {user && <AgentOnboarding user={user} />}
+
       <div>
         <h1 className="text-xl font-bold text-text-primary">Dashboard</h1>
         <p className="text-sm text-text-muted mt-1">Welcome back. Here&apos;s an overview of your activity.</p>

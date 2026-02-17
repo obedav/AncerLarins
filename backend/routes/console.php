@@ -13,3 +13,9 @@ Schedule::command('properties:check-expiry')->daily();
 
 // Hourly: recalculate agent performance metrics
 Schedule::command('agents:update-performance')->hourly();
+
+// Daily at 2am WAT: refresh property valuations (AncerEstimate)
+Schedule::command('properties:refresh-valuations')->dailyAt('02:00')->timezone('Africa/Lagos');
+
+// Daily at 3am WAT: recalculate area scores from neighborhood reviews
+Schedule::command('areas:refresh-scores')->dailyAt('03:00')->timezone('Africa/Lagos');

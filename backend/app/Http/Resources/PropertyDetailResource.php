@@ -118,6 +118,19 @@ class PropertyDetailResource extends JsonResource
             'views_count'      => $this->when(isset($this->views_count), $this->views_count),
             'saves_count'      => $this->when(isset($this->saved_by_count), $this->saved_by_count),
             'similar_count'    => $this->when(isset($this->similar_count), $this->similar_count),
+            'ancer_estimate'   => $this->when(isset($this->ancer_estimate) && $this->ancer_estimate, function () {
+                $est = $this->ancer_estimate;
+                return [
+                    'estimate_kobo'      => $est['estimate_kobo'],
+                    'formatted_estimate' => '₦' . number_format($est['estimate_kobo'] / 100, 0, '.', ','),
+                    'confidence'         => $est['confidence'],
+                    'price_range'        => [
+                        'low_kobo'  => $est['price_range']['low'],
+                        'high_kobo' => $est['price_range']['high'],
+                    ],
+                    'comparable_count'   => $est['comparable_count'],
+                ];
+            }),
             'published_at'     => $this->published_at?->toISOString(),
             'expires_at'       => $this->expires_at?->toISOString(),
             'created_at'       => $this->created_at?->toISOString(),
