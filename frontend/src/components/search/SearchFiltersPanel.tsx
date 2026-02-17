@@ -48,6 +48,13 @@ export default function SearchFiltersPanel({ filters, onFilterChange, onClearAll
           >
             Buy
           </button>
+          <button
+            onClick={() => onFilterChange('listing_type', filters.listing_type === 'short_let' ? undefined : 'short_let')}
+            className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${filters.listing_type === 'short_let' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface'}`}
+            aria-pressed={filters.listing_type === 'short_let'}
+          >
+            Short Let
+          </button>
         </div>
       </fieldset>
 

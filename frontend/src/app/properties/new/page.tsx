@@ -21,6 +21,11 @@ const RENT_PERIOD_OPTIONS: { value: RentPeriod; label: string }[] = [
   { value: 'quarterly', label: 'Per Quarter' },
 ];
 
+const SHORT_LET_RENT_PERIOD_OPTIONS: { value: RentPeriod; label: string }[] = [
+  { value: 'daily', label: 'Per Night' },
+  { value: 'weekly', label: 'Per Week' },
+];
+
 export default function NewPropertyPage() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
@@ -62,6 +67,10 @@ export default function NewPropertyPage() {
     is_serviced: false,
     is_new_build: false,
     inspection_available: true,
+    min_stay_days: '',
+    max_stay_days: '',
+    check_in_time: '14:00',
+    check_out_time: '11:00',
   });
 
   useEffect(() => {
@@ -101,7 +110,13 @@ export default function NewPropertyPage() {
       is_new_build: form.is_new_build,
     };
 
-    if (form.listing_type === 'rent') payload.rent_period = form.rent_period;
+    if (form.listing_type === 'rent' || form.listing_type === 'short_let') payload.rent_period = form.rent_period;
+    if (form.listing_type === 'short_let') {
+      if (form.min_stay_days) payload.min_stay_days = Number(form.min_stay_days);
+      if (form.max_stay_days) payload.max_stay_days = Number(form.max_stay_days);
+      if (form.check_in_time) payload.check_in_time = form.check_in_time;
+      if (form.check_out_time) payload.check_out_time = form.check_out_time;
+    }
     if (form.area_id) payload.area_id = form.area_id;
     if (form.landmark_note) payload.landmark_note = form.landmark_note;
     if (form.bedrooms) payload.bedrooms = Number(form.bedrooms);
@@ -188,19 +203,23 @@ export default function NewPropertyPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className={labelClass}>Listing Type</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {(['rent', 'sale'] as ListingType[]).map((type) => (
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['rent', 'sale', 'short_let'] as ListingType[]).map((type) => (
                         <button
                           key={type}
                           type="button"
-                          onClick={() => updateField('listing_type', type)}
+                          onClick={() => {
+                            updateField('listing_type', type);
+                            if (type === 'short_let') updateField('rent_period', 'daily');
+                            else if (type === 'rent') updateField('rent_period', 'yearly');
+                          }}
                           className={`px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${
                             form.listing_type === type
                               ? 'bg-primary text-white border-primary'
                               : 'bg-background text-text-secondary border-border hover:border-accent-dark'
                           }`}
                         >
-                          {type === 'rent' ? 'For Rent' : 'For Sale'}
+                          {type === 'rent' ? 'For Rent' : type === 'sale' ? 'For Sale' : 'Short Let'}
                         </button>
                       ))}
                     </div>
@@ -233,7 +252,7 @@ export default function NewPropertyPage() {
                       className={inputClass}
                     />
                   </div>
-                  {form.listing_type === 'rent' && (
+                  {(form.listing_type === 'rent' || form.listing_type === 'short_let') && (
                     <div>
                       <label className={labelClass}>Rent Period</label>
                       <select
@@ -241,7 +260,7 @@ export default function NewPropertyPage() {
                         onChange={(e) => updateField('rent_period', e.target.value)}
                         className={inputClass}
                       >
-                        {RENT_PERIOD_OPTIONS.map((opt) => (
+                        {(form.listing_type === 'short_let' ? SHORT_LET_RENT_PERIOD_OPTIONS : RENT_PERIOD_OPTIONS).map((opt) => (
                           <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
                       </select>
@@ -334,8 +353,33 @@ export default function NewPropertyPage() {
                 </div>
               </section>
 
+              {/* Short Let Details */}
+              {form.listing_type === 'short_let' && (
+                <section className="bg-surface border border-border rounded-xl p-6 space-y-4">
+                  <h2 className="font-semibold text-text-primary">Short Let Details</h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div>
+                      <label className={labelClass}>Min Stay (days)</label>
+                      <input type="number" min="1" max="365" value={form.min_stay_days} onChange={(e) => updateField('min_stay_days', e.target.value)} placeholder="1" className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Max Stay (days)</label>
+                      <input type="number" min="1" max="365" value={form.max_stay_days} onChange={(e) => updateField('max_stay_days', e.target.value)} placeholder="30" className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Check-in Time</label>
+                      <input type="time" value={form.check_in_time} onChange={(e) => updateField('check_in_time', e.target.value)} className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Check-out Time</label>
+                      <input type="time" value={form.check_out_time} onChange={(e) => updateField('check_out_time', e.target.value)} className={inputClass} />
+                    </div>
+                  </div>
+                </section>
+              )}
+
               {/* Additional Costs */}
-              {form.listing_type === 'rent' && (
+              {(form.listing_type === 'rent' || form.listing_type === 'short_let') && (
                 <section className="bg-surface border border-border rounded-xl p-6 space-y-4">
                   <h2 className="font-semibold text-text-primary">Additional Costs (NGN)</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">

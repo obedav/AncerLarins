@@ -22,6 +22,7 @@ class Property extends Model
         'title', 'slug', 'description',
         'price_kobo', 'price_negotiable', 'rent_period', 'agency_fee_pct',
         'caution_fee_kobo', 'service_charge_kobo', 'legal_fee_kobo',
+        'min_stay_days', 'max_stay_days', 'check_in_time', 'check_out_time',
         'state_id', 'city_id', 'area_id', 'address', 'landmark_note', 'location_fuzzy',
         'bedrooms', 'bathrooms', 'toilets', 'sitting_rooms',
         'floor_area_sqm', 'land_area_sqm', 'floor_number', 'total_floors', 'year_built',
@@ -157,6 +158,11 @@ class Property extends Model
     public function scopeForSale(Builder $query): Builder
     {
         return $query->where('listing_type', ListingType::Sale);
+    }
+
+    public function scopeForShortLet(Builder $query): Builder
+    {
+        return $query->where('listing_type', ListingType::ShortLet);
     }
 
     public function scopeInCity(Builder $query, string $cityId): Builder

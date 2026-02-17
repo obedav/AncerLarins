@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import NotificationBell from '@/components/dashboard/NotificationBell';
@@ -33,7 +34,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Top bar */}
       <header className="bg-[#0F1D35] border-b border-white/10">
         <div className="container-app flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-1">
+          <Link href="/" className="flex items-center gap-1.5">
+            <Image src="/images/logo-white.png" alt="AncerLarins" width={32} height={32} className="h-8 w-auto" />
             <span className="text-lg font-bold text-accent">Ancer</span>
             <span className="text-lg font-bold text-white">Larins</span>
           </Link>

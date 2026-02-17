@@ -17,7 +17,7 @@ class PropertyListResource extends JsonResource
             'price_kobo'    => $this->price_kobo,
             'formatted_price' => $this->formatted_price,
             'price_negotiable' => $this->price_negotiable,
-            'rent_period'   => $this->when($this->listing_type?->value === 'rent', $this->rent_period),
+            'rent_period'   => $this->when(in_array($this->listing_type?->value, ['rent', 'short_let']), $this->rent_period),
             'bedrooms'      => $this->bedrooms,
             'bathrooms'     => $this->bathrooms,
             'toilets'       => $this->toilets,

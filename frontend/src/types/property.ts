@@ -1,9 +1,9 @@
 import type { AgentListItem, AgentDetail } from './agent';
 
-export type ListingType = 'rent' | 'sale';
+export type ListingType = 'rent' | 'sale' | 'short_let';
 export type PropertyStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'expired' | 'rented' | 'sold' | 'archived';
 export type Furnishing = 'furnished' | 'semi_furnished' | 'unfurnished';
-export type RentPeriod = 'yearly' | 'monthly' | 'quarterly';
+export type RentPeriod = 'yearly' | 'monthly' | 'quarterly' | 'weekly' | 'daily';
 
 export interface PropertyType {
   id: string;
@@ -132,6 +132,10 @@ export interface PropertyDetail extends Omit<PropertyListItem, 'agent'> {
   caution_fee_kobo: number | null;
   service_charge_kobo: number | null;
   legal_fee_kobo: number | null;
+  min_stay_days: number | null;
+  max_stay_days: number | null;
+  check_in_time: string | null;
+  check_out_time: string | null;
   landmark_note: string | null;
   location_fuzzy: boolean;
   sitting_rooms: number | null;
@@ -178,6 +182,10 @@ export interface CreatePropertyPayload {
   caution_fee_kobo?: number;
   service_charge_kobo?: number;
   legal_fee_kobo?: number;
+  min_stay_days?: number;
+  max_stay_days?: number;
+  check_in_time?: string;
+  check_out_time?: string;
   state_id: string;
   city_id: string;
   area_id?: string;

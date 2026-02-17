@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import ThemeToggle from '@/components/ui/ThemeToggle';
@@ -30,7 +31,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <header className="bg-[#0F1D35] border-b border-white/10">
         <div className="container-app flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-1">
+            <Link href="/" className="flex items-center gap-1.5">
+              <Image src="/images/logo-white.png" alt="AncerLarins" width={32} height={32} className="h-8 w-auto" />
               <span className="text-lg font-bold text-accent">Ancer</span>
               <span className="text-lg font-bold text-white">Larins</span>
             </Link>

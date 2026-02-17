@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Footer() {
   return (
@@ -7,10 +8,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-1 mb-4">
+            <Link href="/" className="flex items-center gap-2 mb-4">
+              <Image src="/images/logo-white.png" alt="AncerLarins" width={36} height={36} className="h-9 w-auto" />
               <span className="text-2xl font-bold text-accent">Ancer</span>
               <span className="text-2xl font-bold text-white">Larins</span>
-            </div>
+            </Link>
             <p className="text-sm leading-relaxed">
               Lagos-first premium real estate platform. Discover verified properties
               and trusted agents across Nigeria&apos;s most vibrant city.

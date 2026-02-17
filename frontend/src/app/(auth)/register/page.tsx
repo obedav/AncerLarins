@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRegisterMutation, useVerifyOtpMutation } from '@/store/api/authApi';
 import { useAuth, getRoleRedirect } from '@/hooks/useAuth';
 
@@ -64,7 +65,8 @@ function RegisterContent() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-md bg-surface rounded-2xl shadow-sm p-8 border border-border">
-        <Link href="/" className="flex items-center justify-center gap-1 mb-10">
+        <Link href="/" className="flex items-center justify-center gap-2 mb-10">
+          <Image src="/images/logo-cropped.png" alt="AncerLarins" width={40} height={40} className="h-10 w-auto" />
           <span className="text-2xl font-bold text-accent-dark">Ancer</span>
           <span className="text-2xl font-bold text-text-primary">Larins</span>
         </Link>

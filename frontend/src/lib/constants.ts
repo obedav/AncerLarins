@@ -16,6 +16,13 @@ export const PRICE_RANGES = {
     { label: '₦100M - ₦300M', min: 10000000000, max: 30000000000 },
     { label: '₦300M+', min: 30000000000, max: undefined },
   ],
+  short_let: [
+    { label: 'Under ₦50K/night', min: 0, max: 5000000 },
+    { label: '₦50K - ₦100K/night', min: 5000000, max: 10000000 },
+    { label: '₦100K - ₦250K/night', min: 10000000, max: 25000000 },
+    { label: '₦250K - ₦500K/night', min: 25000000, max: 50000000 },
+    { label: '₦500K+/night', min: 50000000, max: undefined },
+  ],
 } as const;
 
 export const BEDROOM_OPTIONS = [

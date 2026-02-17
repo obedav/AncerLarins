@@ -65,6 +65,10 @@ export default function NewListingPage() {
     is_serviced: false,
     is_new_build: false,
     inspection_available: true,
+    min_stay_days: '',
+    max_stay_days: '',
+    check_in_time: '14:00',
+    check_out_time: '11:00',
   });
 
   const { data: citiesData } = useGetCitiesQuery(form.state_id, { skip: !form.state_id });
@@ -177,7 +181,13 @@ export default function NewListingPage() {
       is_serviced: form.is_serviced,
       is_new_build: form.is_new_build,
     };
-    if (form.listing_type === 'rent') payload.rent_period = form.rent_period;
+    if (form.listing_type === 'rent' || form.listing_type === 'short_let') payload.rent_period = form.rent_period;
+    if (form.listing_type === 'short_let') {
+      if (form.min_stay_days) payload.min_stay_days = Number(form.min_stay_days);
+      if (form.max_stay_days) payload.max_stay_days = Number(form.max_stay_days);
+      if (form.check_in_time) payload.check_in_time = form.check_in_time;
+      if (form.check_out_time) payload.check_out_time = form.check_out_time;
+    }
     if (form.area_id) payload.area_id = form.area_id;
     if (form.landmark_note) payload.landmark_note = form.landmark_note;
     if (form.bedrooms) payload.bedrooms = Number(form.bedrooms);
@@ -237,19 +247,23 @@ export default function NewListingPage() {
 
           <div>
             <label className={labelClass}>Listing Type</label>
-            <div className="grid grid-cols-2 gap-2">
-              {(['rent', 'sale'] as ListingType[]).map((type) => (
+            <div className="grid grid-cols-3 gap-2">
+              {([['rent', 'For Rent'], ['sale', 'For Sale'], ['short_let', 'Short Let']] as [ListingType, string][]).map(([type, label]) => (
                 <button
                   key={type}
                   type="button"
-                  onClick={() => update('listing_type', type)}
+                  onClick={() => {
+                    update('listing_type', type);
+                    if (type === 'short_let') update('rent_period', 'daily');
+                    else if (type === 'rent') update('rent_period', 'yearly');
+                  }}
                   className={`px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${
                     form.listing_type === type
                       ? 'bg-primary text-white border-primary'
                       : 'bg-background text-text-secondary border-border hover:border-accent-dark'
                   }`}
                 >
-                  {type === 'rent' ? 'For Rent' : 'For Sale'}
+                  {label}
                 </button>
               ))}
             </div>
@@ -295,16 +309,49 @@ export default function NewListingPage() {
             <span className="text-sm text-text-secondary">Price is negotiable</span>
           </label>
 
-          {form.listing_type === 'rent' && (
+          {(form.listing_type === 'rent' || form.listing_type === 'short_let') && (
             <>
               <div>
                 <label className={labelClass}>Rent Period</label>
                 <select value={form.rent_period} onChange={(e) => update('rent_period', e.target.value)} className={inputClass}>
-                  <option value="yearly">Per Year</option>
-                  <option value="monthly">Per Month</option>
-                  <option value="quarterly">Per Quarter</option>
+                  {form.listing_type === 'short_let' ? (
+                    <>
+                      <option value="daily">Per Night</option>
+                      <option value="weekly">Per Week</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="yearly">Per Year</option>
+                      <option value="monthly">Per Month</option>
+                      <option value="quarterly">Per Quarter</option>
+                    </>
+                  )}
                 </select>
               </div>
+
+              {form.listing_type === 'short_let' && (
+                <>
+                  <h3 className="text-sm font-medium text-text-primary pt-2">Short Let Details</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelClass}>Min Stay (nights)</label>
+                      <input type="number" min="1" value={form.min_stay_days} onChange={(e) => update('min_stay_days', e.target.value)} placeholder="1" className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Max Stay (nights)</label>
+                      <input type="number" min="1" value={form.max_stay_days} onChange={(e) => update('max_stay_days', e.target.value)} placeholder="90" className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Check-in Time</label>
+                      <input type="time" value={form.check_in_time} onChange={(e) => update('check_in_time', e.target.value)} className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Check-out Time</label>
+                      <input type="time" value={form.check_out_time} onChange={(e) => update('check_out_time', e.target.value)} className={inputClass} />
+                    </div>
+                  </div>
+                </>
+              )}
 
               <h3 className="text-sm font-medium text-text-primary pt-2">Additional Costs</h3>
               <div className="grid grid-cols-2 gap-4">
