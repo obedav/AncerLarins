@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="bg-primary-dark text-white/70" role="contentinfo">
+    <footer className="bg-[#0F1D35] text-white/70" role="contentinfo">
       <div className="container-app py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}

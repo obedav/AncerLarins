@@ -144,7 +144,7 @@ export default function PropertyCard({ property, source }: Props) {
         <div className="p-4">
           {/* Price row */}
           <div className="flex items-baseline justify-between gap-2">
-            <p className="text-lg font-bold text-primary">
+            <p className="text-lg font-bold text-accent-dark">
               {formatPrice(property.price_kobo)}
               {property.rent_period && (
                 <span className="text-sm font-normal text-text-muted">/{property.rent_period}</span>

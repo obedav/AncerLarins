@@ -75,7 +75,7 @@ export default function NeighborhoodInsights({ areaId, areaName }: { areaId: str
         </div>
         {scores.overall > 0 && (
           <div className="text-center">
-            <p className="text-2xl font-bold text-primary">{clamp(scores.overall).toFixed(1)}</p>
+            <p className="text-2xl font-bold text-accent-dark">{clamp(scores.overall).toFixed(1)}</p>
             <p className="text-xs text-text-muted">Overall</p>
           </div>
         )}

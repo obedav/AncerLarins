@@ -155,8 +155,8 @@ export default function Home() {
               {HOW_IT_WORKS.map((item, idx) => (
                 <div key={item.step} className="relative group">
                   <div className="bg-surface rounded-2xl border border-border p-6 text-center hover:border-accent/30 hover:shadow-lg transition-all">
-                    <div className="w-14 h-14 rounded-2xl bg-primary/5 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/10 transition-colors">
-                      <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-14 h-14 rounded-2xl bg-accent-dark/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-accent-dark/15 transition-colors">
+                      <svg className="w-6 h-6 text-accent-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
                       </svg>
                     </div>

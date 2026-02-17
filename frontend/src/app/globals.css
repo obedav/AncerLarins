@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
-@theme inline {
-  /* Primary - Deep Slate Blue */
-  --color-primary: #1B2A4A;
-  --color-primary-dark: #0F1D35;
-  --color-primary-light: #2A3D66;
+@theme {
+  /* Primary - AncerLarins Navy */
+  --color-primary: #0F1D35;
+  --color-primary-dark: #0A1525;
+  --color-primary-light: #1B2A4A;
 
   /* Accent - Champagne Gold */
   --color-accent: #F0D9A0;
@@ -34,9 +34,9 @@
 
 /* Dark mode overrides — soft warm dark (not too black) */
 .dark {
-  --color-primary: #2C3E5A;
-  --color-primary-dark: #1C2536;
-  --color-primary-light: #3D5580;
+  --color-primary: #0F1D35;
+  --color-primary-dark: #0A1525;
+  --color-primary-light: #1B2A4A;
 
   --color-accent: #E8D49A;
   --color-accent-dark: #D4B96A;

@@ -289,7 +289,7 @@ export default function PropertyDetailContent({ slug }: { slug: string }) {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl md:text-3xl font-bold text-primary">
+                    <p className="text-2xl md:text-3xl font-bold text-accent-dark">
                       {formatPrice(property.price_kobo)}
                     </p>
                     {property.rent_period && (
@@ -337,12 +337,12 @@ export default function PropertyDetailContent({ slug }: { slug: string }) {
 
                 {/* AncerEstimate */}
                 {property.ancer_estimate && (
-                  <div className="mt-6 bg-primary/5 border border-primary/10 rounded-xl p-4">
+                  <div className="mt-6 bg-accent-dark/5 border border-accent-dark/10 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <span className="bg-primary text-white text-xs font-bold px-2 py-0.5 rounded">AncerEstimate</span>
                       <span className="text-xs text-text-muted">Automated valuation</span>
                     </div>
-                    <p className="text-2xl font-bold text-primary mb-1">
+                    <p className="text-2xl font-bold text-accent-dark mb-1">
                       {property.ancer_estimate.formatted_estimate}
                     </p>
                     <p className="text-xs text-text-muted mb-3">
@@ -470,7 +470,7 @@ export default function PropertyDetailContent({ slug }: { slug: string }) {
             <section className="mt-12 pt-8 border-t border-border">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-text-primary">Similar Properties</h2>
-                <Link href={`/properties?listing_type=${property.listing_type}&city_id=${property.city?.id || ''}`} className="text-sm font-medium text-primary hover:text-primary-light transition-colors">
+                <Link href={`/properties?listing_type=${property.listing_type}&city_id=${property.city?.id || ''}`} className="text-sm font-medium text-accent-dark hover:text-accent transition-colors">
                   View All &rarr;
                 </Link>
               </div>

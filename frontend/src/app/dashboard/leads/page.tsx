@@ -76,11 +76,11 @@ export default function LeadsPage() {
                     <td className="px-4 py-3 hidden sm:table-cell">
                       <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${
                         lead.contact_type === 'whatsapp' ? 'text-whatsapp' :
-                        lead.contact_type === 'call' ? 'text-primary' : 'text-text-secondary'
+                        lead.contact_type === 'call' ? 'text-accent-dark' : 'text-text-secondary'
                       }`}>
                         <span className={`w-2 h-2 rounded-full ${
                           lead.contact_type === 'whatsapp' ? 'bg-whatsapp' :
-                          lead.contact_type === 'call' ? 'bg-primary' : 'bg-text-muted'
+                          lead.contact_type === 'call' ? 'bg-accent-dark' : 'bg-text-muted'
                         }`} />
                         {lead.contact_type === 'whatsapp' ? 'WhatsApp' :
                          lead.contact_type === 'call' ? 'Phone Call' : 'Form'}

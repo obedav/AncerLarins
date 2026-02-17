@@ -7,7 +7,7 @@ import type { ListingType } from '@/types';
 function getMarketTemperature(avgDays: number, totalListings: number): { label: string; color: string; bg: string } {
   if (avgDays < 30 && totalListings > 5) return { label: 'Hot', color: 'text-error', bg: 'bg-error/10' };
   if (avgDays < 60) return { label: 'Warm', color: 'text-accent-dark', bg: 'bg-accent/15' };
-  return { label: 'Cool', color: 'text-primary', bg: 'bg-primary/10' };
+  return { label: 'Cool', color: 'text-text-secondary', bg: 'bg-border/50' };
 }
 
 export default function MarketTrends({ areaId, areaName, listingType }: { areaId: string; areaName: string; listingType: ListingType }) {
@@ -84,7 +84,7 @@ export default function MarketTrends({ areaId, areaName, listingType }: { areaId
                 <div key={i} className="flex-1 flex flex-col items-center gap-1">
                   <span className="text-xs text-text-muted font-medium">{formatPriceShort(t.avg_price_kobo)}</span>
                   <div
-                    className="w-full bg-primary/80 rounded-t-md transition-all hover:bg-primary"
+                    className="w-full bg-accent-dark/70 rounded-t-md transition-all hover:bg-accent-dark"
                     style={{ height: `${Math.max(height, 4)}%` }}
                     title={`${t.month}: ${formatPrice(t.avg_price_kobo)} (${t.listing_count} listings)`}
                   />
@@ -96,8 +96,8 @@ export default function MarketTrends({ areaId, areaName, listingType }: { areaId
         </div>
       ) : (
         <div className="text-center py-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/5 mb-3">
-            <svg className="w-6 h-6 text-primary/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent-dark/10 mb-3">
+            <svg className="w-6 h-6 text-accent-dark/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
             </svg>
           </div>

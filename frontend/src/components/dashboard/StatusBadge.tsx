@@ -7,8 +7,8 @@ const PROPERTY_STATUS_CONFIG: Record<PropertyStatus, { label: string; className:
   approved: { label: 'Approved', className: 'bg-success/10 text-success' },
   rejected: { label: 'Rejected', className: 'bg-error/10 text-error' },
   expired: { label: 'Expired', className: 'bg-accent/10 text-accent-dark' },
-  rented: { label: 'Rented', className: 'bg-primary/10 text-primary' },
-  sold: { label: 'Sold', className: 'bg-primary/15 text-primary' },
+  rented: { label: 'Rented', className: 'bg-accent-dark/10 text-accent-dark' },
+  sold: { label: 'Sold', className: 'bg-accent-dark/15 text-accent-dark' },
   archived: { label: 'Archived', className: 'bg-border/50 text-text-muted' },
 };
 

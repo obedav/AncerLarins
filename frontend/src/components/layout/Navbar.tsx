@@ -13,7 +13,7 @@ export default function Navbar() {
   const mobileMenuOpen = useSelector((state: RootState) => state.ui.mobileMenuOpen);
 
   return (
-    <nav className="bg-primary sticky top-0 z-50 shadow-lg" aria-label="Main navigation">
+    <nav className="bg-[#1B2A4A] sticky top-0 z-50 shadow-lg" aria-label="Main navigation">
       <div className="container-app">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}

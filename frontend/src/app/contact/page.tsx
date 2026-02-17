@@ -23,7 +23,7 @@ const CONTACT_METHODS = [
     value: 'hello@ancerlarins.com',
     href: 'mailto:hello@ancerlarins.com',
     icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
-    color: 'text-primary',
+    color: 'text-accent-dark',
   },
   {
     title: 'Office',
@@ -91,7 +91,7 @@ export default function ContactPage() {
                       href={method.href}
                       target={method.href.startsWith('http') ? '_blank' : undefined}
                       rel={method.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                      className="text-sm font-medium text-primary hover:text-primary-light transition-colors"
+                      className="text-sm font-medium text-accent-dark hover:text-accent transition-colors"
                     >
                       {method.value}
                     </a>

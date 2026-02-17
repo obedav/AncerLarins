@@ -55,7 +55,7 @@ function AgentOverview() {
         <StatCard label="Total Listings" value={Number(stats?.total_listings ?? 0)} icon="listings" />
         <StatCard label="Active Listings" value={Number(stats?.active_listings ?? 0)} icon="active" color="text-success" />
         <StatCard label="Leads (This Month)" value={Number(stats?.total_leads ?? 0)} icon="leads" color="text-accent-dark" />
-        <StatCard label="Total Views" value={Number(stats?.total_views ?? 0)} icon="views" color="text-primary" />
+        <StatCard label="Total Views" value={Number(stats?.total_views ?? 0)} icon="views" color="text-accent-dark" />
       </div>
 
       {/* Quick Action */}

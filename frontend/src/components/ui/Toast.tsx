@@ -52,7 +52,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 ? 'bg-success/10 border-success/20 text-success'
                 : t.type === 'error'
                 ? 'bg-error/10 border-error/20 text-error'
-                : 'bg-primary/10 border-primary/20 text-primary'
+                : 'bg-accent/10 border-accent/20 text-accent-dark'
             }`}
           >
             {/* Icon */}

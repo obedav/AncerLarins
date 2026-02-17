@@ -71,8 +71,8 @@ export default function AboutPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               {TEAM_VALUES.map((value) => (
                 <div key={value.title} className="flex gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-12 h-12 rounded-xl bg-accent-dark/10 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-accent-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={value.icon} />
                     </svg>
                   </div>
@@ -91,19 +91,19 @@ export default function AboutPage() {
           <div className="container-app">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto text-center">
               <div>
-                <p className="text-3xl font-bold text-primary">10K+</p>
+                <p className="text-3xl font-bold text-accent-dark">10K+</p>
                 <p className="text-sm text-text-muted mt-1">Properties Listed</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-primary">500+</p>
+                <p className="text-3xl font-bold text-accent-dark">500+</p>
                 <p className="text-sm text-text-muted mt-1">Verified Agents</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-primary">20+</p>
+                <p className="text-3xl font-bold text-accent-dark">20+</p>
                 <p className="text-sm text-text-muted mt-1">Lagos Areas</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-primary">50K+</p>
+                <p className="text-3xl font-bold text-accent-dark">50K+</p>
                 <p className="text-sm text-text-muted mt-1">Monthly Visitors</p>
               </div>
             </div>

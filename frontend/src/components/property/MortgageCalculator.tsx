@@ -144,7 +144,7 @@ export default function MortgageCalculator({ propertyPrice }: { propertyPrice: n
       <div className="mt-6 pt-5 border-t border-border">
         <div className="text-center mb-5">
           <p className="text-xs text-text-muted mb-1">Monthly Payment</p>
-          <p className="text-3xl font-bold text-primary">{formatPrice(calculation.monthly * 100)}</p>
+          <p className="text-3xl font-bold text-accent-dark">{formatPrice(calculation.monthly * 100)}</p>
           <p className="text-xs text-text-muted mt-0.5">/month</p>
         </div>
 

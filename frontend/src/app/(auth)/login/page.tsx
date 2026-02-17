@@ -52,7 +52,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-surface rounded-2xl shadow-sm p-8 border border-border">
         <Link href="/" className="flex items-center justify-center gap-1 mb-10">
           <span className="text-2xl font-bold text-accent-dark">Ancer</span>
-          <span className="text-2xl font-bold text-primary">Larins</span>
+          <span className="text-2xl font-bold text-text-primary">Larins</span>
         </Link>
 
         <h1 className="text-xl font-semibold text-text-primary mb-2">
