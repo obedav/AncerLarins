@@ -53,9 +53,9 @@ function AgentOverview() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total Listings" value={Number(stats?.total_listings ?? 0)} icon="listings" />
-        <StatCard label="Active Listings" value={Number(stats?.active_listings ?? 0)} icon="active" color="text-green-600" />
+        <StatCard label="Active Listings" value={Number(stats?.active_listings ?? 0)} icon="active" color="text-success" />
         <StatCard label="Leads (This Month)" value={Number(stats?.total_leads ?? 0)} icon="leads" color="text-accent-dark" />
-        <StatCard label="Total Views" value={Number(stats?.total_views ?? 0)} icon="views" color="text-blue-600" />
+        <StatCard label="Total Views" value={Number(stats?.total_views ?? 0)} icon="views" color="text-primary" />
       </div>
 
       {/* Quick Action */}
@@ -92,7 +92,7 @@ function AgentOverview() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2 ml-3">
-                    <span className={`w-2 h-2 rounded-full ${lead.contact_type === 'whatsapp' ? 'bg-whatsapp' : 'bg-blue-500'}`} />
+                    <span className={`w-2 h-2 rounded-full ${lead.contact_type === 'whatsapp' ? 'bg-whatsapp' : 'bg-primary'}`} />
                     {lead.user?.phone && (
                       <a
                         href={`https://wa.me/${lead.user.phone.replace(/[^0-9+]/g, '')}`}
@@ -118,10 +118,10 @@ function AgentOverview() {
         <div>
           <h2 className="text-lg font-semibold text-text-primary mb-4">Listing Breakdown</h2>
           <div className="bg-surface border border-border rounded-xl p-6 space-y-3">
-            <StatusRow label="Approved" count={Number(stats?.active_listings ?? 0)} color="bg-green-500" total={Number(stats?.total_listings ?? 1)} />
-            <StatusRow label="Pending" count={Number(stats?.pending_listings ?? 0)} color="bg-yellow-500" total={Number(stats?.total_listings ?? 1)} />
-            <StatusRow label="Rejected" count={Number(stats?.rejected_listings ?? 0)} color="bg-red-500" total={Number(stats?.total_listings ?? 1)} />
-            <StatusRow label="Draft" count={Number(stats?.draft_listings ?? 0)} color="bg-gray-400" total={Number(stats?.total_listings ?? 1)} />
+            <StatusRow label="Approved" count={Number(stats?.active_listings ?? 0)} color="bg-success" total={Number(stats?.total_listings ?? 1)} />
+            <StatusRow label="Pending" count={Number(stats?.pending_listings ?? 0)} color="bg-accent-dark" total={Number(stats?.total_listings ?? 1)} />
+            <StatusRow label="Rejected" count={Number(stats?.rejected_listings ?? 0)} color="bg-error" total={Number(stats?.total_listings ?? 1)} />
+            <StatusRow label="Draft" count={Number(stats?.draft_listings ?? 0)} color="bg-text-muted" total={Number(stats?.total_listings ?? 1)} />
           </div>
         </div>
       </div>

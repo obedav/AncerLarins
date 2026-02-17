@@ -65,7 +65,7 @@ export default function AdminPropertiesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-text-primary">Property Management</h1>
         {selectedIds.size > 0 && statusFilter === 'pending' && (
-          <button onClick={handleBulkApprove} disabled={approving} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50">
+          <button onClick={handleBulkApprove} disabled={approving} className="bg-success hover:bg-success/90 text-white px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50">
             Approve Selected ({selectedIds.size})
           </button>
         )}
@@ -134,7 +134,7 @@ export default function AdminPropertiesPage() {
                           <span className="text-xs text-text-muted">
                             by {property.agent_detail.company_name}
                             {property.agent_detail.verification_status === 'verified' && (
-                              <span className="text-green-600 ml-1">&#10003;</span>
+                              <span className="text-success ml-1">&#10003;</span>
                             )}
                           </span>
                         )}
@@ -151,7 +151,7 @@ export default function AdminPropertiesPage() {
                           <button
                             onClick={() => handleApprove(property.id)}
                             disabled={approving}
-                            className="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-medium disabled:opacity-50"
+                            className="text-xs bg-success hover:bg-success/90 text-white px-3 py-1.5 rounded-lg font-medium disabled:opacity-50"
                           >
                             Approve
                           </button>

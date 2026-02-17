@@ -5,9 +5,9 @@ import { formatPrice, formatPriceShort } from '@/lib/utils';
 import type { ListingType } from '@/types';
 
 function getMarketTemperature(avgDays: number, totalListings: number): { label: string; color: string; bg: string } {
-  if (avgDays < 30 && totalListings > 5) return { label: 'Hot', color: 'text-red-600', bg: 'bg-red-100' };
-  if (avgDays < 60) return { label: 'Warm', color: 'text-orange-600', bg: 'bg-orange-100' };
-  return { label: 'Cool', color: 'text-blue-600', bg: 'bg-blue-100' };
+  if (avgDays < 30 && totalListings > 5) return { label: 'Hot', color: 'text-error', bg: 'bg-error/10' };
+  if (avgDays < 60) return { label: 'Warm', color: 'text-accent-dark', bg: 'bg-accent/15' };
+  return { label: 'Cool', color: 'text-primary', bg: 'bg-primary/10' };
 }
 
 export default function MarketTrends({ areaId, areaName, listingType }: { areaId: string; areaName: string; listingType: ListingType }) {
@@ -67,7 +67,7 @@ export default function MarketTrends({ areaId, areaName, listingType }: { areaId
       {/* City Comparison */}
       {stats.city_comparison && (
         <div className={`mb-5 px-3 py-2 rounded-lg text-sm ${
-          stats.city_comparison.direction === 'above' ? 'bg-accent/10 text-accent-dark' : 'bg-green-50 text-green-700'
+          stats.city_comparison.direction === 'above' ? 'bg-accent/10 text-accent-dark' : 'bg-success/10 text-success'
         }`}>
           Prices in {areaName} are {stats.city_comparison.label}
         </div>

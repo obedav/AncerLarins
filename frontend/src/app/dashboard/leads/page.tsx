@@ -76,11 +76,11 @@ export default function LeadsPage() {
                     <td className="px-4 py-3 hidden sm:table-cell">
                       <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${
                         lead.contact_type === 'whatsapp' ? 'text-whatsapp' :
-                        lead.contact_type === 'call' ? 'text-blue-600' : 'text-text-secondary'
+                        lead.contact_type === 'call' ? 'text-primary' : 'text-text-secondary'
                       }`}>
                         <span className={`w-2 h-2 rounded-full ${
                           lead.contact_type === 'whatsapp' ? 'bg-whatsapp' :
-                          lead.contact_type === 'call' ? 'bg-blue-500' : 'bg-gray-400'
+                          lead.contact_type === 'call' ? 'bg-primary' : 'bg-text-muted'
                         }`} />
                         {lead.contact_type === 'whatsapp' ? 'WhatsApp' :
                          lead.contact_type === 'call' ? 'Phone Call' : 'Form'}
@@ -94,7 +94,7 @@ export default function LeadsPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       {lead.responded_at ? (
-                        <span className="text-xs text-green-600 font-medium">
+                        <span className="text-xs text-success font-medium">
                           Responded {formatRelativeTime(lead.responded_at)}
                         </span>
                       ) : (

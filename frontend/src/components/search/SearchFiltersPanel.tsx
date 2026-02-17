@@ -29,30 +29,32 @@ export default function SearchFiltersPanel({ filters, onFilterChange, onClearAll
   const priceRanges = PRICE_RANGES[listingType] || PRICE_RANGES.rent;
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-6 ${className}`} role="search" aria-label="Property filters">
       {/* Listing Type */}
-      <div>
-        <h3 className="text-sm font-semibold text-text-primary mb-2">Listing Type</h3>
-        <div className="flex bg-background border border-border rounded-lg overflow-hidden">
+      <fieldset>
+        <legend className="text-sm font-semibold text-text-primary mb-2">Listing Type</legend>
+        <div className="flex bg-background border border-border rounded-lg overflow-hidden" role="group">
           <button
             onClick={() => onFilterChange('listing_type', filters.listing_type === 'rent' ? undefined : 'rent')}
             className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${filters.listing_type === 'rent' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface'}`}
+            aria-pressed={filters.listing_type === 'rent'}
           >
             Rent
           </button>
           <button
             onClick={() => onFilterChange('listing_type', filters.listing_type === 'sale' ? undefined : 'sale')}
             className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${filters.listing_type === 'sale' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface'}`}
+            aria-pressed={filters.listing_type === 'sale'}
           >
             Buy
           </button>
         </div>
-      </div>
+      </fieldset>
 
       {/* Price Range */}
-      <div>
-        <h3 className="text-sm font-semibold text-text-primary mb-2">Price Range</h3>
-        <div className="space-y-1">
+      <fieldset>
+        <legend className="text-sm font-semibold text-text-primary mb-2">Price Range</legend>
+        <div className="space-y-1" role="listbox" aria-label="Price range options">
           {priceRanges.map((range) => {
             const isActive = filters.min_price === range.min && filters.max_price === range.max;
             return (
@@ -70,18 +72,20 @@ export default function SearchFiltersPanel({ filters, onFilterChange, onClearAll
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                   isActive ? 'bg-accent/10 text-accent-dark font-medium' : 'text-text-secondary hover:bg-background'
                 }`}
+                role="option"
+                aria-selected={isActive}
               >
                 {range.label}
               </button>
             );
           })}
         </div>
-      </div>
+      </fieldset>
 
       {/* Bedrooms */}
-      <div>
-        <h3 className="text-sm font-semibold text-text-primary mb-2">Bedrooms</h3>
-        <div className="flex flex-wrap gap-2">
+      <fieldset>
+        <legend className="text-sm font-semibold text-text-primary mb-2">Bedrooms</legend>
+        <div className="flex flex-wrap gap-2" role="group">
           {BEDROOM_OPTIONS.map((opt) => (
             <button
               key={opt.value}
@@ -91,16 +95,17 @@ export default function SearchFiltersPanel({ filters, onFilterChange, onClearAll
                   ? 'border-accent-dark bg-accent/10 text-accent-dark font-medium'
                   : 'border-border text-text-secondary hover:border-text-muted'
               }`}
+              aria-pressed={filters.min_bedrooms === opt.value}
             >
               {opt.label}{opt.value > 0 ? '+' : ''}
             </button>
           ))}
         </div>
-      </div>
+      </fieldset>
 
       {/* Furnishing */}
-      <div>
-        <h3 className="text-sm font-semibold text-text-primary mb-2">Furnishing</h3>
+      <fieldset>
+        <legend className="text-sm font-semibold text-text-primary mb-2">Furnishing</legend>
         <div className="space-y-1">
           {FURNISHING_OPTIONS.map((opt) => (
             <button
@@ -109,16 +114,17 @@ export default function SearchFiltersPanel({ filters, onFilterChange, onClearAll
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 filters.furnishing === opt.value ? 'bg-accent/10 text-accent-dark font-medium' : 'text-text-secondary hover:bg-background'
               }`}
+              aria-pressed={filters.furnishing === opt.value}
             >
               {opt.label}
             </button>
           ))}
         </div>
-      </div>
+      </fieldset>
 
       {/* Amenities/Features */}
-      <div>
-        <h3 className="text-sm font-semibold text-text-primary mb-2">Features</h3>
+      <fieldset>
+        <legend className="text-sm font-semibold text-text-primary mb-2">Features</legend>
         <div className="space-y-2">
           {AMENITY_FILTERS.map((amenity) => {
             const isChecked = (filters as Record<string, unknown>)[amenity.key] === true ||
@@ -138,7 +144,7 @@ export default function SearchFiltersPanel({ filters, onFilterChange, onClearAll
             );
           })}
         </div>
-      </div>
+      </fieldset>
 
       {/* Clear All */}
       <button

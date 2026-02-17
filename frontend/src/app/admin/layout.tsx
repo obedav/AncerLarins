@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -33,18 +34,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <span className="text-lg font-bold text-accent">Ancer</span>
               <span className="text-lg font-bold text-white">Larins</span>
             </Link>
-            <span className="text-xs bg-red-500/20 text-red-300 px-2 py-0.5 rounded font-medium">ADMIN</span>
+            <span className="text-xs bg-error/20 text-error px-2 py-0.5 rounded font-medium">ADMIN</span>
           </div>
 
           <div className="flex items-center gap-4">
             <Link href="/" className="text-white/60 hover:text-white text-sm">View Site</Link>
+            <ThemeToggle />
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent text-sm font-bold">
                 {user.first_name.charAt(0)}
               </div>
               <span className="text-sm text-white font-medium hidden sm:inline">{user.full_name}</span>
             </div>
-            <button onClick={logout} className="text-white/40 hover:text-white text-sm">Logout</button>
+            <button onClick={logout} className="text-white/40 hover:text-white text-sm" aria-label="Log out">Logout</button>
           </div>
         </div>
       </header>

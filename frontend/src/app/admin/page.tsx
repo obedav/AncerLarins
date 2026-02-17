@@ -41,19 +41,19 @@ export default function AdminDashboardPage() {
           href="/admin/properties"
           label="Pending Approvals"
           count={stats?.pending_approvals ?? 0}
-          color="bg-yellow-500"
+          color="bg-accent-dark"
         />
         <ActionCard
           href="/admin/agents"
           label="Pending Agents"
           count={stats?.agents_by_verification?.pending ?? 0}
-          color="bg-blue-500"
+          color="bg-primary"
         />
         <ActionCard
           href="/admin/reports"
           label="Open Reports"
           count={stats?.open_reports ?? 0}
-          color="bg-red-500"
+          color="bg-error"
         />
       </div>
 

@@ -37,11 +37,13 @@ export default function NeighborhoodInsights({ areaId, areaName }: { areaId: str
   const scores = insights?.scores ?? { overall: 0, safety: 0, transport: 0, amenities: 0, noise: 0 };
   const reviewCount = insights?.review_count ?? 0;
 
+  const clamp = (v: number) => Math.min(Math.max(v, 0), 5);
+
   const scoreEntries = [
-    { label: 'Safety', value: scores.safety, color: 'bg-green-500' },
-    { label: 'Transport', value: scores.transport, color: 'bg-blue-500' },
-    { label: 'Amenities', value: scores.amenities, color: 'bg-accent-dark' },
-    { label: 'Noise Level', value: scores.noise, color: 'bg-orange-500' },
+    { label: 'Safety', value: clamp(scores.safety), color: 'bg-success' },
+    { label: 'Transport', value: clamp(scores.transport), color: 'bg-primary' },
+    { label: 'Amenities', value: clamp(scores.amenities), color: 'bg-accent-dark' },
+    { label: 'Noise Level', value: clamp(scores.noise), color: 'bg-error' },
   ];
 
   const hasAnyScore = scoreEntries.some((e) => e.value > 0);
@@ -73,7 +75,7 @@ export default function NeighborhoodInsights({ areaId, areaName }: { areaId: str
         </div>
         {scores.overall > 0 && (
           <div className="text-center">
-            <p className="text-2xl font-bold text-primary">{scores.overall.toFixed(1)}</p>
+            <p className="text-2xl font-bold text-primary">{clamp(scores.overall).toFixed(1)}</p>
             <p className="text-xs text-text-muted">Overall</p>
           </div>
         )}
@@ -114,7 +116,7 @@ export default function NeighborhoodInsights({ areaId, areaName }: { areaId: str
       {insights && (insights.rent_averages['1br'] || insights.rent_averages['2br'] || insights.rent_averages['3br']) && (
         <div className="mb-5 pt-4 border-t border-border">
           <h3 className="text-sm font-semibold text-text-primary mb-2">Average Rent in {areaName}</h3>
-          <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center">
             {insights.rent_averages['1br'] && (
               <div className="bg-background rounded-lg py-2 px-1">
                 <p className="text-xs text-text-muted">1 Bed</p>
@@ -168,7 +170,7 @@ export default function NeighborhoodInsights({ areaId, areaName }: { areaId: str
 
       {/* Rate CTA / Form */}
       {submitted ? (
-        <div className="bg-green-50 text-green-700 rounded-lg p-3 text-sm">
+        <div className="bg-success/10 text-success rounded-lg p-3 text-sm">
           Thanks for your review! It will appear after approval.
         </div>
       ) : showForm && isAuthenticated ? (
@@ -183,6 +185,7 @@ export default function NeighborhoodInsights({ areaId, areaName }: { areaId: str
                     key={v}
                     type="button"
                     onClick={() => setReviewForm((p) => ({ ...p, [field]: v }))}
+                    aria-label={`Rate ${field} ${v} out of 5`}
                     className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                       reviewForm[field] >= v
                         ? 'bg-accent-dark text-white'
@@ -199,6 +202,7 @@ export default function NeighborhoodInsights({ areaId, areaName }: { areaId: str
             value={reviewForm.comment}
             onChange={(e) => setReviewForm((p) => ({ ...p, comment: e.target.value }))}
             placeholder="Share your experience (optional)"
+            aria-label="Neighborhood review comment"
             maxLength={1000}
             rows={3}
             className="w-full px-3 py-2 border border-border rounded-xl bg-background text-sm text-text-primary focus:outline-none focus:border-accent-dark"
@@ -206,6 +210,7 @@ export default function NeighborhoodInsights({ areaId, areaName }: { areaId: str
           <select
             value={reviewForm.lived_duration}
             onChange={(e) => setReviewForm((p) => ({ ...p, lived_duration: e.target.value }))}
+            aria-label="How long have you lived here"
             className="w-full px-3 py-2 border border-border rounded-xl bg-background text-sm text-text-secondary focus:outline-none focus:border-accent-dark"
           >
             <option value="">How long have you lived here?</option>
@@ -218,7 +223,7 @@ export default function NeighborhoodInsights({ areaId, areaName }: { areaId: str
             <button
               type="submit"
               disabled={submitting}
-              className="bg-accent hover:bg-accent-dark text-primary px-5 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
+              className="bg-accent hover:bg-accent-dark text-text-primary px-5 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
             >
               {submitting ? 'Submitting...' : 'Submit Review'}
             </button>

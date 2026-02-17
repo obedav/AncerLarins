@@ -150,6 +150,7 @@ function SearchContent() {
                   <button
                     onClick={() => setMobileFiltersOpen(true)}
                     className="lg:hidden flex items-center gap-1.5 bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-secondary"
+                    aria-label="Open filters"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -193,6 +194,7 @@ function SearchContent() {
                     value={filters.sort_by || 'newest'}
                     onChange={(e) => updateFilter('sort_by', e.target.value)}
                     className="bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-secondary focus:outline-none focus:border-accent-dark"
+                    aria-label="Sort properties"
                   >
                     {SORT_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -209,7 +211,7 @@ function SearchContent() {
                   {activeFilters.map((chip) => (
                     <span key={chip.key} className="bg-accent/10 text-accent-dark px-3 py-1 rounded-full text-sm flex items-center gap-1.5 capitalize">
                       {chip.label}
-                      <button onClick={() => removeChip(chip.key)} className="hover:text-error font-bold">&times;</button>
+                      <button onClick={() => removeChip(chip.key)} className="hover:text-error font-bold" aria-label={`Remove ${chip.label} filter`}>&times;</button>
                     </span>
                   ))}
                   {activeFilters.length > 1 && (
@@ -276,7 +278,7 @@ function SearchContent() {
 
                   {/* Pagination */}
                   {meta && meta.last_page > 1 && (
-                    <div className="flex justify-center items-center gap-1.5 mt-10">
+                    <nav className="flex justify-center items-center gap-1.5 mt-10" aria-label="Pagination">
                       <button
                         onClick={() => setPage(meta.current_page - 1)}
                         disabled={meta.current_page === 1}
@@ -308,6 +310,8 @@ function SearchContent() {
                                   ? 'bg-primary text-white'
                                   : 'border border-border hover:bg-surface text-text-secondary'
                               }`}
+                              aria-label={`Page ${p}`}
+                              aria-current={p === current ? 'page' : undefined}
                             >
                               {p}
                             </button>
@@ -322,7 +326,7 @@ function SearchContent() {
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                       </button>
-                    </div>
+                    </nav>
                   )}
                 </>
               )}
@@ -333,12 +337,12 @@ function SearchContent() {
 
       {/* Mobile Filter Bottom Sheet */}
       {mobileFiltersOpen && (
-        <div className="lg:hidden fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileFiltersOpen(false)} />
+        <div className="lg:hidden fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Filters">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileFiltersOpen(false)} aria-hidden="true" />
           <div className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up">
             <div className="sticky top-0 bg-surface border-b border-border px-5 py-4 flex items-center justify-between">
               <h2 className="text-lg font-bold text-text-primary">Filters</h2>
-              <button onClick={() => setMobileFiltersOpen(false)} className="text-text-muted hover:text-text-primary">
+              <button onClick={() => setMobileFiltersOpen(false)} className="text-text-muted hover:text-text-primary" aria-label="Close filters">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>

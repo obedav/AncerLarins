@@ -32,6 +32,30 @@
   --font-sans: var(--font-inter);
 }
 
+/* Dark mode overrides — soft warm dark (not too black) */
+.dark {
+  --color-primary: #2C3E5A;
+  --color-primary-dark: #1C2536;
+  --color-primary-light: #3D5580;
+
+  --color-accent: #E8D49A;
+  --color-accent-dark: #D4B96A;
+  --color-accent-light: #3D3420;
+
+  --color-background: #1A2030;
+  --color-surface: #222B3D;
+  --color-border: #333F54;
+
+  --color-text-primary: #ECE8E1;
+  --color-text-secondary: #A8A4A0;
+  --color-text-muted: #706C68;
+
+  --color-error: #F87171;
+  --color-success: #34D399;
+
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -47,6 +71,11 @@ body {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark mode image adjustments */
+.dark img {
+  brightness: 0.95;
 }
 
 /* Custom scrollbar */
@@ -90,6 +119,24 @@ body {
 
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-modal-in {
+  animation: modal-in 0.2s ease-out;
 }
 
 /* Utility classes */

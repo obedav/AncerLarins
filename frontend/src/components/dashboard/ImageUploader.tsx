@@ -151,7 +151,7 @@ export default function ImageUploader({ images, onChange, maxImages = 20, maxSiz
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); removeImage(img.id); }}
-                  className="bg-red-500 text-white p-1.5 rounded-lg text-xs"
+                  className="bg-error text-white p-1.5 rounded-lg text-xs"
                   title="Remove"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

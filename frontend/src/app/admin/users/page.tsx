@@ -109,20 +109,20 @@ export default function AdminUsersPage() {
                     <td className="px-4 py-3">
                       <span className={`text-xs font-medium capitalize px-2 py-0.5 rounded-full ${
                         user.role === 'admin' || user.role === 'super_admin'
-                          ? 'bg-purple-100 text-purple-700'
+                          ? 'bg-primary/10 text-primary'
                           : user.role === 'agent'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-gray-100 text-gray-600'
+                          ? 'bg-accent/15 text-accent-dark'
+                          : 'bg-border/50 text-text-secondary'
                       }`}>
                         {user.role}
                       </span>
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
                       <span className={`text-xs font-medium capitalize px-2 py-0.5 rounded-full ${
-                        user.status === 'active' ? 'bg-green-100 text-green-700' :
-                        user.status === 'banned' ? 'bg-red-100 text-red-700' :
-                        user.status === 'suspended' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-gray-100 text-gray-500'
+                        user.status === 'active' ? 'bg-success/10 text-success' :
+                        user.status === 'banned' ? 'bg-error/10 text-error' :
+                        user.status === 'suspended' ? 'bg-accent/20 text-accent-dark' :
+                        'bg-border/50 text-text-muted'
                       }`}>
                         {user.status || 'active'}
                       </span>
@@ -132,7 +132,7 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       {user.status === 'banned' ? (
-                        <button onClick={() => handleUnban(user.id)} className="text-xs text-green-600 hover:text-green-700 font-medium px-2 py-1">
+                        <button onClick={() => handleUnban(user.id)} className="text-xs text-success hover:text-success/80 font-medium px-2 py-1">
                           Unban
                         </button>
                       ) : user.role !== 'admin' && user.role !== 'super_admin' ? (

@@ -47,6 +47,7 @@ export interface PropertyListItem {
     user_name: string;
     is_verified: boolean;
   } | null;
+  images_count?: number;
   views_count?: number;
   leads_count?: number;
   published_at: string | null;

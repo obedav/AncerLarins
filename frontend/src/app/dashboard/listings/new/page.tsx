@@ -212,7 +212,7 @@ export default function NewListingPage() {
             className={`flex items-center gap-2 shrink-0 ${i < step ? 'cursor-pointer' : 'cursor-default'}`}
           >
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-              i < step ? 'bg-green-500 text-white' :
+              i < step ? 'bg-success text-white' :
               i === step ? 'bg-primary text-white' :
               'bg-border text-text-muted'
             }`}>

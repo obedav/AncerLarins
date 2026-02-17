@@ -119,7 +119,7 @@ export default function AdminAgentsPage() {
                       <div className="flex items-center justify-end gap-1">
                         {agent.verification_status === 'pending' && (
                           <>
-                            <button onClick={() => handleVerify(agent.id)} className="text-xs bg-green-600 text-white px-2.5 py-1 rounded-lg font-medium hover:bg-green-700">
+                            <button onClick={() => handleVerify(agent.id)} className="text-xs bg-success text-white px-2.5 py-1 rounded-lg font-medium hover:bg-success/90">
                               Verify
                             </button>
                             <button onClick={() => setRejectModal(agent.id)} className="text-xs text-error hover:bg-error/5 px-2.5 py-1 rounded-lg font-medium">

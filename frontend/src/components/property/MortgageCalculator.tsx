@@ -63,10 +63,11 @@ export default function MortgageCalculator({ propertyPrice }: { propertyPrice: n
         {/* Down Payment */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-sm text-text-secondary">Down Payment</label>
+            <label htmlFor="mortgage-down-payment" className="text-sm text-text-secondary">Down Payment</label>
             <span className="text-sm font-semibold text-text-primary">{downPaymentPct}%</span>
           </div>
           <input
+            id="mortgage-down-payment"
             type="range"
             min={5}
             max={80}
@@ -85,10 +86,11 @@ export default function MortgageCalculator({ propertyPrice }: { propertyPrice: n
         {/* Interest Rate */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-sm text-text-secondary">Interest Rate</label>
+            <label htmlFor="mortgage-interest-rate" className="text-sm text-text-secondary">Interest Rate</label>
             <span className="text-sm font-semibold text-text-primary">{interestRate}%</span>
           </div>
           <input
+            id="mortgage-interest-rate"
             type="range"
             min={10}
             max={35}
@@ -118,10 +120,11 @@ export default function MortgageCalculator({ propertyPrice }: { propertyPrice: n
         {/* Loan Term */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-sm text-text-secondary">Loan Term</label>
+            <label htmlFor="mortgage-loan-term" className="text-sm text-text-secondary">Loan Term</label>
             <span className="text-sm font-semibold text-text-primary">{termYears} years</span>
           </div>
           <input
+            id="mortgage-loan-term"
             type="range"
             min={5}
             max={30}
@@ -151,9 +154,9 @@ export default function MortgageCalculator({ propertyPrice }: { propertyPrice: n
             className="w-20 h-20 rounded-full flex-shrink-0"
             style={{
               background: `conic-gradient(
-                #1B2A4A 0% ${principalPct}%,
-                #C9A84C ${principalPct}% ${principalPct + interestPct}%,
-                #E8E4DE ${principalPct + interestPct}% 100%
+                var(--color-primary) 0% ${principalPct}%,
+                var(--color-accent-dark) ${principalPct}% ${principalPct + interestPct}%,
+                var(--color-border) ${principalPct + interestPct}% 100%
               )`,
             }}
           />

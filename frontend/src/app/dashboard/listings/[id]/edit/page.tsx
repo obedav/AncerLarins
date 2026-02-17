@@ -194,7 +194,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
       <h1 className="text-xl font-bold text-text-primary mb-1">Edit Listing</h1>
       <p className="text-sm text-text-muted mb-6">Update your property details below.</p>
 
-      {success && <div className="bg-green-50 text-green-700 p-3 rounded-xl mb-6 text-sm">{success}</div>}
+      {success && <div className="bg-success/10 text-success p-3 rounded-xl mb-6 text-sm">{success}</div>}
       {error && <div className="bg-error/10 text-error p-3 rounded-xl mb-6 text-sm">{error}</div>}
 
       <form onSubmit={handleSave} className="space-y-6">

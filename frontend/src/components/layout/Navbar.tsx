@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleMobileMenu, closeMobileMenu } from '@/store/slices/uiSlice';
 import type { RootState } from '@/store/store';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -12,7 +13,7 @@ export default function Navbar() {
   const mobileMenuOpen = useSelector((state: RootState) => state.ui.mobileMenuOpen);
 
   return (
-    <nav className="bg-primary sticky top-0 z-50 shadow-lg">
+    <nav className="bg-primary sticky top-0 z-50 shadow-lg" aria-label="Main navigation">
       <div className="container-app">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
@@ -51,6 +52,7 @@ export default function Navbar() {
 
           {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-4">
+            <ThemeToggle />
             {isAuthenticated ? (
               <>
                 <Link
@@ -93,7 +95,8 @@ export default function Navbar() {
           <button
             onClick={() => dispatch(toggleMobileMenu())}
             className="md:hidden text-white p-2"
-            aria-label="Toggle menu"
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileMenuOpen}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {mobileMenuOpen ? (
@@ -107,7 +110,7 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden pb-4 border-t border-white/10 mt-2">
+          <div className="md:hidden pb-4 border-t border-white/10 mt-2" role="menu">
             <div className="flex flex-col gap-1 pt-3">
               <Link
                 href="/properties?listing_type=rent"
@@ -137,6 +140,11 @@ export default function Navbar() {
               >
                 Search
               </Link>
+              <div className="border-t border-white/10 my-2" />
+              <div className="flex items-center justify-between px-3 py-2">
+                <span className="text-white/60 text-sm">Dark Mode</span>
+                <ThemeToggle />
+              </div>
               <div className="border-t border-white/10 my-2" />
               {isAuthenticated ? (
                 <>

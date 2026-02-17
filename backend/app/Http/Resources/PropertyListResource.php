@@ -65,6 +65,10 @@ class PropertyListResource extends JsonResource
                     'is_verified'  => $this->agent->isVerified(),
                 ] : null
             ),
+            'images_count' => $this->when(
+                $this->relationLoaded('images'),
+                fn () => $this->images->count()
+            ),
             'views_count'  => $this->when(isset($this->views_count), $this->views_count),
             'published_at' => $this->published_at?->toISOString(),
         ];

@@ -110,7 +110,7 @@ export default function ProfilePage() {
       {user && <ProfileCompleteness user={user} />}
 
       {success && (
-        <div className="bg-green-50 text-green-700 p-3 rounded-xl text-sm">{success}</div>
+        <div className="bg-success/10 text-success p-3 rounded-xl text-sm">{success}</div>
       )}
       {error && (
         <div className="bg-error/10 text-error p-3 rounded-xl text-sm">{error}</div>

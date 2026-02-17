@@ -100,12 +100,12 @@ export default function AgentOnboarding({ user }: { user: User }) {
               key={step.key}
               href={step.href}
               className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                done ? 'bg-green-50' : 'bg-background hover:bg-accent/5'
+                done ? 'bg-success/10' : 'bg-background hover:bg-accent/5'
               }`}
             >
               {/* Check/Circle icon */}
               <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                done ? 'bg-green-500' : 'border-2 border-border'
+                done ? 'bg-success' : 'border-2 border-border'
               }`}>
                 {done && (
                   <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -114,7 +114,7 @@ export default function AgentOnboarding({ user }: { user: User }) {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className={`text-sm font-medium ${done ? 'text-green-700 line-through' : 'text-text-primary'}`}>
+                <p className={`text-sm font-medium ${done ? 'text-success line-through' : 'text-text-primary'}`}>
                   {step.label}
                 </p>
                 {!done && <p className="text-xs text-text-muted">{step.description}</p>}

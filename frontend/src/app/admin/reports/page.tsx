@@ -106,7 +106,7 @@ export default function AdminReportsPage() {
                       )}
                     </div>
                     {report.resolution_note && (
-                      <p className="text-xs text-green-600 mt-2">Resolution: {report.resolution_note}</p>
+                      <p className="text-xs text-success mt-2">Resolution: {report.resolution_note}</p>
                     )}
                   </div>
 
@@ -120,7 +120,7 @@ export default function AdminReportsPage() {
                       <>
                         <button
                           onClick={() => setResolveModal(report.id)}
-                          className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-green-700"
+                          className="text-xs bg-success text-white px-3 py-1.5 rounded-lg font-medium hover:bg-success/90"
                         >
                           Resolve
                         </button>
@@ -158,7 +158,7 @@ export default function AdminReportsPage() {
             <textarea value={resolveNote} onChange={(e) => setResolveNote(e.target.value)} placeholder="Resolution note..." rows={3} className="w-full px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm mb-4" />
             <div className="flex justify-end gap-3">
               <button onClick={() => { setResolveModal(null); setResolveNote(''); }} className="px-4 py-2 rounded-xl border border-border text-sm text-text-secondary">Cancel</button>
-              <button onClick={handleResolve} disabled={!resolveNote.trim()} className="px-4 py-2 rounded-xl bg-green-600 text-white text-sm font-medium disabled:opacity-50">Resolve</button>
+              <button onClick={handleResolve} disabled={!resolveNote.trim()} className="px-4 py-2 rounded-xl bg-success text-white text-sm font-medium disabled:opacity-50">Resolve</button>
             </div>
           </div>
         </div>
