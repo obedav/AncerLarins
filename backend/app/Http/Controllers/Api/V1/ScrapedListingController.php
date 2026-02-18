@@ -1,0 +1,58 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Enums\ScrapedListingStatus;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\ScrapedListingResource;
+use App\Models\ScrapedListing;
+use App\Traits\ApiResponse;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class ScrapedListingController extends Controller
+{
+    use ApiResponse;
+
+    public function index(Request $request): JsonResponse
+    {
+        $listings = ScrapedListing::query()
+            ->when($request->source, fn ($q, $v) => $q->where('source', $v))
+            ->when($request->status, fn ($q, $v) => $q->where('status', $v))
+            ->when($request->listing_type, fn ($q, $v) => $q->where('listing_type', $v))
+            ->latest('created_at')
+            ->paginate($request->integer('per_page', 20));
+
+        return $this->paginatedResponse(
+            $listings->setCollection(
+                $listings->getCollection()->map(fn ($l) => new ScrapedListingResource($l))
+            )
+        );
+    }
+
+    public function approve(Request $request, ScrapedListing $scrapedListing): JsonResponse
+    {
+        if ($scrapedListing->status !== ScrapedListingStatus::Pending) {
+            return $this->errorResponse('Only pending listings can be approved.', 422);
+        }
+
+        $scrapedListing->update(['status' => ScrapedListingStatus::Imported]);
+
+        return $this->successResponse(
+            new ScrapedListingResource($scrapedListing),
+            'Scraped listing approved for import.'
+        );
+    }
+
+    public function reject(Request $request, ScrapedListing $scrapedListing): JsonResponse
+    {
+        $request->validate(['reason' => 'nullable|string|max:500']);
+
+        $scrapedListing->update([
+            'status'           => ScrapedListingStatus::Rejected,
+            'rejection_reason' => $request->reason,
+        ]);
+
+        return $this->successResponse(null, 'Scraped listing rejected.');
+    }
+}

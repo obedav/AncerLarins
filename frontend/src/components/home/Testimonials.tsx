@@ -48,12 +48,12 @@ const TESTIMONIALS = [
 ];
 
 const AVATAR_COLORS = [
-  'bg-blue-900 text-blue-300',
-  'bg-emerald-900 text-emerald-300',
-  'bg-amber-900 text-amber-300',
-  'bg-violet-900 text-violet-300',
-  'bg-rose-900 text-rose-300',
-  'bg-cyan-900 text-cyan-300',
+  'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+  'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
+  'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
+  'bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300',
+  'bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300',
+  'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300',
 ];
 
 function StarRating({ rating }: { rating: number }) {
@@ -85,7 +85,7 @@ function TestimonialCard({
 }) {
   return (
     <div
-      className={`bg-surface rounded-2xl border p-6 transition-all duration-500 ${
+      className={`bg-surface rounded-2xl border p-6 transition-all duration-500 relative overflow-hidden ${
         isCenter !== undefined
           ? isCenter
             ? 'border-accent/40 shadow-lg scale-[1.02] z-10'
@@ -93,8 +93,12 @@ function TestimonialCard({
           : 'border-accent/30 shadow-md'
       }`}
     >
+      {/* Decorative quote mark */}
+      <svg className="absolute top-4 right-4 w-8 h-8 text-accent-dark/[0.07]" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H14.017zM0 21v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151C7.563 6.068 6 8.789 6 11h4v10H0z" />
+      </svg>
       <StarRating rating={testimonial.rating} />
-      <p className={`text-text-secondary mt-4 text-sm leading-relaxed ${isCenter !== undefined ? 'line-clamp-4' : ''}`}>
+      <p className={`text-text-secondary mt-4 text-sm leading-relaxed relative ${isCenter !== undefined ? 'line-clamp-4' : ''}`}>
         &ldquo;{testimonial.text}&rdquo;
       </p>
       <div className="flex items-center gap-3 mt-5 pt-4 border-t border-border">
@@ -228,8 +232,8 @@ export default function Testimonials() {
                 onClick={() => goTo(i)}
                 className={`transition-all duration-300 rounded-full ${
                   i === active
-                    ? 'w-8 h-2.5 bg-accent-dark'
-                    : 'w-2.5 h-2.5 bg-border hover:bg-text-muted'
+                    ? 'w-8 h-2.5 bg-accent-dark shadow-sm shadow-accent-dark/30'
+                    : 'w-2.5 h-2.5 bg-border hover:bg-accent-dark/30'
                 }`}
                 aria-label={`Go to testimonial ${i + 1}`}
               />

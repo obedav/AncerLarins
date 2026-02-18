@@ -1,0 +1,87 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+use App\Http\Resources\SubscriptionResource;
+use App\Services\SubscriptionService;
+use App\Traits\ApiResponse;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class SubscriptionController extends Controller
+{
+    use ApiResponse;
+
+    public function __construct(
+        protected SubscriptionService $subscriptionService,
+    ) {}
+
+    public function plans(): JsonResponse
+    {
+        return $this->successResponse($this->subscriptionService->getPlans());
+    }
+
+    public function initialize(Request $request): JsonResponse
+    {
+        $request->validate([
+            'tier' => 'required|string|in:basic,pro,enterprise',
+        ]);
+
+        $agent = $request->user()->agentProfile;
+
+        if (! $agent) {
+            return $this->errorResponse('Agent profile not found.', 404);
+        }
+
+        $result = $this->subscriptionService->initializePayment($agent, $request->tier);
+
+        if (! ($result['status'] ?? false)) {
+            return $this->errorResponse($result['message'] ?? 'Payment initialization failed.', 422);
+        }
+
+        return $this->successResponse([
+            'authorization_url' => $result['authorization_url'],
+            'access_code'       => $result['access_code'],
+            'reference'         => $result['reference'],
+        ], 'Payment initialized.');
+    }
+
+    public function verify(Request $request): JsonResponse
+    {
+        $request->validate([
+            'reference' => 'required|string',
+        ]);
+
+        $subscription = $this->subscriptionService->verifyAndActivate($request->reference);
+
+        if (! $subscription) {
+            return $this->errorResponse('Payment verification failed or already processed.', 422);
+        }
+
+        return $this->successResponse(
+            new SubscriptionResource($subscription),
+            'Subscription activated.'
+        );
+    }
+
+    public function current(Request $request): JsonResponse
+    {
+        $agent = $request->user()->agentProfile;
+
+        if (! $agent) {
+            return $this->errorResponse('Agent profile not found.', 404);
+        }
+
+        $activeSubscription = $agent->subscriptions()->active()->latest('created_at')->first();
+
+        return $this->successResponse([
+            'tier'               => $agent->subscription_tier,
+            'expires_at'         => $agent->subscription_expires_at,
+            'max_listings'       => $agent->max_listings,
+            'active_listings'    => $agent->active_listings,
+            'has_active'         => $agent->hasActiveSubscription(),
+            'subscription'       => $activeSubscription ? new SubscriptionResource($activeSubscription) : null,
+        ]);
+    }
+}

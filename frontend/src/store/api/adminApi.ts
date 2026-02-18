@@ -82,6 +82,50 @@ export const adminApi = baseApi.injectEndpoints({
         method: 'PUT',
       }),
     }),
+
+    // Activity logs
+    getActivityLogs: builder.query<PaginatedResponse<{
+      id: string;
+      user: { id: string; full_name: string; role: string } | null;
+      action: string;
+      target_type: string | null;
+      target_id: string | null;
+      metadata: Record<string, unknown>;
+      ip_address: string;
+      created_at: string;
+    }>, Record<string, unknown> | void>({
+      query: (params) => ({ url: '/admin/activity-logs', params: params || undefined }),
+    }),
+
+    // Scraped listings
+    getScrapedListings: builder.query<PaginatedResponse<{
+      id: string;
+      source: string;
+      source_url: string;
+      title: string;
+      price_kobo: number | null;
+      location: string | null;
+      bedrooms: number | null;
+      property_type: string | null;
+      listing_type: string | null;
+      image_url: string | null;
+      status: string;
+      dedup_score: number | null;
+      created_at: string;
+    }>, Record<string, unknown> | void>({
+      query: (params) => ({ url: '/admin/scraped-listings', params: params || undefined }),
+      providesTags: ['ScrapedListing'],
+    }),
+
+    approveScrapedListing: builder.mutation<ApiResponse<unknown>, string>({
+      query: (id) => ({ url: `/admin/scraped-listings/${id}/approve`, method: 'POST' }),
+      invalidatesTags: ['ScrapedListing'],
+    }),
+
+    rejectScrapedListing: builder.mutation<ApiResponse<unknown>, string>({
+      query: (id) => ({ url: `/admin/scraped-listings/${id}/reject`, method: 'POST' }),
+      invalidatesTags: ['ScrapedListing'],
+    }),
   }),
 });
 
@@ -99,4 +143,8 @@ export const {
   useGetAdminReportsQuery,
   useResolveReportMutation,
   useDismissReportMutation,
+  useGetActivityLogsQuery,
+  useGetScrapedListingsQuery,
+  useApproveScrapedListingMutation,
+  useRejectScrapedListingMutation,
 } = adminApi;

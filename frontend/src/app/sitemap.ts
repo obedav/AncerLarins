@@ -43,5 +43,49 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Sitemap generation should not fail hard
   }
 
+  // Fetch all active areas for rent/sale guide pages
+  try {
+    const res = await fetch(`${API_URL}/areas`, { next: { revalidate: 3600 } });
+    if (res.ok) {
+      const json = await res.json();
+      const areas = json.data || [];
+      for (const area of areas) {
+        entries.push({
+          url: `${BASE_URL}/properties/rent/${area.slug}`,
+          lastModified: new Date(),
+          changeFrequency: 'weekly',
+          priority: 0.85,
+        });
+        entries.push({
+          url: `${BASE_URL}/properties/sale/${area.slug}`,
+          lastModified: new Date(),
+          changeFrequency: 'weekly',
+          priority: 0.85,
+        });
+      }
+    }
+  } catch {
+    // Non-critical
+  }
+
+  // Fetch agent profiles
+  try {
+    const res = await fetch(`${API_URL}/agents?per_page=200`, { next: { revalidate: 3600 } });
+    if (res.ok) {
+      const json = await res.json();
+      const agents = json.data || [];
+      for (const agent of agents) {
+        entries.push({
+          url: `${BASE_URL}/agents/${agent.id}`,
+          lastModified: new Date(),
+          changeFrequency: 'weekly',
+          priority: 0.6,
+        });
+      }
+    }
+  } catch {
+    // Non-critical
+  }
+
   return entries;
 }

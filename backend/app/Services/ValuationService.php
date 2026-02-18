@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\Furnishing;
 use App\Enums\ListingType;
 use App\Models\Area;
+use App\Models\ExternalPriceData;
 use App\Models\Property;
 
 class ValuationService
@@ -26,15 +27,36 @@ class ValuationService
             return null;
         }
 
-        if ($areaBased !== null && $compMedian !== null) {
+        $externalEstimate = $this->externalPriceEstimate($property);
+
+        // Blend available signals: area-based (30%), comparables (50%), external data (20%)
+        $signals = array_filter([
+            'area'       => $areaBased,
+            'comparable' => $compMedian,
+            'external'   => $externalEstimate,
+        ], fn ($v) => $v !== null);
+
+        if (empty($signals)) {
+            return null;
+        }
+
+        if (count($signals) === 3) {
+            $estimate = (int) (($areaBased * 0.30) + ($compMedian * 0.50) + ($externalEstimate * 0.20));
+        } elseif ($areaBased !== null && $compMedian !== null) {
             $estimate = (int) (($areaBased * 0.4) + ($compMedian * 0.6));
+        } elseif ($compMedian !== null && $externalEstimate !== null) {
+            $estimate = (int) (($compMedian * 0.7) + ($externalEstimate * 0.3));
+        } elseif ($areaBased !== null && $externalEstimate !== null) {
+            $estimate = (int) (($areaBased * 0.6) + ($externalEstimate * 0.4));
         } elseif ($compMedian !== null) {
             $estimate = (int) $compMedian;
+        } elseif ($externalEstimate !== null) {
+            $estimate = (int) $externalEstimate;
         } else {
             $estimate = (int) $areaBased;
         }
 
-        $confidence = $this->calculateConfidence($compCount, $areaBased !== null);
+        $confidence = $this->calculateConfidence($compCount, $areaBased !== null, $externalEstimate !== null);
         $margin = (1 - $confidence) * 0.30;
 
         return [
@@ -131,19 +153,57 @@ class ValuationService
         return (int) $sorted[$mid];
     }
 
-    protected function calculateConfidence(int $compCount, bool $hasAreaData): float
+    protected function externalPriceEstimate(Property $property): ?int
     {
-        if ($compCount === 0) {
-            return $hasAreaData ? 0.3 : 0.1;
-        }
-        if ($compCount <= 3) {
-            return 0.6;
-        }
-        if ($compCount <= 9) {
-            return 0.8;
+        if (! $property->area_id) {
+            return null;
         }
 
-        return 0.9;
+        $listingType = $property->listing_type === ListingType::Sale ? 'sale' : 'rent';
+
+        $query = ExternalPriceData::where('area_id', $property->area_id)
+            ->where('listing_type', $listingType)
+            ->where('data_date', '>=', now()->subDays(90));
+
+        if ($property->property_type) {
+            $query->where('property_type', $property->property_type->slug ?? $property->property_type);
+        }
+
+        if ($property->bedrooms) {
+            $query->where('bedrooms', $property->bedrooms);
+        }
+
+        $prices = $query->orderByDesc('data_date')->limit(20)->pluck('price_kobo');
+
+        return $this->computeMedian($prices);
+    }
+
+    protected function calculateConfidence(int $compCount, bool $hasAreaData, bool $hasExternalData = false): float
+    {
+        $base = 0.1;
+
+        if ($hasAreaData) {
+            $base = 0.3;
+        }
+        if ($hasExternalData) {
+            $base = max($base, 0.35);
+        }
+        if ($compCount > 0 && $compCount <= 3) {
+            $base = max($base, 0.6);
+        }
+        if ($compCount > 3 && $compCount <= 9) {
+            $base = max($base, 0.8);
+        }
+        if ($compCount >= 10) {
+            $base = max($base, 0.9);
+        }
+
+        // Boost if multiple signals available
+        if ($hasAreaData && $hasExternalData && $compCount > 0) {
+            $base = min($base + 0.05, 0.95);
+        }
+
+        return $base;
     }
 
     public function batchRefresh(): int

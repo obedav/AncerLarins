@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Services\SubscriptionService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,9 +13,13 @@ class WebhookController extends Controller
 {
     use ApiResponse;
 
+    public function __construct(
+        protected SubscriptionService $subscriptionService,
+    ) {}
+
     public function paystack(Request $request): JsonResponse
     {
-        $secret = config('ancerlarins.paystack.secret_key');
+        $secret = config('services.paystack.secret_key');
 
         if ($secret && $request->header('x-paystack-signature') !== hash_hmac('sha512', $request->getContent(), $secret)) {
             Log::warning('Paystack webhook: invalid signature');
@@ -46,15 +51,22 @@ class WebhookController extends Controller
     protected function handlePaystackChargeSuccess(array $data): void
     {
         Log::info('Paystack charge.success', ['reference' => $data['reference'] ?? null]);
+
+        $this->subscriptionService->handleChargeSuccess($data);
     }
 
     protected function handlePaystackSubscriptionCreate(array $data): void
     {
         Log::info('Paystack subscription.create', ['subscription_code' => $data['subscription_code'] ?? null]);
+
+        // Subscription creation is handled via charge.success + verify flow
+        // This event is logged for auditing purposes
     }
 
     protected function handlePaystackSubscriptionDisable(array $data): void
     {
         Log::info('Paystack subscription.disable', ['subscription_code' => $data['subscription_code'] ?? null]);
+
+        $this->subscriptionService->handleSubscriptionDisable($data);
     }
 }

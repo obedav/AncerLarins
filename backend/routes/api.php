@@ -3,9 +3,12 @@
 use App\Http\Controllers\Api\V1\AdminController;
 use App\Http\Controllers\Api\V1\AgentController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\LandmarkController;
 use App\Http\Controllers\Api\V1\LocationController;
 use App\Http\Controllers\Api\V1\PropertyController;
+use App\Http\Controllers\Api\V1\ScrapedListingController;
 use App\Http\Controllers\Api\V1\SearchController;
+use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -55,6 +58,13 @@ Route::prefix('v1')->group(function () {
     Route::get('/areas/{area}', [LocationController::class, 'areaDetail']);
     Route::get('/areas/{area}/insights', [LocationController::class, 'areaInsights']);
     Route::get('/areas/{area}/trends', [LocationController::class, 'areaTrends']);
+
+    // ── Public: Landmarks ─────────────────────────────────
+    Route::get('/landmarks', [LandmarkController::class, 'index']);
+    Route::get('/landmarks/nearby', [LandmarkController::class, 'nearby']);
+
+    // ── Public: Subscription Plans ────────────────────────
+    Route::get('/subscription/plans', [SubscriptionController::class, 'plans']);
 
     // ── Protected: Authenticated users ──────────────────
     Route::middleware(['auth:sanctum', 'throttle:60,1', 'ensure.phone_verified', 'track.activity'])->group(function () {
@@ -112,6 +122,11 @@ Route::prefix('v1')->group(function () {
             Route::delete('/properties/{property}', [PropertyController::class, 'destroy']);
             Route::post('/properties/{property}/images', [PropertyController::class, 'uploadImages']);
             Route::delete('/images/{image}', [PropertyController::class, 'removeImage']);
+
+            // Subscription management
+            Route::post('/subscription/initialize', [SubscriptionController::class, 'initialize']);
+            Route::post('/subscription/verify', [SubscriptionController::class, 'verify']);
+            Route::get('/subscription/current', [SubscriptionController::class, 'current']);
         });
 
         // ── Admin routes ────────────────────────────────
@@ -136,6 +151,14 @@ Route::prefix('v1')->group(function () {
             // Reports
             Route::get('/reports', [AdminController::class, 'reports']);
             Route::post('/reports/{report}/resolve', [AdminController::class, 'resolveReport']);
+
+            // Activity logs
+            Route::get('/activity-logs', [AdminController::class, 'activityLogs']);
+
+            // Scraped listings
+            Route::get('/scraped-listings', [ScrapedListingController::class, 'index']);
+            Route::post('/scraped-listings/{scrapedListing}/approve', [ScrapedListingController::class, 'approve']);
+            Route::post('/scraped-listings/{scrapedListing}/reject', [ScrapedListingController::class, 'reject']);
         });
     });
 });

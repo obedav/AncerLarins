@@ -130,6 +130,17 @@ export default function AdminPropertiesPage() {
                       </p>
                       <div className="flex items-center gap-2 mt-1.5">
                         <PropertyStatusBadge status={property.status} />
+                        {property.fraud_score !== undefined && property.fraud_score !== null && property.fraud_score > 0 && (
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                            property.fraud_score <= 30
+                              ? 'bg-success/10 text-success'
+                              : property.fraud_score <= 60
+                              ? 'bg-accent/15 text-accent-dark'
+                              : 'bg-error/10 text-error'
+                          }`}>
+                            Risk: {property.fraud_score}%
+                          </span>
+                        )}
                         {property.agent_detail && (
                           <span className="text-xs text-text-muted">
                             by {property.agent_detail.company_name}

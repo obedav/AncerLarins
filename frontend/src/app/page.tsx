@@ -98,21 +98,31 @@ export default function Home() {
                 <Link
                   key={area.name}
                   href={`/properties?area=${encodeURIComponent(area.name.toLowerCase().replace(/\s+/g, '-'))}&ref=home`}
-                  className="group relative bg-primary rounded-2xl overflow-hidden aspect-[4/5] hover:shadow-xl transition-shadow"
+                  className="group relative bg-primary rounded-2xl overflow-hidden aspect-[4/5] transition-all duration-300 hover:shadow-2xl hover:shadow-accent-dark/10 hover:-translate-y-1"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/80 to-primary-light/40 group-hover:from-primary-dark transition-colors" />
+                  {/* Layered gradient for depth */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary-dark via-primary/90 to-primary-light/50" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-accent-dark/[0.06] via-transparent to-accent-dark/[0.03] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                  {/* Decorative ring */}
+                  <div className="absolute -bottom-16 -right-16 w-40 h-40 rounded-full border border-white/[0.04] group-hover:border-accent-dark/10 transition-colors duration-500" />
+
+                  {/* Content */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-4">
-                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mb-3 group-hover:bg-accent/20 transition-colors">
+                    <div className="w-12 h-12 rounded-xl bg-white/[0.08] backdrop-blur-sm flex items-center justify-center mb-3 group-hover:bg-accent-dark/20 group-hover:scale-110 transition-all duration-300">
                       <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={area.icon} />
                       </svg>
                     </div>
                     <h3 className="font-bold text-lg">{area.name}</h3>
-                    <p className="text-white/70 text-xs mt-1 text-center">{area.description}</p>
-                    <span className="mt-3 text-xs text-accent/80 opacity-0 group-hover:opacity-100 transition-opacity font-medium">
+                    <p className="text-white/60 text-xs mt-1 text-center">{area.description}</p>
+                    <span className="mt-3 text-xs text-accent font-medium translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
                       View Properties &rarr;
                     </span>
                   </div>
+
+                  {/* Bottom accent line on hover */}
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-accent-dark to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
                 </Link>
               ))}
             </div>
@@ -122,9 +132,14 @@ export default function Home() {
         {/* Testimonials */}
         <Testimonials />
 
+        {/* Transition gradient into CTA */}
+        <div className="h-20 bg-gradient-to-b from-background to-primary" />
+
         {/* CTA */}
         <section className="py-16 md:py-20 bg-primary relative overflow-hidden" aria-label="Call to action">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--color-accent)/0.08_0%,_transparent_60%)]" />
+          {/* Subtle top accent */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-px w-1/2 bg-gradient-to-r from-transparent via-accent-dark/30 to-transparent" />
           <div className="container-app text-center relative">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">List Your Property Today</h2>
             <p className="text-white/70 mb-8 max-w-xl mx-auto">

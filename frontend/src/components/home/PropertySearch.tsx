@@ -178,8 +178,8 @@ function FieldWrapper({
   return (
     <div className={`group relative ${showDivider ? 'md:pr-5' : ''}`}>
       <div className="flex items-center gap-1.5 mb-2">
-        <span className="text-accent-dark/60 group-hover:text-accent-dark transition-colors">{icon}</span>
-        <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-text-muted dark:text-white/60 group-hover:text-text-secondary dark:group-hover:text-white/80 transition-colors">
+        <span className="text-accent-dark/80 group-hover:text-accent-dark transition-colors">{icon}</span>
+        <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-text-secondary dark:text-white/60 group-hover:text-text-primary dark:group-hover:text-white/80 transition-colors">
           {label}
         </span>
       </div>
@@ -187,7 +187,7 @@ function FieldWrapper({
         {children}
       </div>
       {showDivider && (
-        <div className="absolute right-0 top-2 bottom-1 w-px bg-border dark:bg-white/[0.08] hidden md:block" />
+        <div className="absolute right-0 top-2 bottom-1 w-px bg-primary/10 dark:bg-white/[0.08] hidden md:block" />
       )}
     </div>
   );
@@ -251,13 +251,13 @@ function CustomSelect({
         aria-controls={`${id}-listbox`}
         onClick={onToggle}
         onKeyDown={handleKeyDown}
-        className="w-full flex items-center justify-between py-1 text-sm outline-none cursor-pointer group/trigger"
+        className="w-full flex items-center justify-between py-1.5 text-sm outline-none cursor-pointer group/trigger border-b border-border/60 dark:border-white/[0.06] hover:border-accent-dark/30 dark:hover:border-white/[0.12] transition-colors"
       >
-        <span className={value ? 'text-text-primary dark:text-white' : 'text-text-muted dark:text-white/50'}>
+        <span className={value ? 'text-text-primary dark:text-white' : 'text-text-secondary/70 dark:text-white/50'}>
           {value || placeholder}
         </span>
         <IconChevronDown
-          className={`h-3.5 w-3.5 text-text-muted dark:text-white/50 transition-transform duration-200 flex-shrink-0 ${
+          className={`h-3.5 w-3.5 text-text-secondary dark:text-white/50 transition-transform duration-200 flex-shrink-0 ${
             isOpen ? 'rotate-180' : ''
           }`}
         />
@@ -267,7 +267,7 @@ function CustomSelect({
         <div
           id={`${id}-listbox`}
           role="listbox"
-          className="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl border border-border dark:border-white/[0.12] bg-white/95 dark:bg-primary-light/95 backdrop-blur-xl shadow-2xl shadow-black/10 dark:shadow-black/20 max-h-[280px] overflow-y-auto animate-modal-in scrollbar-none"
+          className="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl border border-primary/10 dark:border-white/[0.12] bg-white dark:bg-primary-light/95 backdrop-blur-xl shadow-2xl shadow-primary/10 dark:shadow-black/20 max-h-[280px] overflow-y-auto animate-modal-in scrollbar-none"
         >
           {children}
         </div>
@@ -416,8 +416,8 @@ export default function PropertySearch() {
               }}
               className={`relative flex flex-col items-center px-4 sm:px-7 py-2 sm:py-3 text-[13px] sm:text-sm font-semibold tracking-wide transition-all duration-300 rounded-t-xl sm:rounded-t-2xl flex-shrink-0 ${
                 isActive
-                  ? 'bg-white/90 dark:bg-primary-light/90 text-accent-dark backdrop-blur-xl'
-                  : 'bg-white/30 dark:bg-primary-light/30 text-text-muted dark:text-white/60 hover:text-text-secondary dark:hover:text-white/80 hover:bg-white/50 dark:hover:bg-primary-light/50'
+                  ? 'bg-white/85 shadow-sm shadow-primary/[0.04] dark:bg-primary-light/90 dark:shadow-none text-accent-dark backdrop-blur-xl'
+                  : 'bg-white/40 dark:bg-primary-light/30 text-text-muted dark:text-white/60 hover:text-text-secondary dark:hover:text-white/80 hover:bg-white/60 dark:hover:bg-primary-light/50'
               }`}
             >
               <span className="relative z-10">{tab.label}</span>
@@ -445,8 +445,8 @@ export default function PropertySearch() {
         aria-label="Property search"
         className={`relative rounded-b-2xl rounded-tr-2xl sm:rounded-b-3xl sm:rounded-tr-3xl border backdrop-blur-2xl p-4 sm:p-5 lg:p-7 transition-all duration-500 ${
           focused
-            ? 'border-accent-dark/30 bg-white/90 dark:bg-primary-light/90 shadow-2xl shadow-accent-dark/5'
-            : 'border-border dark:border-white/[0.08] bg-white/70 dark:bg-primary-light/70'
+            ? 'border-accent-dark/30 bg-white/85 shadow-xl shadow-primary/[0.06] dark:bg-primary-light/90 dark:shadow-accent-dark/5'
+            : 'border-border/80 bg-white/65 shadow-lg shadow-primary/[0.04] dark:border-white/[0.08] dark:bg-primary-light/70 dark:shadow-none'
         }`}
       >
         {/* Glow effect */}
@@ -496,7 +496,7 @@ export default function PropertySearch() {
                           }}
                           onMouseEnter={() => setHighlightedIndex(idx)}
                           className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors cursor-pointer ${
-                            isHighlighted ? 'bg-primary/[0.04] dark:bg-white/[0.06]' : ''
+                            isHighlighted ? 'bg-accent-dark/[0.08] dark:bg-white/[0.06]' : ''
                           } ${isSelected ? 'text-accent-dark' : 'text-text-secondary dark:text-white/80 hover:text-text-primary dark:hover:text-white'}`}
                         >
                           <span
@@ -542,7 +542,7 @@ export default function PropertySearch() {
                     }}
                     onMouseEnter={() => setHighlightedIndex(idx)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors cursor-pointer ${
-                      isHighlighted ? 'bg-primary/[0.04] dark:bg-white/[0.06]' : ''
+                      isHighlighted ? 'bg-accent-dark/[0.08] dark:bg-white/[0.06]' : ''
                     } ${isSelected ? 'border-l-2 border-accent-dark text-accent-dark' : 'border-l-2 border-transparent text-text-secondary dark:text-white/80 hover:text-text-primary dark:hover:text-white'}`}
                   >
                     {/* Icon container */}
@@ -550,7 +550,7 @@ export default function PropertySearch() {
                       className={`h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all ${
                         isSelected
                           ? 'bg-accent-dark/20'
-                          : 'bg-primary/[0.06] dark:bg-white/[0.06]'
+                          : 'bg-accent-dark/[0.08] dark:bg-white/[0.06]'
                       } ${isHighlighted && !isSelected ? 'scale-110' : ''}`}
                     >
                       {iconPath ? (
@@ -608,7 +608,7 @@ export default function PropertySearch() {
                     }}
                     onMouseEnter={() => setHighlightedIndex(idx)}
                     className={`w-full relative flex items-center gap-3 px-3 py-2.5 text-sm transition-colors cursor-pointer overflow-hidden ${
-                      isHighlighted ? 'bg-primary/[0.04] dark:bg-white/[0.06]' : ''
+                      isHighlighted ? 'bg-accent-dark/[0.08] dark:bg-white/[0.06]' : ''
                     } ${isSelected ? 'text-accent-dark' : 'text-text-secondary dark:text-white/80 hover:text-text-primary dark:hover:text-white'}`}
                   >
                     {/* Background tier bar */}
@@ -661,7 +661,7 @@ export default function PropertySearch() {
         {/* Trending line */}
         <div className="mt-4 sm:mt-5 flex items-center gap-2 border-t border-border dark:border-white/[0.06] pt-4">
           <IconSparkles className="h-3.5 w-3.5 text-accent-dark/60 flex-shrink-0" />
-          <p className="text-xs text-text-muted dark:text-white/50">
+          <p className="text-xs text-text-secondary dark:text-white/50">
             <span className="text-accent-dark/70 font-medium">Trending:</span>{' '}
             {TRENDING.join(', ')}
           </p>

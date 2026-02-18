@@ -217,9 +217,9 @@ export default function HeroSection() {
       </div>
 
       {/* Overlay stack for depth */}
-      <div className="absolute inset-0 bg-white/70 dark:bg-primary/75" />
-      <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-white/40 dark:from-primary dark:via-primary/70 dark:to-primary/40" />
-      <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-white/60 dark:from-primary dark:via-transparent dark:to-primary/60" />
+      <div className="absolute inset-0 bg-background/50 dark:bg-primary/75" />
+      <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/40 to-transparent dark:from-primary dark:via-primary/70 dark:to-primary/40" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-background/60 dark:from-primary dark:via-transparent dark:to-primary/60" />
 
       {/* Subtle noise texture */}
       <div
@@ -232,8 +232,8 @@ export default function HeroSection() {
       />
 
       {/* Geometric accent circles (desktop) */}
-      <div className="absolute -top-24 -right-24 h-[500px] w-[500px] rounded-full border border-accent-dark/[0.06] hidden lg:block" />
-      <div className="absolute -bottom-32 -left-32 h-[400px] w-[400px] rounded-full border border-accent-dark/[0.04] hidden lg:block" />
+      <div className="absolute -top-24 -right-24 h-[500px] w-[500px] rounded-full border border-accent-dark/[0.12] dark:border-accent-dark/[0.06] hidden lg:block" />
+      <div className="absolute -bottom-32 -left-32 h-[400px] w-[400px] rounded-full border border-accent-dark/[0.08] dark:border-accent-dark/[0.04] hidden lg:block" />
 
       {/* Ambient glow */}
       <div
@@ -280,7 +280,7 @@ export default function HeroSection() {
                   </span>
                   {/* Gold underline brush effect */}
                   <span
-                    className="absolute -bottom-1 left-0 right-0 h-2.5 bg-accent-dark/15 rounded-full -z-0 origin-left transition-transform duration-700"
+                    className="absolute -bottom-1 left-0 right-0 h-2.5 bg-accent-dark/25 dark:bg-accent-dark/15 rounded-full -z-0 origin-left transition-transform duration-700"
                     style={{
                       transitionDelay: '900ms',
                       transform: loaded ? 'scaleX(1)' : 'scaleX(0)',
@@ -324,7 +324,7 @@ export default function HeroSection() {
 
           {/* ---- Stats Row ---- */}
           <div className="w-full">
-            <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-white/70 dark:border-white/[0.06] dark:bg-white/[0.03] backdrop-blur-xl">
+            <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-white/60 shadow-sm shadow-primary/[0.04] dark:border-white/[0.06] dark:bg-white/[0.03] dark:shadow-none backdrop-blur-xl">
               {/* Subtle top accent line */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 h-px w-2/3 bg-gradient-to-r from-transparent via-accent-dark/20 to-transparent" />
 

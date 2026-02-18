@@ -8,10 +8,12 @@ use App\Http\Requests\Admin\BanUserRequest;
 use App\Http\Requests\Admin\RejectAgentRequest;
 use App\Http\Requests\Admin\RejectPropertyRequest;
 use App\Http\Requests\Admin\VerifyAgentRequest;
+use App\Http\Resources\ActivityLogResource;
 use App\Http\Resources\AdminPropertyResource;
 use App\Http\Resources\AgentListResource;
 use App\Http\Resources\DashboardStatsResource;
 use App\Http\Resources\PropertyListResource;
+use App\Models\ActivityLog;
 use App\Models\AgentProfile;
 use App\Models\Property;
 use App\Models\Report;
@@ -145,5 +147,22 @@ class AdminController extends Controller
         $this->reportService->resolve($report, $request->user(), $request->resolution_note);
 
         return $this->successResponse(null, 'Report resolved.');
+    }
+
+    public function activityLogs(Request $request): JsonResponse
+    {
+        $logs = ActivityLog::with('user')
+            ->when($request->user_id, fn ($q, $v) => $q->where('user_id', $v))
+            ->when($request->action, fn ($q, $v) => $q->where('action', 'like', "%{$v}%"))
+            ->when($request->date_from, fn ($q, $v) => $q->where('created_at', '>=', $v))
+            ->when($request->date_to, fn ($q, $v) => $q->where('created_at', '<=', $v))
+            ->latest('created_at')
+            ->paginate($request->integer('per_page', 50));
+
+        return $this->paginatedResponse(
+            $logs->setCollection(
+                $logs->getCollection()->map(fn ($l) => new ActivityLogResource($l))
+            )
+        );
     }
 }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\PropertyStatus;
 use App\Enums\UserRole;
 use App\Models\AgentProfile;
+use App\Models\Landmark;
 use App\Models\PriceHistory;
 use App\Models\Property;
 use App\Models\PropertyImage;
@@ -19,6 +20,7 @@ class PropertyService
         protected ImageService $imageService,
         protected NotificationService $notificationService,
         protected ValuationService $valuationService,
+        protected FraudDetectionService $fraudDetectionService,
     ) {}
 
     public function getBySlug(string $slug): ?Property
@@ -41,6 +43,22 @@ class PropertyService
                 ->count();
 
             $property->ancer_estimate = $this->valuationService->estimate($property);
+
+            // Attach nearby landmarks within 5km if property has a location
+            if ($property->latitude && $property->longitude) {
+                $property->nearby_landmarks = Landmark::whereNotNull('location')
+                    ->whereRaw(
+                        'ST_DWithin(location, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)',
+                        [$property->longitude, $property->latitude, 5000]
+                    )
+                    ->selectRaw(
+                        'id, name, type, ROUND(CAST(ST_Distance(location, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) / 1000 AS numeric), 1) AS distance_km',
+                        [$property->longitude, $property->latitude]
+                    )
+                    ->orderBy('distance_km')
+                    ->limit(10)
+                    ->get();
+            }
         }
 
         return $property;
@@ -72,6 +90,15 @@ class PropertyService
             ]);
 
             $property->load(['propertyType', 'state', 'city', 'area', 'amenities', 'agent.user']);
+
+            // Run fraud detection
+            $fraud = $this->fraudDetectionService->analyze($property);
+            if ($fraud['score'] > 0) {
+                $property->update([
+                    'fraud_score' => $fraud['score'],
+                    'fraud_flags' => $fraud['flags'],
+                ]);
+            }
 
             // Notify admins about new pending property
             $admins = User::whereIn('role', [UserRole::Admin, UserRole::SuperAdmin])->get();

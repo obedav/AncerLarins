@@ -154,8 +154,10 @@ class LagosSeeder extends Seeder
             ['city' => 'Ajeromi-Ifelodun', 'name' => 'Ajegunle', 'lat' => 6.4600, 'lng' => 3.3300, 'rent_1br' => 8000000, 'rent_2br' => 15000000, 'rent_3br' => 22000000, 'buy_sqm' => 3000000, 'safety' => 4.0],
         ];
 
+        $areaIds = [];
         foreach ($areas as $area) {
             $areaId = Str::uuid()->toString();
+            $areaIds[$area['name']] = $areaId;
             DB::table('areas')->insert([
                 'id' => $areaId,
                 'city_id' => $cityIds[$area['city']],
@@ -179,6 +181,9 @@ class LagosSeeder extends Seeder
                 );
             }
         }
+
+        // ── Landmarks (50+ across Lagos) ──────────────────
+        $this->seedLandmarks($areaIds, $now);
 
         // ── Property Types (13) ─────────────────────────────
         $propertyTypes = [
@@ -262,6 +267,104 @@ class LagosSeeder extends Seeder
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
+        }
+    }
+
+    /**
+     * Seed ~50 real Lagos landmarks with PostGIS locations.
+     */
+    private function seedLandmarks(array $areaIds, $now): void
+    {
+        $landmarks = [
+            // ── Shopping Malls ──────────────────────────────
+            ['area' => 'Lekki Phase 1', 'name' => 'The Palms Shopping Mall', 'type' => 'mall', 'lat' => 6.4338, 'lng' => 3.4603],
+            ['area' => 'Lekki Phase 1', 'name' => 'Shoprite Lekki', 'type' => 'mall', 'lat' => 6.4340, 'lng' => 3.4610],
+            ['area' => 'Victoria Island', 'name' => 'Mega Plaza', 'type' => 'mall', 'lat' => 6.4285, 'lng' => 3.4175],
+            ['area' => 'Ikeja GRA', 'name' => 'Ikeja City Mall', 'type' => 'mall', 'lat' => 6.5808, 'lng' => 3.3512],
+            ['area' => 'Ikeja GRA', 'name' => 'Ikeja Shopping Mall', 'type' => 'mall', 'lat' => 6.5790, 'lng' => 3.3480],
+            ['area' => 'Surulere', 'name' => 'Leisure Mall Surulere', 'type' => 'mall', 'lat' => 6.4975, 'lng' => 3.3550],
+            ['area' => 'Festac Town', 'name' => 'Festival Mall Festac', 'type' => 'mall', 'lat' => 6.4640, 'lng' => 3.2850],
+            ['area' => 'Ajah', 'name' => 'Novare Mall Sangotedo', 'type' => 'mall', 'lat' => 6.4650, 'lng' => 3.5670],
+            ['area' => 'Maryland', 'name' => 'Maryland Mall', 'type' => 'mall', 'lat' => 6.5700, 'lng' => 3.3660],
+
+            // ── Hospitals ───────────────────────────────────
+            ['area' => 'Idi-Araba', 'name' => 'Lagos University Teaching Hospital (LUTH)', 'type' => 'hospital', 'lat' => 6.5170, 'lng' => 3.3580],
+            ['area' => 'Lagos Island', 'name' => 'Lagos Island General Hospital', 'type' => 'hospital', 'lat' => 6.4510, 'lng' => 3.3960],
+            ['area' => 'Ikeja GRA', 'name' => 'Lagos State University Teaching Hospital (LASUTH)', 'type' => 'hospital', 'lat' => 6.5860, 'lng' => 3.3460],
+            ['area' => 'Victoria Island', 'name' => 'Reddington Hospital', 'type' => 'hospital', 'lat' => 6.4310, 'lng' => 3.4250],
+            ['area' => 'Lekki Phase 1', 'name' => 'EKO Hospital Lekki', 'type' => 'hospital', 'lat' => 6.4370, 'lng' => 3.4700],
+            ['area' => 'Gbagada', 'name' => 'Gbagada General Hospital', 'type' => 'hospital', 'lat' => 6.5530, 'lng' => 3.3870],
+            ['area' => 'Ikorodu', 'name' => 'Ikorodu General Hospital', 'type' => 'hospital', 'lat' => 6.6190, 'lng' => 3.5080],
+            ['area' => 'Apapa', 'name' => 'Apapa General Hospital', 'type' => 'hospital', 'lat' => 6.4490, 'lng' => 3.3620],
+
+            // ── Universities & Schools ──────────────────────
+            ['area' => 'Yaba', 'name' => 'University of Lagos (UNILAG)', 'type' => 'university', 'lat' => 6.5158, 'lng' => 3.3893],
+            ['area' => 'Ojo', 'name' => 'Lagos State University (LASU)', 'type' => 'university', 'lat' => 6.4570, 'lng' => 3.2010],
+            ['area' => 'Yaba', 'name' => 'Yaba College of Technology', 'type' => 'university', 'lat' => 6.5100, 'lng' => 3.3750],
+            ['area' => 'Surulere', 'name' => 'Federal College of Education (Technical) Akoka', 'type' => 'university', 'lat' => 6.5250, 'lng' => 3.3850],
+            ['area' => 'Lekki Phase 1', 'name' => 'Pan-Atlantic University', 'type' => 'university', 'lat' => 6.4440, 'lng' => 3.5150],
+            ['area' => 'Opebi', 'name' => 'NIIT Lagos (Ikeja)', 'type' => 'school', 'lat' => 6.5850, 'lng' => 3.3590],
+
+            // ── Transport ───────────────────────────────────
+            ['area' => 'Ikeja GRA', 'name' => 'Murtala Muhammed International Airport', 'type' => 'airport', 'lat' => 6.5774, 'lng' => 3.3211],
+            ['area' => 'Mafoluku', 'name' => 'Murtala Muhammed Domestic Airport', 'type' => 'airport', 'lat' => 6.5770, 'lng' => 3.3230],
+            ['area' => 'Chevron', 'name' => 'Lekki Toll Gate', 'type' => 'transport', 'lat' => 6.4340, 'lng' => 3.5100],
+            ['area' => 'Lekki Phase 1', 'name' => 'Lekki-Ikoyi Link Bridge', 'type' => 'transport', 'lat' => 6.4510, 'lng' => 3.4530],
+            ['area' => 'Marina', 'name' => 'CMS Bus Terminal', 'type' => 'transport', 'lat' => 6.4490, 'lng' => 3.3940],
+            ['area' => 'Oshodi', 'name' => 'Oshodi Transport Interchange', 'type' => 'transport', 'lat' => 6.5530, 'lng' => 3.3400],
+            ['area' => 'Lagos Island', 'name' => 'Lagos Ferry Terminal (Marina)', 'type' => 'transport', 'lat' => 6.4470, 'lng' => 3.3950],
+            ['area' => 'Ikorodu', 'name' => 'Ikorodu BRT Terminal', 'type' => 'transport', 'lat' => 6.6180, 'lng' => 3.5050],
+
+            // ── Markets ─────────────────────────────────────
+            ['area' => 'Oregun', 'name' => 'Computer Village Ikeja', 'type' => 'market', 'lat' => 6.5940, 'lng' => 3.3720],
+            ['area' => 'Lagos Island', 'name' => 'Balogun Market', 'type' => 'market', 'lat' => 6.4510, 'lng' => 3.3870],
+            ['area' => 'Alaba International', 'name' => 'Alaba International Market', 'type' => 'market', 'lat' => 6.4660, 'lng' => 3.1890],
+            ['area' => 'Oshodi', 'name' => 'Oshodi Market', 'type' => 'market', 'lat' => 6.5560, 'lng' => 3.3420],
+            ['area' => 'Mushin', 'name' => 'Mushin Market', 'type' => 'market', 'lat' => 6.5290, 'lng' => 3.3510],
+            ['area' => 'Agege', 'name' => 'Agege Market (Oyingbo)', 'type' => 'market', 'lat' => 6.6190, 'lng' => 3.3280],
+
+            // ── Beaches & Recreation ────────────────────────
+            ['area' => 'Victoria Island', 'name' => 'Eko Atlantic City', 'type' => 'recreation', 'lat' => 6.4100, 'lng' => 3.4100],
+            ['area' => 'Victoria Island', 'name' => 'Bar Beach Victoria Island', 'type' => 'beach', 'lat' => 6.4200, 'lng' => 3.4130],
+            ['area' => 'Lekki Phase 1', 'name' => 'Lekki Conservation Centre', 'type' => 'recreation', 'lat' => 6.4420, 'lng' => 3.5340],
+            ['area' => 'Eleko', 'name' => 'Eleko Beach', 'type' => 'beach', 'lat' => 6.4100, 'lng' => 3.6600],
+            ['area' => 'Ibeju-Lekki', 'name' => 'La Campagne Tropicana', 'type' => 'recreation', 'lat' => 6.4200, 'lng' => 3.7300],
+            ['area' => 'Badagry', 'name' => 'Badagry Heritage Museum', 'type' => 'recreation', 'lat' => 6.4150, 'lng' => 2.8850],
+
+            // ── Landmarks & Government ──────────────────────
+            ['area' => 'Alausa', 'name' => 'Lagos State Secretariat (Alausa)', 'type' => 'government', 'lat' => 6.6130, 'lng' => 3.3560],
+            ['area' => 'Lagos Island', 'name' => 'Lagos City Hall', 'type' => 'government', 'lat' => 6.4500, 'lng' => 3.3910],
+            ['area' => 'Ikoyi', 'name' => 'Federal High Court Lagos', 'type' => 'government', 'lat' => 6.4530, 'lng' => 3.4280],
+            ['area' => 'Victoria Island', 'name' => 'Civic Centre Victoria Island', 'type' => 'landmark', 'lat' => 6.4260, 'lng' => 3.4150],
+            ['area' => 'Onikan', 'name' => 'National Museum Lagos', 'type' => 'landmark', 'lat' => 6.4530, 'lng' => 3.4040],
+            ['area' => 'Onikan', 'name' => 'Tafawa Balewa Square', 'type' => 'landmark', 'lat' => 6.4500, 'lng' => 3.3980],
+
+            // ── Religious ───────────────────────────────────
+            ['area' => 'Epe', 'name' => 'Redemption Camp (RCCG)', 'type' => 'worship', 'lat' => 6.7360, 'lng' => 3.7120],
+            ['area' => 'Lagos Island', 'name' => 'Christ Church Cathedral Lagos', 'type' => 'worship', 'lat' => 6.4520, 'lng' => 3.3920],
+            ['area' => 'Lagos Island', 'name' => 'Lagos Central Mosque', 'type' => 'worship', 'lat' => 6.4550, 'lng' => 3.3880],
+        ];
+
+        foreach ($landmarks as $lm) {
+            $areaId = $areaIds[$lm['area']] ?? null;
+            if (! $areaId) {
+                continue;
+            }
+
+            $id = Str::uuid()->toString();
+            DB::table('landmarks')->insert([
+                'id'         => $id,
+                'area_id'    => $areaId,
+                'name'       => $lm['name'],
+                'type'       => $lm['type'],
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+
+            DB::statement(
+                'UPDATE landmarks SET location = ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography WHERE id = ?',
+                [$lm['lng'], $lm['lat'], $id]
+            );
         }
     }
 }
