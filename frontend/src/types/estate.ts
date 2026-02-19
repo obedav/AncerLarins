@@ -39,6 +39,23 @@ export interface EstateReview {
   created_at: string;
 }
 
+export interface CreateEstatePayload {
+  name: string;
+  area_id: string;
+  estate_type: EstateType;
+  description?: string;
+  developer?: string;
+  year_built?: number;
+  total_units?: number;
+  amenities?: string[];
+  security_type?: string;
+  service_charge_kobo?: number;
+  service_charge_period?: string;
+  electricity_source?: string;
+  water_source?: string;
+  cover_image_url?: string;
+}
+
 export interface CreateEstateReviewPayload {
   rating: number;
   pros?: string;

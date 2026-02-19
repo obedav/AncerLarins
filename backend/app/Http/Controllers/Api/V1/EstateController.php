@@ -100,6 +100,38 @@ class EstateController extends Controller
 
     // ── Admin ─────────────────────────────────────────────
 
+    /**
+     * Admin: list all estates (no published filter).
+     */
+    public function adminIndex(Request $request): JsonResponse
+    {
+        $query = Estate::with('area')
+            ->withCount(['reviews', 'properties'])
+            ->latest();
+
+        if ($request->filled('area_id')) {
+            $query->byArea($request->input('area_id'));
+        }
+
+        if ($request->filled('estate_type')) {
+            $type = EstateType::tryFrom($request->input('estate_type'));
+            if ($type) {
+                $query->byType($type);
+            }
+        }
+
+        if ($request->filled('q')) {
+            $query->where('name', 'ilike', '%' . $request->input('q') . '%');
+        }
+
+        $estates = $query->paginate($request->input('per_page', 20));
+
+        return $this->paginatedResponse(
+            $estates->through(fn ($e) => new EstateListResource($e)),
+            'Estates retrieved.'
+        );
+    }
+
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([

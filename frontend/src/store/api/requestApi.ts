@@ -78,6 +78,44 @@ export const requestApi = baseApi.injectEndpoints({
         { type: 'PropertyRequest', id: 'MY_LIST' },
       ],
     }),
+
+    // Admin endpoints
+    getAdminPropertyRequests: builder.query<PaginatedResponse<PropertyRequestListItem>, Record<string, unknown> | void>({
+      query: (params) => ({
+        url: '/admin/property-requests',
+        params: params || undefined,
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.data.map(({ id }) => ({ type: 'PropertyRequest' as const, id })),
+              { type: 'PropertyRequest', id: 'ADMIN_LIST' },
+            ]
+          : [{ type: 'PropertyRequest', id: 'ADMIN_LIST' }],
+    }),
+
+    getAdminPropertyRequest: builder.query<ApiResponse<PropertyRequestDetail>, string>({
+      query: (id) => `/admin/property-requests/${id}`,
+      providesTags: (_r, _e, id) => [{ type: 'PropertyRequest', id }],
+    }),
+
+    adminUpdateRequestStatus: builder.mutation<ApiResponse<PropertyRequestDetail>, { id: string; status: string }>({
+      query: ({ id, status }) => ({
+        url: `/admin/property-requests/${id}/status`,
+        method: 'PUT',
+        body: { status },
+      }),
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: 'PropertyRequest', id },
+        { type: 'PropertyRequest', id: 'ADMIN_LIST' },
+        { type: 'PropertyRequest', id: 'LIST' },
+      ],
+    }),
+
+    adminDeletePropertyRequest: builder.mutation<ApiResponse<null>, string>({
+      query: (id) => ({ url: `/admin/property-requests/${id}`, method: 'DELETE' }),
+      invalidatesTags: [{ type: 'PropertyRequest', id: 'ADMIN_LIST' }, { type: 'PropertyRequest', id: 'LIST' }],
+    }),
   }),
 });
 
@@ -89,4 +127,8 @@ export const {
   useRespondToRequestMutation,
   useAcceptRequestResponseMutation,
   useDeletePropertyRequestMutation,
+  useGetAdminPropertyRequestsQuery,
+  useGetAdminPropertyRequestQuery,
+  useAdminUpdateRequestStatusMutation,
+  useAdminDeletePropertyRequestMutation,
 } = requestApi;

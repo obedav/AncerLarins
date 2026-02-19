@@ -171,4 +171,85 @@ class PropertyRequestController extends Controller
 
         return $this->successResponse(null, 'Property request cancelled.', 204);
     }
+
+    // ── Admin ─────────────────────────────────────────────
+
+    /**
+     * Admin: list all property requests (all statuses).
+     */
+    public function adminIndex(Request $request): JsonResponse
+    {
+        $query = PropertyRequest::with(['user', 'area', 'city', 'propertyType'])
+            ->withCount('responses')
+            ->latest();
+
+        if ($request->filled('status')) {
+            $status = PropertyRequestStatus::tryFrom($request->input('status'));
+            if ($status) {
+                $query->where('status', $status);
+            }
+        }
+
+        if ($request->filled('listing_type')) {
+            $type = ListingType::tryFrom($request->input('listing_type'));
+            if ($type) {
+                $query->byListingType($type);
+            }
+        }
+
+        if ($request->filled('area_id')) {
+            $query->byArea($request->input('area_id'));
+        }
+
+        if ($request->filled('q')) {
+            $query->where('title', 'ilike', '%' . $request->input('q') . '%');
+        }
+
+        $requests = $query->paginate($request->input('per_page', 20));
+
+        return $this->paginatedResponse(
+            $requests->through(fn ($r) => new PropertyRequestListResource($r)),
+            'Property requests retrieved.'
+        );
+    }
+
+    /**
+     * Admin: view property request detail.
+     */
+    public function adminShow(PropertyRequest $propertyRequest): JsonResponse
+    {
+        $propertyRequest->load([
+            'responses.agent', 'responses.property', 'user',
+            'area', 'city', 'propertyType',
+        ]);
+
+        return $this->successResponse(new PropertyRequestResource($propertyRequest));
+    }
+
+    /**
+     * Admin: update property request status.
+     */
+    public function adminUpdateStatus(Request $request, PropertyRequest $propertyRequest): JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => ['required', 'string', 'in:active,fulfilled,expired,cancelled'],
+        ]);
+
+        $propertyRequest->update(['status' => PropertyRequestStatus::from($validated['status'])]);
+
+        return $this->successResponse(
+            new PropertyRequestResource($propertyRequest),
+            'Property request status updated.'
+        );
+    }
+
+    /**
+     * Admin: soft delete property request.
+     */
+    public function adminDestroy(PropertyRequest $propertyRequest): JsonResponse
+    {
+        $propertyRequest->delete();
+
+        return $this->successResponse(null, 'Property request deleted.', 204);
+    }
 }

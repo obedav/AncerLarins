@@ -207,9 +207,22 @@ Route::prefix('v1')->group(function () {
             Route::post('/scraped-listings/{scrapedListing}/reject', [ScrapedListingController::class, 'reject']);
 
             // Estate management
+            Route::get('/estates', [EstateController::class, 'adminIndex']);
             Route::post('/estates', [EstateController::class, 'store']);
             Route::put('/estates/{estate}', [EstateController::class, 'update']);
             Route::delete('/estates/{estate}', [EstateController::class, 'destroy']);
+
+            // Cooperative management
+            Route::get('/cooperatives', [CooperativeController::class, 'adminIndex']);
+            Route::get('/cooperatives/{cooperative}', [CooperativeController::class, 'adminShow']);
+            Route::put('/cooperatives/{cooperative}/status', [CooperativeController::class, 'adminUpdateStatus']);
+            Route::delete('/cooperatives/{cooperative}', [CooperativeController::class, 'adminDestroy']);
+
+            // Property request management
+            Route::get('/property-requests', [PropertyRequestController::class, 'adminIndex']);
+            Route::get('/property-requests/{propertyRequest}', [PropertyRequestController::class, 'adminShow']);
+            Route::put('/property-requests/{propertyRequest}/status', [PropertyRequestController::class, 'adminUpdateStatus']);
+            Route::delete('/property-requests/{propertyRequest}', [PropertyRequestController::class, 'adminDestroy']);
 
             // Blog management
             Route::post('/blog-posts', [BlogPostController::class, 'store']);

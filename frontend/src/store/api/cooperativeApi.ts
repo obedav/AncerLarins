@@ -75,6 +75,44 @@ export const cooperativeApi = baseApi.injectEndpoints({
     getCooperativeProgress: builder.query<ApiResponse<CooperativeProgress>, string>({
       query: (id) => `/cooperatives/${id}/progress`,
     }),
+
+    // Admin endpoints
+    getAdminCooperatives: builder.query<PaginatedResponse<CooperativeListItem>, Record<string, unknown> | void>({
+      query: (params) => ({
+        url: '/admin/cooperatives',
+        params: params || undefined,
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.data.map(({ id }) => ({ type: 'Cooperative' as const, id })),
+              { type: 'Cooperative', id: 'ADMIN_LIST' },
+            ]
+          : [{ type: 'Cooperative', id: 'ADMIN_LIST' }],
+    }),
+
+    getAdminCooperative: builder.query<ApiResponse<CooperativeDetail>, string>({
+      query: (id) => `/admin/cooperatives/${id}`,
+      providesTags: (_r, _e, id) => [{ type: 'Cooperative', id }],
+    }),
+
+    updateCooperativeStatus: builder.mutation<ApiResponse<CooperativeDetail>, { id: string; status: string }>({
+      query: ({ id, status }) => ({
+        url: `/admin/cooperatives/${id}/status`,
+        method: 'PUT',
+        body: { status },
+      }),
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: 'Cooperative', id },
+        { type: 'Cooperative', id: 'ADMIN_LIST' },
+        { type: 'Cooperative', id: 'LIST' },
+      ],
+    }),
+
+    deleteCooperative: builder.mutation<ApiResponse<null>, string>({
+      query: (id) => ({ url: `/admin/cooperatives/${id}`, method: 'DELETE' }),
+      invalidatesTags: [{ type: 'Cooperative', id: 'ADMIN_LIST' }, { type: 'Cooperative', id: 'LIST' }],
+    }),
   }),
 });
 
@@ -87,4 +125,8 @@ export const {
   useContributeToCooperativeMutation,
   useVerifyContributionMutation,
   useGetCooperativeProgressQuery,
+  useGetAdminCooperativesQuery,
+  useGetAdminCooperativeQuery,
+  useUpdateCooperativeStatusMutation,
+  useDeleteCooperativeMutation,
 } = cooperativeApi;

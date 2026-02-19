@@ -175,4 +175,72 @@ class CooperativeController extends Controller
             $this->cooperativeService->getProgress($cooperative)
         );
     }
+
+    // ── Admin ─────────────────────────────────────────────
+
+    /**
+     * Admin: list all cooperatives (all statuses).
+     */
+    public function adminIndex(Request $request): JsonResponse
+    {
+        $query = Cooperative::with('area')
+            ->withCount('members')
+            ->latest();
+
+        if ($request->filled('status')) {
+            $status = CooperativeStatus::tryFrom($request->input('status'));
+            if ($status) {
+                $query->where('status', $status);
+            }
+        }
+
+        if ($request->filled('area_id')) {
+            $query->where('area_id', $request->input('area_id'));
+        }
+
+        if ($request->filled('q')) {
+            $query->where('name', 'ilike', '%' . $request->input('q') . '%');
+        }
+
+        $cooperatives = $query->paginate($request->input('per_page', 20));
+
+        return $this->paginatedResponse(
+            $cooperatives->through(fn ($c) => new CooperativeListResource($c)),
+            'Cooperatives retrieved.'
+        );
+    }
+
+    /**
+     * Admin: view cooperative detail.
+     */
+    public function adminShow(Cooperative $cooperative): JsonResponse
+    {
+        $cooperative->load(['members.user', 'contributions', 'area', 'adminUser']);
+
+        return $this->successResponse(new CooperativeResource($cooperative));
+    }
+
+    /**
+     * Admin: update cooperative status.
+     */
+    public function adminUpdateStatus(Request $request, Cooperative $cooperative): JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => ['required', 'string', 'in:forming,active,target_reached,completed,dissolved'],
+        ]);
+
+        $cooperative->update(['status' => CooperativeStatus::from($validated['status'])]);
+
+        return $this->successResponse(new CooperativeResource($cooperative), 'Cooperative status updated.');
+    }
+
+    /**
+     * Admin: soft delete cooperative.
+     */
+    public function adminDestroy(Cooperative $cooperative): JsonResponse
+    {
+        $cooperative->delete();
+
+        return $this->successResponse(null, 'Cooperative deleted.', 204);
+    }
 }
