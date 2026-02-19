@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Services\CooperativeService;
 use App\Services\SubscriptionService;
+use App\Services\WhatsAppBotService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,6 +17,8 @@ class WebhookController extends Controller
 
     public function __construct(
         protected SubscriptionService $subscriptionService,
+        protected WhatsAppBotService $whatsAppBotService,
+        protected CooperativeService $cooperativeService,
     ) {}
 
     public function paystack(Request $request): JsonResponse
@@ -45,12 +49,28 @@ class WebhookController extends Controller
     {
         Log::info('Termii webhook received', $request->all());
 
+        // Handle inbound SMS for WhatsApp bot
+        $phone = $request->input('from') ?? $request->input('phone') ?? $request->input('msisdn');
+        $message = $request->input('message') ?? $request->input('sms') ?? $request->input('text');
+
+        if ($phone && $message) {
+            $this->whatsAppBotService->handleIncoming($phone, $message);
+        }
+
         return response()->json(['status' => 'ok']);
     }
 
     protected function handlePaystackChargeSuccess(array $data): void
     {
-        Log::info('Paystack charge.success', ['reference' => $data['reference'] ?? null]);
+        $reference = $data['reference'] ?? null;
+        Log::info('Paystack charge.success', ['reference' => $reference]);
+
+        $metadataType = $data['metadata']['type'] ?? null;
+
+        if ($metadataType === 'cooperative_contribution' && $reference) {
+            $this->cooperativeService->verifyContribution($reference);
+            return;
+        }
 
         $this->subscriptionService->handleChargeSuccess($data);
     }

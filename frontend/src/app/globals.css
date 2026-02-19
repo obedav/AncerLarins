@@ -77,7 +77,7 @@ body {
 
 /* Dark mode image adjustments */
 .dark img {
-  brightness: 0.95;
+  filter: brightness(0.95);
 }
 
 /* Custom scrollbar */

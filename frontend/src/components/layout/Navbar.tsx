@@ -175,6 +175,48 @@ const NAV_ITEMS: NavItem[] = [
       },
     ],
   },
+  {
+    label: 'Estates',
+    href: '/estates',
+    sections: [
+      {
+        title: 'Browse Estates',
+        links: [
+          { label: 'All Estates', href: '/estates', desc: 'Explore Lagos estates & compounds' },
+          { label: 'Gated Estates', href: '/estates?estate_type=gated_estate', desc: 'Secure gated communities' },
+          { label: 'Highrise', href: '/estates?estate_type=highrise', desc: 'Apartment complexes & towers' },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'Requests',
+    href: '/requests',
+    sections: [
+      {
+        title: 'Property Requests',
+        links: [
+          { label: 'Browse Requests', href: '/requests', desc: 'See what people are looking for' },
+          { label: 'Post a Request', href: '/dashboard/requests', desc: 'Tell agents what you need' },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'Blog',
+    href: '/blog',
+    sections: [
+      {
+        title: 'Latest Articles',
+        links: [
+          { label: 'All Articles', href: '/blog', desc: 'Guides, reports & tips' },
+          { label: 'Area Spotlights', href: '/blog?category=area_spotlight', desc: 'Deep dives into Lagos neighborhoods' },
+          { label: 'Market Reports', href: '/blog?category=market_report', desc: 'Price trends & analysis' },
+          { label: 'Tips & Guides', href: '/blog?category=guide', desc: 'Renting & buying advice' },
+        ],
+      },
+    ],
+  },
 ];
 
 /* ------------------------------------------------------------------ */

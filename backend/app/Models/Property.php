@@ -23,7 +23,7 @@ class Property extends Model
         'price_kobo', 'price_negotiable', 'rent_period', 'agency_fee_pct',
         'caution_fee_kobo', 'service_charge_kobo', 'legal_fee_kobo',
         'min_stay_days', 'max_stay_days', 'check_in_time', 'check_out_time',
-        'state_id', 'city_id', 'area_id', 'address', 'landmark_note', 'location_fuzzy',
+        'state_id', 'city_id', 'area_id', 'estate_id', 'address', 'landmark_note', 'location_fuzzy',
         'bedrooms', 'bathrooms', 'toilets', 'sitting_rooms',
         'floor_area_sqm', 'land_area_sqm', 'floor_number', 'total_floors', 'year_built',
         'furnishing', 'parking_spaces',
@@ -96,6 +96,11 @@ class Property extends Model
     public function area(): Relations\BelongsTo
     {
         return $this->belongsTo(Area::class);
+    }
+
+    public function estate(): Relations\BelongsTo
+    {
+        return $this->belongsTo(Estate::class);
     }
 
     public function approvedByUser(): Relations\BelongsTo

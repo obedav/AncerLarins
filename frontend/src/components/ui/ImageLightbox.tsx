@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 
 interface ImageLightboxProps {
-  images: { id: string; url: string; caption?: string }[];
+  images: { id: string; url: string; caption?: string | null }[];
   initialIndex?: number;
   onClose: () => void;
 }

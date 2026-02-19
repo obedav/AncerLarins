@@ -20,6 +20,9 @@ Schedule::command('properties:refresh-valuations')->dailyAt('02:00')->timezone('
 // Daily at 3am WAT: recalculate area scores from neighborhood reviews
 Schedule::command('areas:refresh-scores')->dailyAt('03:00')->timezone('Africa/Lagos');
 
+// Daily at 3:30am WAT: expire old property requests
+Schedule::command('property-requests:expire')->dailyAt('03:30')->timezone('Africa/Lagos');
+
 // Daily at 4am WAT: scrape property listings from external sources
 Schedule::command('scraper:run propertypro --pages=20')->dailyAt('04:00')->timezone('Africa/Lagos');
 Schedule::command('scraper:run nigeriapropertycentre --pages=20')->dailyAt('04:30')->timezone('Africa/Lagos');

@@ -20,7 +20,7 @@ export default function SearchAutocomplete({
   const [activeIndex, setActiveIndex] = useState(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const [fetchSuggestions, { data, isFetching }] = useLazyGetSearchSuggestionsQuery();
   const suggestions: SearchSuggestion[] = data?.data || [];

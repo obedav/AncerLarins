@@ -5,3 +5,7 @@ export type * from './agent';
 export type * from './search';
 export type * from './admin';
 export type * from './subscription';
+export type * from './blog';
+export type * from './request';
+export type * from './estate';
+export type * from './cooperative';

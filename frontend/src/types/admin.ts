@@ -5,6 +5,8 @@ import type { User, UserStatus } from './user';
 export interface AdminProperty extends PropertyListItem {
   rejection_reason: string | null;
   approved_by: string | null;
+  fraud_score: number | null;
+  fraud_flags: string[] | null;
   agent_detail?: {
     id: string;
     company_name: string;

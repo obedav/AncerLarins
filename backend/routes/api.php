@@ -3,9 +3,13 @@
 use App\Http\Controllers\Api\V1\AdminController;
 use App\Http\Controllers\Api\V1\AgentController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\BlogPostController;
+use App\Http\Controllers\Api\V1\CooperativeController;
+use App\Http\Controllers\Api\V1\EstateController;
 use App\Http\Controllers\Api\V1\LandmarkController;
 use App\Http\Controllers\Api\V1\LocationController;
 use App\Http\Controllers\Api\V1\PropertyController;
+use App\Http\Controllers\Api\V1\PropertyRequestController;
 use App\Http\Controllers\Api\V1\ScrapedListingController;
 use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
@@ -59,9 +63,29 @@ Route::prefix('v1')->group(function () {
     Route::get('/areas/{area}/insights', [LocationController::class, 'areaInsights']);
     Route::get('/areas/{area}/trends', [LocationController::class, 'areaTrends']);
 
+    // Location aliases for frontend compatibility
+    Route::get('/locations/states', [LocationController::class, 'states']);
+    Route::get('/locations/states/{state}/cities', [LocationController::class, 'citiesByState']);
+    Route::get('/locations/cities/{city}/areas', [LocationController::class, 'areasByCity']);
+
+    // Property types
+    Route::get('/property-types', [LocationController::class, 'propertyTypes']);
+
     // ── Public: Landmarks ─────────────────────────────────
     Route::get('/landmarks', [LandmarkController::class, 'index']);
     Route::get('/landmarks/nearby', [LandmarkController::class, 'nearby']);
+
+    // ── Public: Blog ────────────────────────────────────────
+    Route::get('/blog-posts', [BlogPostController::class, 'index']);
+    Route::get('/blog-posts/{slug}', [BlogPostController::class, 'show'])->where('slug', '[a-z0-9\-]+');
+
+    // ── Public: Estates ─────────────────────────────────────
+    Route::get('/estates', [EstateController::class, 'index']);
+    Route::get('/estates/{slug}', [EstateController::class, 'show'])->where('slug', '[a-z0-9\-]+');
+
+    // ── Public: Property Requests (browse for agents) ────
+    Route::get('/property-requests', [PropertyRequestController::class, 'index']);
+    Route::get('/property-requests/{propertyRequest}', [PropertyRequestController::class, 'show']);
 
     // ── Public: Subscription Plans ────────────────────────
     Route::get('/subscription/plans', [SubscriptionController::class, 'plans']);
@@ -101,6 +125,25 @@ Route::prefix('v1')->group(function () {
         // Neighborhood reviews
         Route::post('/areas/{area}/reviews', [LocationController::class, 'submitAreaReview']);
 
+        // Estate reviews
+        Route::post('/estates/{estate}/reviews', [EstateController::class, 'createReview']);
+
+        // Cooperatives
+        Route::get('/cooperatives', [CooperativeController::class, 'index']);
+        Route::get('/cooperatives/{cooperative}', [CooperativeController::class, 'show']);
+        Route::post('/cooperatives', [CooperativeController::class, 'store']);
+        Route::post('/cooperatives/{cooperative}/join', [CooperativeController::class, 'join']);
+        Route::post('/cooperatives/{cooperative}/contribute', [CooperativeController::class, 'contribute']);
+        Route::post('/cooperatives/verify-contribution', [CooperativeController::class, 'verifyContribution']);
+        Route::get('/my-cooperatives', [CooperativeController::class, 'myCooperatives']);
+        Route::get('/cooperatives/{cooperative}/progress', [CooperativeController::class, 'progress']);
+
+        // Property requests
+        Route::get('/my-requests', [PropertyRequestController::class, 'myRequests']);
+        Route::post('/property-requests', [PropertyRequestController::class, 'store']);
+        Route::delete('/property-requests/{propertyRequest}', [PropertyRequestController::class, 'destroy']);
+        Route::post('/property-requests/{propertyRequest}/responses/{response}/accept', [PropertyRequestController::class, 'acceptResponse']);
+
         // Contact / leads
         Route::post('/properties/{property}/contact', [PropertyController::class, 'contact']);
 
@@ -122,6 +165,9 @@ Route::prefix('v1')->group(function () {
             Route::delete('/properties/{property}', [PropertyController::class, 'destroy']);
             Route::post('/properties/{property}/images', [PropertyController::class, 'uploadImages']);
             Route::delete('/images/{image}', [PropertyController::class, 'removeImage']);
+
+            // Property request responses
+            Route::post('/property-requests/{propertyRequest}/respond', [PropertyRequestController::class, 'respond']);
 
             // Subscription management
             Route::post('/subscription/initialize', [SubscriptionController::class, 'initialize']);
@@ -159,6 +205,16 @@ Route::prefix('v1')->group(function () {
             Route::get('/scraped-listings', [ScrapedListingController::class, 'index']);
             Route::post('/scraped-listings/{scrapedListing}/approve', [ScrapedListingController::class, 'approve']);
             Route::post('/scraped-listings/{scrapedListing}/reject', [ScrapedListingController::class, 'reject']);
+
+            // Estate management
+            Route::post('/estates', [EstateController::class, 'store']);
+            Route::put('/estates/{estate}', [EstateController::class, 'update']);
+            Route::delete('/estates/{estate}', [EstateController::class, 'destroy']);
+
+            // Blog management
+            Route::post('/blog-posts', [BlogPostController::class, 'store']);
+            Route::put('/blog-posts/{blogPost}', [BlogPostController::class, 'update']);
+            Route::delete('/blog-posts/{blogPost}', [BlogPostController::class, 'destroy']);
         });
     });
 });

@@ -48,6 +48,7 @@ export default function PropertyMap({
 
     Promise.all([
       import('leaflet'),
+      // @ts-expect-error -- CSS module has no type declarations
       import('leaflet/dist/leaflet.css'),
     ]).then(([L]) => {
       if (cancelled || !mapRef.current) return;

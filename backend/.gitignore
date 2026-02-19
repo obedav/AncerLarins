@@ -21,3 +21,8 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Scrapers (dev-only, not for public repos)
+/app/Services/Scrapers/
+/app/Console/Commands/RunScrapers.php
+/app/Console/Commands/ImportScrapedListings.php

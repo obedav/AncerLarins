@@ -87,5 +87,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Non-critical
   }
 
+  // Fetch estates
+  try {
+    const res = await fetch(`${API_URL}/estates?per_page=200`, { next: { revalidate: 3600 } });
+    if (res.ok) {
+      const json = await res.json();
+      const estates = json.data || [];
+      for (const estate of estates) {
+        entries.push({
+          url: `${BASE_URL}/estates/${estate.slug}`,
+          lastModified: new Date(),
+          changeFrequency: 'weekly',
+          priority: 0.75,
+        });
+      }
+    }
+  } catch {
+    // Non-critical
+  }
+
+  // Fetch blog posts
+  try {
+    const res = await fetch(`${API_URL}/blog-posts?per_page=200`, { next: { revalidate: 3600 } });
+    if (res.ok) {
+      const json = await res.json();
+      const posts = json.data || [];
+      for (const post of posts) {
+        entries.push({
+          url: `${BASE_URL}/blog/${post.slug}`,
+          lastModified: post.published_at ? new Date(post.published_at) : new Date(),
+          changeFrequency: 'weekly',
+          priority: 0.7,
+        });
+      }
+    }
+  } catch {
+    // Non-critical
+  }
+
   return entries;
 }

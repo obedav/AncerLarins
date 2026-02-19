@@ -165,6 +165,8 @@ export interface PropertyDetail extends Omit<PropertyListItem, 'agent'> {
   meta_description: string | null;
   saves_count?: number;
   ancer_estimate?: AncerEstimate | null;
+  nearby_landmarks?: { id: string; name: string; type: string; distance_km: number }[] | null;
+  estate?: { id: string; name: string; slug: string } | null;
   expires_at: string | null;
   created_at: string;
   updated_at: string;

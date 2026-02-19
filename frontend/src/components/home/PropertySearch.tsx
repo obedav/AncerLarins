@@ -34,27 +34,28 @@ const LOCATION_GROUPS = [
   { label: 'Emerging', items: ['Ajah', 'Yaba', 'Osapa London'] },
 ];
 
+// Values in kobo (1 Naira = 100 kobo) to match backend price_kobo column
 const PRICE_RANGES: Record<TabId, { label: string; min?: number; max?: number }[]> = {
   sale: [
-    { label: 'Under ₦50M', max: 50000000 },
-    { label: '₦50M - ₦100M', min: 50000000, max: 100000000 },
-    { label: '₦100M - ₦300M', min: 100000000, max: 300000000 },
-    { label: '₦300M - ₦500M', min: 300000000, max: 500000000 },
-    { label: '₦500M+', min: 500000000 },
+    { label: 'Under ₦50M', max: 5000000000 },
+    { label: '₦50M - ₦100M', min: 5000000000, max: 10000000000 },
+    { label: '₦100M - ₦300M', min: 10000000000, max: 30000000000 },
+    { label: '₦300M - ₦500M', min: 30000000000, max: 50000000000 },
+    { label: '₦500M+', min: 50000000000 },
   ],
   rent: [
-    { label: 'Under ₦2M/yr', max: 2000000 },
-    { label: '₦2M - ₦5M/yr', min: 2000000, max: 5000000 },
-    { label: '₦5M - ₦10M/yr', min: 5000000, max: 10000000 },
-    { label: '₦10M - ₦20M/yr', min: 10000000, max: 20000000 },
-    { label: '₦20M+/yr', min: 20000000 },
+    { label: 'Under ₦2M/yr', max: 200000000 },
+    { label: '₦2M - ₦5M/yr', min: 200000000, max: 500000000 },
+    { label: '₦5M - ₦10M/yr', min: 500000000, max: 1000000000 },
+    { label: '₦10M - ₦20M/yr', min: 1000000000, max: 2000000000 },
+    { label: '₦20M+/yr', min: 2000000000 },
   ],
   short_let: [
-    { label: 'Under ₦50K/night', max: 50000 },
-    { label: '₦50K - ₦100K/night', min: 50000, max: 100000 },
-    { label: '₦100K - ₦200K/night', min: 100000, max: 200000 },
-    { label: '₦200K - ₦500K/night', min: 200000, max: 500000 },
-    { label: '₦500K+/night', min: 500000 },
+    { label: 'Under ₦50K/night', max: 5000000 },
+    { label: '₦50K - ₦100K/night', min: 5000000, max: 10000000 },
+    { label: '₦100K - ₦200K/night', min: 10000000, max: 20000000 },
+    { label: '₦200K - ₦500K/night', min: 20000000, max: 50000000 },
+    { label: '₦500K+/night', min: 50000000 },
   ],
 };
 

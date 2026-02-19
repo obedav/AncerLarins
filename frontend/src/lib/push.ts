@@ -34,7 +34,7 @@ export async function getFCMToken(): Promise<string | null> {
     // Use the Push API to get a subscription
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_KEY),
+      applicationServerKey: urlBase64ToUint8Array(VAPID_KEY) as BufferSource,
     });
 
     // Return the endpoint as the token identifier

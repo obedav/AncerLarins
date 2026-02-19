@@ -7,6 +7,7 @@ use App\Http\Requests\Neighborhood\CreateNeighborhoodReviewRequest;
 use App\Http\Resources\AreaResource;
 use App\Models\Area;
 use App\Models\City;
+use App\Models\PropertyType;
 use App\Models\State;
 use App\Services\MarketTrendService;
 use App\Services\NeighborhoodService;
@@ -50,6 +51,27 @@ class LocationController extends Controller
         }
 
         return $this->successResponse(AreaResource::collection($query->get()));
+    }
+
+    public function citiesByState(State $state): JsonResponse
+    {
+        $cities = City::active()->where('state_id', $state->id)->orderBy('name')->get(['id', 'state_id', 'name', 'slug']);
+
+        return $this->successResponse($cities);
+    }
+
+    public function areasByCity(City $city): JsonResponse
+    {
+        $areas = Area::active()->with('city')->where('city_id', $city->id)->orderBy('name')->get();
+
+        return $this->successResponse(AreaResource::collection($areas));
+    }
+
+    public function propertyTypes(): JsonResponse
+    {
+        $types = PropertyType::orderBy('name')->get(['id', 'name', 'slug']);
+
+        return $this->successResponse($types);
     }
 
     public function areaDetail(Area $area): JsonResponse
