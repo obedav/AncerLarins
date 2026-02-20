@@ -4,6 +4,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import PropertyCard from '@/components/property/PropertyCard';
 import { useGetPropertiesQuery } from '@/store/api/propertyApi';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 function CardSkeleton() {
   return (
@@ -75,18 +76,28 @@ export default function FeaturedProperties() {
     return () => el.removeEventListener('scroll', updateScrollState);
   }, [updateScrollState, properties]);
 
+  const { ref: sectionRef, isVisible } = useScrollReveal({ threshold: 0.1 });
+
   return (
-    <section className="py-14 md:py-20" aria-label="Featured properties">
+    <section className="py-14 md:py-20 bg-background" aria-label="Featured properties">
       <div className="container-app">
         {/* Header */}
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-text-primary">
+        <div ref={sectionRef} className="flex items-end justify-between mb-8">
+          <div className="reveal-left" data-visible={isVisible}>
+            <span className="inline-block text-[11px] font-bold uppercase tracking-widest text-accent-dark bg-accent-dark/10 px-3 py-1 rounded-full mb-3">
               Just Listed
-            </h2>
-            <p className="text-text-muted mt-1">
-              Fresh properties added by verified agents
-            </p>
+            </span>
+            <div className="flex items-start gap-3">
+              <div className="w-1 h-10 bg-accent-dark rounded-full shrink-0 mt-1" />
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold text-text-primary">
+                  Featured Properties
+                </h2>
+                <p className="text-text-muted mt-1">
+                  Fresh properties added by verified agents
+                </p>
+              </div>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -130,7 +141,7 @@ export default function FeaturedProperties() {
         {/* Carousel */}
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 px-4"
+          className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 px-4 carousel-fade-right"
           role="region"
           aria-label="Property carousel"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}

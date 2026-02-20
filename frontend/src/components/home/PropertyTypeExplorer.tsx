@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useGetPropertyTypesQuery } from '@/store/api/locationApi';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 const TYPE_ICONS: Record<string, string> = {
   apartment: 'M3 21V3h18v18H3zm2-2h4v-4H5v4zm0-6h4V9H5v4zm0-6h4V3H5v4zm6 12h4v-4h-4v4zm0-6h4V9h-4v4zm0-6h4V3h-4v4zm6 12h4v-4h-4v4zm0-6h4V9h-4v4zm0-6h4V3h-4v4z',
@@ -66,11 +67,12 @@ function TypeSkeleton() {
 export default function PropertyTypeExplorer() {
   const { data, isLoading } = useGetPropertyTypesQuery();
   const types = data?.data || [];
+  const { ref, isVisible } = useScrollReveal({ threshold: 0.1 });
 
   return (
-    <section className="py-14 md:py-20" aria-label="Explore by property type">
+    <section className="py-14 md:py-20 bg-background" aria-label="Explore by property type" ref={ref}>
       <div className="container-app">
-        <div className="text-center mb-10">
+        <div className="text-center mb-10 reveal-up" data-visible={isVisible}>
           <h2 className="text-2xl md:text-3xl font-bold text-text-primary">
             Explore by Property Type
           </h2>
@@ -86,12 +88,16 @@ export default function PropertyTypeExplorer() {
                 const slug = type.slug.toLowerCase();
                 const iconPath = TYPE_ICONS[slug] || FALLBACK_ICON;
                 const colorIdx = i % TYPE_COLORS.length;
+                const isBento = i < 2;
 
                 return (
                   <Link
                     key={type.id}
                     href={`/properties?property_type=${type.slug}`}
-                    className={`group relative bg-gradient-to-br ${TYPE_COLORS[colorIdx]} rounded-2xl border border-border/60 p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-border`}
+                    className={`group relative bg-gradient-to-br ${TYPE_COLORS[colorIdx]} rounded-2xl border border-border/60 p-5 transition-all duration-300 hover:shadow-lg hover:shadow-accent-dark/5 hover:-translate-y-1 hover:border-accent/30 reveal-scale stagger-${Math.min(i + 1, 5)} ${
+                      isBento ? 'lg:col-span-2' : ''
+                    }`}
+                    data-visible={isVisible}
                   >
                     <div className={`w-12 h-12 rounded-xl bg-surface flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform ${ICON_COLORS[colorIdx]}`}>
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 const TESTIMONIALS = [
   {
@@ -88,7 +89,7 @@ function TestimonialCard({
       className={`bg-surface rounded-2xl border p-6 transition-all duration-500 relative overflow-hidden ${
         isCenter !== undefined
           ? isCenter
-            ? 'border-accent/40 shadow-lg scale-[1.02] z-10'
+            ? 'border-accent/40 shadow-lg scale-[1.02] z-10 border-l-accent-dark border-l-2'
             : 'border-border opacity-60 scale-[0.98]'
           : 'border-accent/30 shadow-md'
       }`}
@@ -119,6 +120,8 @@ export default function Testimonials() {
   const [isPaused, setIsPaused] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval>>(null);
+  const touchStartX = useRef(0);
+  const { ref: sectionRef, isVisible } = useScrollReveal({ threshold: 0.1 });
 
   const goTo = useCallback((idx: number) => {
     setIsTransitioning(true);
@@ -153,10 +156,27 @@ export default function Testimonials() {
 
   const visible = getVisibleIndices();
 
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const diff = touchStartX.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) next();
+      else prev();
+    }
+  }, [next, prev]);
+
   return (
-    <section className="py-14 md:py-20" aria-label="Testimonials">
-      <div className="container-app">
-        <div className="text-center mb-10">
+    <section className="py-14 md:py-20 bg-surface relative overflow-hidden" aria-label="Testimonials" ref={sectionRef}>
+      {/* Large decorative background quote */}
+      <svg className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] text-accent-dark opacity-[0.03] pointer-events-none" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H14.017zM0 21v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151C7.563 6.068 6 8.789 6 11h4v10H0z" />
+      </svg>
+
+      <div className="container-app relative">
+        <div className="text-center mb-10 reveal-up" data-visible={isVisible}>
           <span className="text-xs font-bold text-accent-dark tracking-widest uppercase">Testimonials</span>
           <h2 className="text-2xl md:text-3xl font-bold text-text-primary mt-2">
             Trusted by Lagosians
@@ -164,6 +184,19 @@ export default function Testimonials() {
           <p className="text-text-muted mt-2 max-w-lg mx-auto">
             Hear from homebuyers, renters, and agents who found success with AncerLarins
           </p>
+
+          {/* Aggregate rating */}
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <div className="flex gap-0.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <svg key={i} className="w-5 h-5 text-accent-dark" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
+            </div>
+            <span className="text-sm font-semibold text-text-primary">4.9/5</span>
+            <span className="text-sm text-text-muted">from 2,500+ reviews</span>
+          </div>
         </div>
 
         {/* Desktop 3-card layout */}
@@ -187,8 +220,13 @@ export default function Testimonials() {
           ))}
         </div>
 
-        {/* Mobile single card */}
-        <div className="md:hidden" aria-live="polite">
+        {/* Mobile single card with touch swipe */}
+        <div
+          className="md:hidden"
+          aria-live="polite"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className={`transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
             <TestimonialCard
               testimonial={TESTIMONIALS[active]}

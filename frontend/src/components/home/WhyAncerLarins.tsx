@@ -103,22 +103,39 @@ function DifferentiatorCard({ item, index }: { item: typeof DIFFERENTIATORS[0]; 
 
 export default function WhyAncerLarins() {
   return (
-    <section className="py-14 md:py-20 bg-surface" aria-label="Why AncerLarins">
-      <div className="container-app">
-        <div className="text-center mb-10">
-          <span className="text-xs font-bold text-accent-dark tracking-widest uppercase">Why AncerLarins</span>
-          <h2 className="text-2xl md:text-3xl font-bold text-text-primary mt-2">
-            Not Just Listings — Intelligence
-          </h2>
-          <p className="text-text-muted mt-2 max-w-xl mx-auto">
-            We go beyond traditional property portals with data-driven tools that help you make smarter real estate decisions in Lagos.
-          </p>
-        </div>
+    <section className="py-14 md:py-20 bg-surface relative overflow-hidden" aria-label="Why AncerLarins">
+      {/* Radial gradient overlay */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-accent)/0.04_0%,_transparent_60%)] pointer-events-none" />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {DIFFERENTIATORS.map((item, i) => (
-            <DifferentiatorCard key={item.title} item={item} index={i} />
-          ))}
+      <div className="container-app relative">
+        {/* Desktop: split layout */}
+        <div className="lg:grid lg:grid-cols-5 lg:gap-12 lg:items-start">
+          {/* Left: title area */}
+          <div className="lg:col-span-2 mb-10 lg:mb-0 lg:sticky lg:top-32 text-center lg:text-left">
+            <span className="text-xs font-bold text-accent-dark tracking-widest uppercase">Why AncerLarins</span>
+            <h2 className="text-2xl md:text-3xl font-bold text-text-primary mt-2">
+              Not Just Listings — Intelligence
+            </h2>
+            <p className="text-text-muted mt-3 max-w-xl lg:max-w-none mx-auto lg:mx-0">
+              We go beyond traditional property portals with data-driven tools that help you make smarter real estate decisions in Lagos.
+            </p>
+            <a
+              href="/about"
+              className="inline-flex items-center gap-2 text-accent-dark hover:text-accent font-semibold transition-colors mt-5 group"
+            >
+              Learn More
+              <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </a>
+          </div>
+
+          {/* Right: 2x2 card grid */}
+          <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {DIFFERENTIATORS.map((item, i) => (
+              <DifferentiatorCard key={item.title} item={item} index={i} />
+            ))}
+          </div>
         </div>
       </div>
     </section>

@@ -219,3 +219,97 @@ body {
     padding-right: 2rem;
   }
 }
+
+/* ---- Scroll-reveal utilities ---- */
+.reveal-up,
+.reveal-left,
+.reveal-right,
+.reveal-scale {
+  opacity: 0;
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+  will-change: opacity, transform;
+}
+
+.reveal-up { transform: translateY(32px); }
+.reveal-left { transform: translateX(-32px); }
+.reveal-right { transform: translateX(32px); }
+.reveal-scale { transform: scale(0.92); }
+
+[data-visible="true"].reveal-up,
+[data-visible="true"].reveal-left,
+[data-visible="true"].reveal-right,
+[data-visible="true"].reveal-scale {
+  opacity: 1;
+  transform: translate(0) scale(1);
+}
+
+.stagger-1 { transition-delay: 0.1s; }
+.stagger-2 { transition-delay: 0.2s; }
+.stagger-3 { transition-delay: 0.3s; }
+.stagger-4 { transition-delay: 0.4s; }
+.stagger-5 { transition-delay: 0.5s; }
+
+/* Gradient fade for carousel edges */
+.carousel-fade-right {
+  mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+}
+
+/* Float animation for stat cards */
+@keyframes floatCard {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: floatCard 4s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: floatCard 4s ease-in-out 1s infinite;
+}
+
+.animate-float-delayed-2 {
+  animation: floatCard 4s ease-in-out 2s infinite;
+}
+
+/* Timeline fill animation */
+.timeline-line {
+  transform-origin: top;
+  transform: scaleY(0);
+  transition: transform 0.8s ease-out;
+}
+
+.timeline-line[data-filled="true"] {
+  transform: scaleY(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-up,
+  .reveal-left,
+  .reveal-right,
+  .reveal-scale {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .stagger-1,
+  .stagger-2,
+  .stagger-3,
+  .stagger-4,
+  .stagger-5 {
+    transition-delay: 0s;
+  }
+
+  .animate-float,
+  .animate-float-delayed,
+  .animate-float-delayed-2 {
+    animation: none;
+  }
+
+  .timeline-line {
+    transform: scaleY(1);
+    transition: none;
+  }
+}

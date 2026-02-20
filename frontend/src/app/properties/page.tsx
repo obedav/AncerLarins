@@ -124,14 +124,17 @@ function SearchContent() {
         <div className="container-app py-6">
           <div className="flex gap-6">
             {/* Desktop Sidebar Filters */}
-            <aside className="hidden lg:block w-64 flex-shrink-0">
-              <div className="sticky top-20 bg-surface rounded-xl border border-border p-5 max-h-[calc(100vh-6rem)] overflow-y-auto">
+            <aside className="hidden lg:block w-72 flex-shrink-0">
+              <div className="sticky top-20 bg-surface rounded-xl border border-border overflow-hidden max-h-[calc(100vh-6rem)] overflow-y-auto">
+                <div className="h-0.5 bg-accent" />
+                <div className="p-5">
                 <h2 className="text-base font-bold text-text-primary mb-4">Filters</h2>
                 <SearchFiltersPanel
                   filters={filters}
                   onFilterChange={updateFilter}
                   onClearAll={clearAll}
                 />
+                </div>
               </div>
             </aside>
 
@@ -149,13 +152,22 @@ function SearchContent() {
                   {/* Mobile filter toggle */}
                   <button
                     onClick={() => setMobileFiltersOpen(true)}
-                    className="lg:hidden flex items-center gap-1.5 bg-surface border border-border rounded-lg px-3 py-2 text-sm text-text-secondary"
+                    className={`lg:hidden relative flex items-center gap-1.5 border rounded-xl px-3.5 py-2 text-sm font-medium transition-colors ${
+                      activeFilters.length > 0
+                        ? 'bg-accent/10 border-accent-dark/30 text-accent-dark'
+                        : 'bg-surface border-border text-text-secondary hover:border-text-muted'
+                    }`}
                     aria-label="Open filters"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
                     </svg>
                     Filters
+                    {activeFilters.length > 0 && (
+                      <span className="bg-accent-dark text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center -mr-1">
+                        {activeFilters.length}
+                      </span>
+                    )}
                   </button>
 
                   {/* View toggles */}
@@ -335,37 +347,77 @@ function SearchContent() {
         </div>
       </main>
 
-      {/* Mobile Filter Bottom Sheet */}
-      {mobileFiltersOpen && (
-        <div className="lg:hidden fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Filters">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileFiltersOpen(false)} aria-hidden="true" />
-          <div className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up">
-            <div className="sticky top-0 bg-surface border-b border-border px-5 py-4 flex items-center justify-between">
+      {/* Mobile Filter Bottom Sheet — always mounted, animates in/out */}
+      <div
+        className={`lg:hidden fixed inset-0 z-50 motion-safe:transition-opacity motion-safe:duration-300 ${
+          mobileFiltersOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        role="dialog"
+        aria-modal={mobileFiltersOpen}
+        aria-label="Filters"
+      >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          onClick={() => setMobileFiltersOpen(false)}
+          aria-hidden="true"
+        />
+
+        {/* Sheet panel */}
+        <div
+          className={`absolute bottom-0 left-0 right-0 bg-surface rounded-t-3xl max-h-[90vh] flex flex-col overflow-hidden motion-safe:transition-transform motion-safe:duration-300 ease-out ${
+            mobileFiltersOpen ? 'translate-y-0' : 'translate-y-full'
+          }`}
+        >
+          {/* Accent bar */}
+          <div className="h-0.5 bg-accent" />
+
+          {/* Drag handle */}
+          <div className="flex justify-center pt-3 pb-1">
+            <div className="w-10 h-1 rounded-full bg-border" />
+          </div>
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 pb-3 border-b border-border">
+            <div className="flex items-center gap-2">
               <h2 className="text-lg font-bold text-text-primary">Filters</h2>
-              <button onClick={() => setMobileFiltersOpen(false)} className="text-text-muted hover:text-text-primary" aria-label="Close filters">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              {activeFilters.length > 0 && (
+                <span className="bg-accent/15 text-accent-dark text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {activeFilters.length}
+                </span>
+              )}
             </div>
-            <div className="p-5">
-              <SearchFiltersPanel
-                filters={filters}
-                onFilterChange={(key, value) => { updateFilter(key, value); }}
-                onClearAll={() => { clearAll(); setMobileFiltersOpen(false); }}
-              />
-            </div>
-            <div className="sticky bottom-0 bg-surface border-t border-border px-5 py-4">
-              <button
-                onClick={() => setMobileFiltersOpen(false)}
-                className="w-full bg-primary text-white py-3 rounded-xl font-semibold"
-              >
-                Show {meta?.total.toLocaleString() || ''} Results
-              </button>
-            </div>
+            <button
+              onClick={() => setMobileFiltersOpen(false)}
+              className="text-text-muted hover:text-text-primary p-1 rounded-lg hover:bg-background transition-colors"
+              aria-label="Close filters"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Scrollable filter content */}
+          <div className="flex-1 overflow-y-auto px-5 py-4">
+            <SearchFiltersPanel
+              filters={filters}
+              onFilterChange={(key, value) => { updateFilter(key, value); }}
+              onClearAll={() => { clearAll(); setMobileFiltersOpen(false); }}
+            />
+          </div>
+
+          {/* Sticky CTA footer */}
+          <div className="border-t border-border px-5 py-4 bg-surface">
+            <button
+              onClick={() => setMobileFiltersOpen(false)}
+              className="w-full bg-accent text-primary py-3.5 rounded-xl font-semibold text-sm hover:bg-accent-dark transition-colors shadow-sm"
+            >
+              Show {meta?.total.toLocaleString() || ''} Results
+            </button>
           </div>
         </div>
-      )}
+      </div>
 
       <Footer />
     </>

@@ -6,6 +6,7 @@ use App\Enums\ScrapedListingStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ScrapedListingResource;
 use App\Models\ScrapedListing;
+use App\Services\ScrapedListingImportService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,10 @@ use Illuminate\Http\Request;
 class ScrapedListingController extends Controller
 {
     use ApiResponse;
+
+    public function __construct(
+        private ScrapedListingImportService $importService,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -36,11 +41,20 @@ class ScrapedListingController extends Controller
             return $this->errorResponse('Only pending listings can be approved.', 422);
         }
 
-        $scrapedListing->update(['status' => ScrapedListingStatus::Imported]);
+        try {
+            $property = $this->importService->import(
+                $scrapedListing,
+                $request->user()?->id,
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Failed to import listing: ' . $e->getMessage(), 500);
+        }
+
+        $scrapedListing->refresh();
 
         return $this->successResponse(
             new ScrapedListingResource($scrapedListing),
-            'Scraped listing approved for import.'
+            'Scraped listing approved and imported as property #' . $property->id . '.'
         );
     }
 
