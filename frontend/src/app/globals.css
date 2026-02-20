@@ -10,7 +10,7 @@
 
   /* Accent - Champagne Gold */
   --color-accent: #F0D9A0;
-  --color-accent-dark: #C9A84C;
+  --color-accent-dark: #A8872F;
   --color-accent-light: #F5E6C0;
 
   /* WhatsApp Green */
@@ -24,7 +24,7 @@
   /* Text */
   --color-text-primary: #1A1A2E;
   --color-text-secondary: #4A4A5A;
-  --color-text-muted: #8A8A9A;
+  --color-text-muted: #6B6B7B;
 
   /* Status */
   --color-error: #DC2626;
@@ -41,7 +41,7 @@
   --color-primary-light: #1B2A4A;
 
   --color-accent: #E8D49A;
-  --color-accent-dark: #D4B96A;
+  --color-accent-dark: #C9A84C;
   --color-accent-light: #3D3420;
 
   --color-background: #1A2030;
@@ -50,7 +50,7 @@
 
   --color-text-primary: #ECE8E1;
   --color-text-secondary: #A8A4A0;
-  --color-text-muted: #706C68;
+  --color-text-muted: #908C88;
 
   --color-error: #F87171;
   --color-success: #34D399;

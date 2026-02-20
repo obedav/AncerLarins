@@ -13,7 +13,7 @@ const DIFFERENTIATORS = [
   },
   {
     title: 'WhatsApp Connect',
-    description: 'Reach verified agents instantly via WhatsApp. No waiting, no gatekeepers — chat directly and schedule viewings in seconds.',
+    description: 'Reach verified agents directly via WhatsApp. No waiting, no gatekeepers — just open a chat and schedule a viewing.',
     icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
     accent: 'from-green-400 to-emerald-500',
     iconBg: 'bg-green-500/10 dark:bg-green-400/15',
@@ -117,7 +117,7 @@ export default function WhyAncerLarins() {
               Not Just Listings — Intelligence
             </h2>
             <p className="text-text-muted mt-3 max-w-xl lg:max-w-none mx-auto lg:mx-0">
-              We go beyond traditional property portals with data-driven tools that help you make smarter real estate decisions in Lagos.
+              Tools that give you real market context — valuations, area scores, and direct agent access — so you know what you&apos;re getting into.
             </p>
             <a
               href="/about"

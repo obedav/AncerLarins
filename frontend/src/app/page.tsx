@@ -6,7 +6,6 @@ import HowItWorks from '@/components/home/HowItWorks';
 import PropertyTypeExplorer from '@/components/home/PropertyTypeExplorer';
 import WhyAncerLarins from '@/components/home/WhyAncerLarins';
 import PopularAreas from '@/components/home/PopularAreas';
-import Testimonials from '@/components/home/Testimonials';
 import CTASection from '@/components/home/CTASection';
 
 export default function Home() {
@@ -20,7 +19,6 @@ export default function Home() {
         <PropertyTypeExplorer />
         <WhyAncerLarins />
         <PopularAreas />
-        <Testimonials />
         <CTASection />
       </main>
       <Footer />

@@ -74,10 +74,18 @@ function StatCard({
 
       {/* Number */}
       <div className="flex items-baseline gap-0.5">
-        <span className="text-2xl sm:text-3xl font-bold tracking-tight text-accent-dark font-playfair tabular-nums">
-          {count.toLocaleString()}
-        </span>
-        <span className="text-lg font-bold text-accent-dark/70 font-playfair">{stat.suffix}</span>
+        {stat.value === 0 ? (
+          <span className="text-2xl sm:text-3xl font-bold tracking-tight text-accent-dark font-playfair">
+            Free
+          </span>
+        ) : (
+          <>
+            <span className="text-2xl sm:text-3xl font-bold tracking-tight text-accent-dark font-playfair tabular-nums">
+              {count.toLocaleString()}
+            </span>
+            <span className="text-lg font-bold text-accent-dark/70 font-playfair">{stat.suffix}</span>
+          </>
+        )}
       </div>
 
       {/* Label */}
@@ -157,32 +165,32 @@ function RotatingWord({ words, interval = 3000 }: { words: string[]; interval?: 
 
 const STATS = [
   {
-    value: 10000,
-    suffix: '+',
-    label: 'Properties',
-    desc: 'Active listings across Lagos',
-    icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
-  },
-  {
-    value: 500,
-    suffix: '+',
-    label: 'Verified Agents',
-    desc: 'Vetted professionals',
-    icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z',
-  },
-  {
     value: 20,
     suffix: '+',
     label: 'Areas Covered',
-    desc: 'Neighborhoods mapped',
+    desc: 'Lagos neighborhoods',
     icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z',
   },
   {
-    value: 2500,
-    suffix: '+',
-    label: 'Happy Clients',
-    desc: 'Five-star experiences',
-    icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z',
+    value: 100,
+    suffix: '%',
+    label: 'Verified',
+    desc: 'Every agent is vetted',
+    icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+  },
+  {
+    value: 5,
+    suffix: ' min',
+    label: 'Avg. Response',
+    desc: 'Via WhatsApp connect',
+    icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
+  },
+  {
+    value: 0,
+    suffix: '₦',
+    label: 'To List',
+    desc: 'Free for all agents',
+    icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
   },
 ];
 
@@ -200,14 +208,14 @@ export default function HeroSection() {
 
   return (
     <section
-      className="relative min-h-dvh w-full overflow-hidden"
+      className="relative min-h-[85dvh] w-full overflow-hidden"
       aria-label="Hero"
     >
       {/* ---- BACKGROUND LAYERS ---- */}
       <div className="absolute inset-0">
         <Image
           src="/images/hero-section.jpeg"
-          alt="Luxury properties in Lagos"
+          alt="Properties in Lagos"
           fill
           className="object-cover"
           priority
@@ -247,7 +255,7 @@ export default function HeroSection() {
       />
 
       {/* ---- MAIN CONTENT ---- */}
-      <div className="relative z-10 flex min-h-dvh flex-col px-4 pt-24 pb-6 sm:px-6 sm:pt-28 sm:pb-8 lg:px-8 lg:pt-32">
+      <div className="relative z-10 flex min-h-[85dvh] flex-col px-4 pt-18 pb-6 sm:px-6 sm:pt-22 sm:pb-8 lg:px-8 lg:pt-24">
         <div className="mx-auto w-full max-w-7xl flex flex-col flex-1">
 
           {/* ---- Headline area (centered) ---- */}
@@ -263,7 +271,7 @@ export default function HeroSection() {
             >
               <span className="h-px w-8 bg-accent-dark/60" />
               <span className="text-xs font-semibold uppercase tracking-[0.25em] text-accent-dark">
-                Lagos Premium Real Estate
+                Lagos Real Estate Platform
               </span>
               <span className="h-px w-8 bg-accent-dark/60" />
             </div>
@@ -301,53 +309,30 @@ export default function HeroSection() {
                 transform: loaded ? 'translateY(0)' : 'translateY(20px)',
               }}
             >
-              Explore an exclusive collection of verified properties across
-              Lagos&apos;s most prestigious neighborhoods, from Banana Island
-              estates to Victoria Island penthouses.
+              Browse verified properties across Lagos with honest pricing,
+              real neighborhood insights, and direct WhatsApp contact
+              with vetted agents.
             </p>
 
             {/* Social Proof Strip */}
             <div
-              className="flex items-center justify-center gap-3 mt-6 transition-all duration-700"
+              className="flex items-center justify-center gap-2 mt-6 transition-all duration-700"
               style={{
                 transitionDelay: '550ms',
                 opacity: loaded ? 1 : 0,
                 transform: loaded ? 'translateY(0)' : 'translateY(20px)',
               }}
             >
-              {/* Overlapping avatar circles */}
-              <div className="flex -space-x-2">
-                {[
-                  { initials: 'AO', bg: 'bg-blue-500' },
-                  { initials: 'CK', bg: 'bg-emerald-500' },
-                  { initials: 'IM', bg: 'bg-violet-500' },
-                  { initials: 'FA', bg: 'bg-amber-500' },
-                ].map((avatar, i) => (
-                  <div
-                    key={avatar.initials}
-                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full ${avatar.bg} border-2 border-background dark:border-primary flex items-center justify-center text-white text-[10px] sm:text-xs font-bold transition-all duration-500`}
-                    style={{
-                      transitionDelay: `${600 + i * 80}ms`,
-                      opacity: loaded ? 1 : 0,
-                      transform: loaded ? 'scale(1)' : 'scale(0)',
-                    }}
-                  >
-                    {avatar.initials}
-                  </div>
+              <div className="flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <svg key={i} className="w-3.5 h-3.5 text-accent-dark" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
                 ))}
               </div>
-              <div className="flex flex-col items-start">
-                <div className="flex gap-0.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <svg key={i} className="w-3.5 h-3.5 text-accent-dark" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <span className="text-xs text-text-secondary dark:text-white/60 font-medium">
-                  <span className="hidden sm:inline">Trusted by </span>2,500+ <span className="hidden sm:inline">Lagosians</span><span className="sm:hidden">happy clients</span>
-                </span>
-              </div>
+              <span className="text-xs text-text-secondary dark:text-white/60 font-medium">
+                Trusted by Lagosians
+              </span>
             </div>
           </div>
 

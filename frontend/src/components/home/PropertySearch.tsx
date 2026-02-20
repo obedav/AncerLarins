@@ -9,9 +9,9 @@ import { useGetPropertyTypesQuery } from '@/store/api/locationApi';
 /* ------------------------------------------------------------------ */
 
 const TABS = [
-  { id: 'rent', label: 'Rent', desc: 'Lease' },
-  { id: 'sale', label: 'Buy', desc: 'Purchase' },
-  { id: 'short_let', label: 'Short Let', desc: 'Temporary' },
+  { id: 'rent', label: 'Rent' },
+  { id: 'sale', label: 'Buy' },
+  { id: 'short_let', label: 'Short Let' },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
@@ -29,9 +29,9 @@ const LOCATIONS = [
 ];
 
 const LOCATION_GROUPS = [
-  { label: 'Premium', items: ['Banana Island', 'Ikoyi', 'Victoria Island'] },
-  { label: 'Popular', items: ['Lekki Phase 1', 'Oniru', 'Ikeja GRA'] },
-  { label: 'Emerging', items: ['Ajah', 'Yaba', 'Osapa London'] },
+  { label: 'Island', items: ['Banana Island', 'Ikoyi', 'Victoria Island'] },
+  { label: 'Lekki Axis', items: ['Lekki Phase 1', 'Oniru', 'Osapa London'] },
+  { label: 'Mainland', items: ['Ajah', 'Yaba', 'Ikeja GRA'] },
 ];
 
 // Values in kobo (1 Naira = 100 kobo) to match backend price_kobo column
@@ -59,10 +59,10 @@ const PRICE_RANGES: Record<TabId, { label: string; min?: number; max?: number }[
   ],
 };
 
-const TRENDING = [
-  'Ikoyi 3-bed apartments',
-  'Lekki Phase 1 duplexes',
-  'Banana Island penthouses',
+const SUGGESTIONS = [
+  '3-bed apartments in Lekki',
+  'Duplexes in Ikeja GRA',
+  'Short lets in Victoria Island',
 ];
 
 /* ------------------------------------------------------------------ */
@@ -218,6 +218,29 @@ function CustomSelect({
   onKeyDown?: (e: React.KeyboardEvent) => void;
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const [openUp, setOpenUp] = useState(false);
+  const dropdownHeight = 280; // matches max-h-[280px]
+
+  // Decide direction on open & on scroll/resize while open
+  const updateDirection = useCallback(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    setOpenUp(spaceBelow < dropdownHeight && spaceAbove > spaceBelow);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    updateDirection();
+    window.addEventListener('scroll', updateDirection, { passive: true });
+    window.addEventListener('resize', updateDirection, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', updateDirection);
+      window.removeEventListener('resize', updateDirection);
+    };
+  }, [isOpen, updateDirection]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -268,7 +291,9 @@ function CustomSelect({
         <div
           id={`${id}-listbox`}
           role="listbox"
-          className="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl border border-primary/10 dark:border-white/[0.12] bg-white dark:bg-primary-light/95 backdrop-blur-xl shadow-2xl shadow-primary/10 dark:shadow-black/20 max-h-[280px] overflow-y-auto animate-modal-in scrollbar-none"
+          className={`absolute left-0 right-0 z-50 rounded-xl border border-primary/10 dark:border-white/[0.12] bg-white dark:bg-primary-light/95 backdrop-blur-xl shadow-2xl shadow-primary/10 dark:shadow-black/20 max-h-[280px] overflow-y-auto animate-modal-in scrollbar-none ${
+            openUp ? 'bottom-full mb-2' : 'top-full mt-2'
+          }`}
         >
           {children}
         </div>
@@ -389,8 +414,8 @@ export default function PropertySearch() {
   const tierDotColor = (groupLabel: string, isSelected: boolean) => {
     if (isSelected) return 'bg-accent-dark shadow-[0_0_6px_rgba(201,168,76,0.5)]';
     switch (groupLabel) {
-      case 'Premium': return 'bg-accent-dark/70';
-      case 'Popular': return 'bg-accent-dark/40';
+      case 'Island': return 'bg-accent-dark/70';
+      case 'Lekki Axis': return 'bg-accent-dark/40';
       default: return 'bg-accent-dark/20';
     }
   };
@@ -404,7 +429,7 @@ export default function PropertySearch() {
   return (
     <div className="w-full relative z-20">
       {/* Tabs row */}
-      <div className="flex items-end gap-1 sm:gap-1.5 mb-0 overflow-x-auto scrollbar-none">
+      <div className="relative z-0 flex items-end gap-1 sm:gap-1.5 mb-0 overflow-x-auto scrollbar-none">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -422,15 +447,6 @@ export default function PropertySearch() {
               }`}
             >
               <span className="relative z-10">{tab.label}</span>
-              <span
-                className={`text-[10px] font-normal tracking-wider uppercase transition-all duration-300 ${
-                  isActive
-                    ? 'text-accent-dark/50 mt-0.5'
-                    : 'text-transparent mt-0 h-0 overflow-hidden'
-                }`}
-              >
-                {tab.desc}
-              </span>
               {isActive && (
                 <span className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-8 rounded-full bg-accent-dark" />
               )}
@@ -444,7 +460,7 @@ export default function PropertySearch() {
         onSubmit={handleSubmit}
         role="search"
         aria-label="Property search"
-        className={`relative rounded-b-2xl rounded-tr-2xl sm:rounded-b-3xl sm:rounded-tr-3xl border backdrop-blur-2xl p-4 sm:p-5 lg:p-7 transition-all duration-500 ${
+        className={`relative z-10 rounded-b-2xl rounded-tr-2xl sm:rounded-b-3xl sm:rounded-tr-3xl border backdrop-blur-2xl p-4 sm:p-5 lg:p-7 transition-all duration-500 ${
           focused
             ? 'border-accent-dark/30 bg-white/85 shadow-xl shadow-primary/[0.06] dark:bg-primary-light/90 dark:shadow-accent-dark/5'
             : 'border-border/80 bg-white/65 shadow-lg shadow-primary/[0.04] dark:border-white/[0.08] dark:bg-primary-light/70 dark:shadow-none'
@@ -465,7 +481,7 @@ export default function PropertySearch() {
               onToggle={() => toggleDropdown('location')}
               onClose={closeDropdown}
               value={location}
-              placeholder="Select area"
+              placeholder="Where in Lagos?"
               onKeyDown={handleLocationKeyDown}
             >
               {(() => {
@@ -524,7 +540,7 @@ export default function PropertySearch() {
               onToggle={() => toggleDropdown('property-type')}
               onClose={closeDropdown}
               value={selectedTypeName}
-              placeholder="Choose type"
+              placeholder="Any type"
               onKeyDown={handlePropertyTypeKeyDown}
             >
               {propertyTypes.map((type, idx) => {
@@ -586,7 +602,7 @@ export default function PropertySearch() {
               onToggle={() => toggleDropdown('budget')}
               onClose={closeDropdown}
               value={selectedBudgetLabel}
-              placeholder="Price range"
+              placeholder="Any budget"
               onKeyDown={handleBudgetKeyDown}
             >
               {budgetItems.map((range, idx) => {
@@ -659,12 +675,12 @@ export default function PropertySearch() {
           </div>
         </div>
 
-        {/* Trending line */}
+        {/* Suggestions line */}
         <div className="mt-4 sm:mt-5 flex items-center gap-2 border-t border-border dark:border-white/[0.06] pt-4">
           <IconSparkles className="h-3.5 w-3.5 text-accent-dark/60 flex-shrink-0" />
           <p className="text-xs text-text-secondary dark:text-white/50">
-            <span className="text-accent-dark/70 font-medium">Trending:</span>{' '}
-            {TRENDING.join(', ')}
+            <span className="text-accent-dark/70 font-medium">Try:</span>{' '}
+            {SUGGESTIONS.join(', ')}
           </p>
         </div>
       </form>

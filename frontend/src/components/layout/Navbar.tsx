@@ -126,7 +126,7 @@ const NAV_ITEMS: NavItem[] = [
         title: 'Sell & Resources',
         icon: IconSell,
         links: [
-          { label: 'List Your Property', href: '/dashboard/listings/new', desc: 'Reach thousands of buyers' },
+          { label: 'List Your Property', href: '/dashboard/listings/new', desc: 'Free for all agents' },
           { label: 'Agent Sign Up', href: '/register?role=agent', desc: 'Create your agent profile' },
           { label: 'Agent Dashboard', href: '/dashboard', desc: 'Manage listings & leads' },
           { label: 'AncerEstimate', href: '/properties?listing_type=sale', desc: 'Automated valuations' },

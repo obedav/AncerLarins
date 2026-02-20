@@ -9,35 +9,30 @@ const AREAS = [
     name: 'Lekki',
     description: 'Modern living & beachfront',
     image: '/images/neighborhoods/lekki.jpg',
-    properties: '2,400+',
     slug: 'lekki',
   },
   {
     name: 'Ikoyi',
-    description: 'Luxury & exclusivity',
+    description: 'High-end residential living',
     image: '/images/neighborhoods/ikoyi.jpg',
-    properties: '1,800+',
     slug: 'ikoyi',
   },
   {
     name: 'Victoria Island',
     description: 'Business & nightlife',
     image: '/images/neighborhoods/victoria-island.jpg',
-    properties: '2,100+',
     slug: 'victoria-island',
   },
   {
     name: 'Yaba',
     description: 'Tech hub & affordable',
     image: '/images/neighborhoods/yaba.jpg',
-    properties: '1,200+',
     slug: 'yaba',
   },
   {
     name: 'Ikeja',
     description: 'City center & commercial',
     image: '/images/neighborhoods/ikeja.jpg',
-    properties: '1,500+',
     slug: 'ikeja',
   },
 ];
@@ -53,7 +48,7 @@ export default function PopularAreas() {
             Popular Areas in Lagos
           </h2>
           <p className="text-text-muted mt-2 max-w-lg mx-auto">
-            Explore the most sought-after neighborhoods
+            Browse neighborhoods across Lagos
           </p>
         </div>
 
@@ -84,8 +79,8 @@ export default function PopularAreas() {
                     <h3 className="text-white text-xl md:text-2xl font-bold">{area.name}</h3>
                     <p className="text-white/70 text-sm mt-1">{area.description}</p>
                   </div>
-                  <span className="bg-white/10 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/20">
-                    {area.properties} listings
+                  <span className="bg-white/10 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                    View Properties &rarr;
                   </span>
                 </div>
               </div>
@@ -119,8 +114,8 @@ export default function PopularAreas() {
               <div className="absolute inset-0 flex flex-col justify-end p-5">
                 <h3 className="text-white text-lg font-bold">{area.name}</h3>
                 <p className="text-white/70 text-xs mt-0.5">{area.description}</p>
-                <span className="mt-2 bg-white/10 backdrop-blur-sm text-white text-[11px] font-semibold px-2.5 py-1 rounded-full border border-white/20 w-fit">
-                  {area.properties} listings
+                <span className="mt-2 text-accent text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  View Properties &rarr;
                 </span>
               </div>
 
