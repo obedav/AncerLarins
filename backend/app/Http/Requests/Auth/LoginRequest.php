@@ -16,7 +16,7 @@ class LoginRequest extends FormRequest
         return [
             'phone'    => ['required_without:email', 'nullable', 'string', 'regex:/^(\+234|0)[789]\d{9}$/'],
             'email'    => ['required_without:phone', 'nullable', 'email'],
-            'password' => ['required', 'string'],
+            'password' => ['nullable', 'string'],
         ];
     }
 

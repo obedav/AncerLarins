@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Admin',
             'last_name' => 'User',
             'email' => 'admin@ancerlarins.com',
-            'phone' => '2348000000001',
+            'phone' => '+2348000000001',
             'password_hash' => Hash::make('password'),
             'phone_verified' => true,
             'email_verified' => true,
@@ -41,7 +41,7 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Test',
             'last_name' => 'User',
             'email' => 'user@test.com',
-            'phone' => '2348000000002',
+            'phone' => '+2348000000002',
             'password_hash' => Hash::make('password'),
             'phone_verified' => true,
             'email_verified' => true,
@@ -58,7 +58,7 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Test',
             'last_name' => 'Agent',
             'email' => 'agent@test.com',
-            'phone' => '2348000000003',
+            'phone' => '+2348000000003',
             'password_hash' => Hash::make('password'),
             'phone_verified' => true,
             'email_verified' => true,
@@ -75,7 +75,7 @@ class DatabaseSeeder extends Seeder
             'company_name' => 'Test Properties Ltd',
             'verification_status' => 'verified',
             'verified_at' => $now,
-            'whatsapp_number' => '2348000000003',
+            'whatsapp_number' => '+2348000000003',
             'subscription_tier' => 'basic',
             'max_listings' => 10,
             'bio' => 'Licensed real estate agent serving the Lagos market.',
@@ -83,6 +83,15 @@ class DatabaseSeeder extends Seeder
             'years_experience' => 5,
             'created_at' => $now,
             'updated_at' => $now,
+        ]);
+
+        // Seed sample data
+        $this->call([
+            PropertySeeder::class,
+            EstateSeeder::class,
+            BlogPostSeeder::class,
+            CooperativeSeeder::class,
+            PropertyRequestSeeder::class,
         ]);
     }
 }

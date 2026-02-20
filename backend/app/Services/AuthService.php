@@ -244,8 +244,15 @@ class AuthService
 
     public function normalizePhone(string $phone): string
     {
+        // Remove spaces, dashes, parens
+        $phone = preg_replace('/[\s\-\(\)]+/', '', $phone);
+
         if (str_starts_with($phone, '0')) {
             return '+234' . substr($phone, 1);
+        }
+
+        if (str_starts_with($phone, '234') && !str_starts_with($phone, '+')) {
+            return '+' . $phone;
         }
 
         return $phone;
