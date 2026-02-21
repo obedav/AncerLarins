@@ -86,7 +86,7 @@ class PropertyService
             PriceHistory::create([
                 'property_id' => $property->id,
                 'price_kobo'  => $property->price_kobo,
-                'changed_at'  => now(),
+                'recorded_at' => now(),
             ]);
 
             $property->load(['propertyType', 'state', 'city', 'area', 'amenities', 'agent.user']);
@@ -141,10 +141,9 @@ class PropertyService
 
             if (isset($data['price_kobo']) && $data['price_kobo'] !== $oldPrice) {
                 PriceHistory::create([
-                    'property_id'    => $property->id,
-                    'price_kobo'     => $data['price_kobo'],
-                    'old_price_kobo' => $oldPrice,
-                    'changed_at'     => now(),
+                    'property_id' => $property->id,
+                    'price_kobo'  => $data['price_kobo'],
+                    'recorded_at' => now(),
                 ]);
             }
 

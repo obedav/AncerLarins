@@ -20,6 +20,11 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @group Agents
+ *
+ * Agent profiles, verification, dashboard, and leads.
+ */
 class AgentController extends Controller
 {
     use ApiResponse;
@@ -83,6 +88,7 @@ class AgentController extends Controller
         );
     }
 
+    /** @authenticated */
     public function createReview(CreateReviewRequest $request, AgentProfile $agent): JsonResponse
     {
         $data = $request->validated();
@@ -97,6 +103,7 @@ class AgentController extends Controller
         );
     }
 
+    /** @authenticated */
     public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
         $agent = $request->user()->agentProfile;
@@ -110,6 +117,7 @@ class AgentController extends Controller
         return $this->successResponse(new AgentDetailResource($agent->load('user')), 'Profile updated.');
     }
 
+    /** @authenticated */
     public function submitVerification(SubmitVerificationRequest $request): JsonResponse
     {
         $agent = $request->user()->agentProfile;
@@ -127,6 +135,26 @@ class AgentController extends Controller
         return $this->successResponse(new AgentDetailResource($agent->load('user')), 'Verification submitted.');
     }
 
+    /** @authenticated */
+    public function verificationDocuments(Request $request): JsonResponse
+    {
+        $agent = $request->user()->agentProfile;
+
+        if (! $agent) {
+            return $this->errorResponse('Agent profile not found.', 404);
+        }
+
+        $urls = $this->agentService->getVerificationDocumentUrls($agent);
+
+        return $this->successResponse([
+            'documents'           => $urls,
+            'id_document_type'    => $agent->id_document_type,
+            'id_document_number'  => $agent->id_document_number,
+            'verification_status' => $agent->verification_status,
+        ]);
+    }
+
+    /** @authenticated */
     public function dashboard(Request $request): JsonResponse
     {
         $agent = $request->user()->agentProfile;
@@ -140,6 +168,7 @@ class AgentController extends Controller
         return $this->successResponse($stats);
     }
 
+    /** @authenticated */
     public function leads(Request $request): JsonResponse
     {
         $agent = $request->user()->agentProfile;
@@ -160,6 +189,7 @@ class AgentController extends Controller
         );
     }
 
+    /** @authenticated */
     public function respondToLead(Request $request, Lead $lead): JsonResponse
     {
         $agent = $request->user()->agentProfile;

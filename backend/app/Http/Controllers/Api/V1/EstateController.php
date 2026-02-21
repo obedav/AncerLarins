@@ -13,6 +13,11 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @group Estates
+ *
+ * Browse and manage estate developments.
+ */
 class EstateController extends Controller
 {
     use ApiResponse;
@@ -132,6 +137,7 @@ class EstateController extends Controller
         );
     }
 
+    /** @authenticated */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -167,6 +173,7 @@ class EstateController extends Controller
         return $this->successResponse(new EstateResource($estate), 'Estate created.', 201);
     }
 
+    /** @authenticated */
     public function update(Request $request, Estate $estate): JsonResponse
     {
         $validated = $request->validate([
@@ -203,6 +210,7 @@ class EstateController extends Controller
         return $this->successResponse(new EstateResource($estate), 'Estate updated.');
     }
 
+    /** @authenticated */
     public function destroy(Estate $estate): JsonResponse
     {
         $estate->delete();

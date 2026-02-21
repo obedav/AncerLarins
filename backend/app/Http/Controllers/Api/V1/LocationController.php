@@ -15,6 +15,11 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @group Locations
+ *
+ * States, cities, areas, property types, and neighborhood insights.
+ */
 class LocationController extends Controller
 {
     use ApiResponse;
@@ -88,6 +93,7 @@ class LocationController extends Controller
         return $this->successResponse($insights);
     }
 
+    /** @authenticated */
     public function submitAreaReview(CreateNeighborhoodReviewRequest $request, Area $area): JsonResponse
     {
         $review = $this->neighborhoodService->submitReview(

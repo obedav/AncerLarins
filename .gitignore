@@ -7,3 +7,9 @@
 # OS
 .DS_Store
 Thumbs.db
+
+# Environment files (secrets)
+.env
+.env.*
+!.env.example
+.env.local

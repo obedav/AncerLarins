@@ -11,6 +11,12 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @group Admin - Scraped Listings
+ * @authenticated
+ *
+ * Review and approve/reject scraped property listings from external sources.
+ */
 class ScrapedListingController extends Controller
 {
     use ApiResponse;

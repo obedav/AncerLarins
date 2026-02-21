@@ -15,6 +15,12 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @group Cooperatives
+ * @authenticated
+ *
+ * Housing cooperatives — create, join, contribute, and track progress.
+ */
 class CooperativeController extends Controller
 {
     use ApiResponse;

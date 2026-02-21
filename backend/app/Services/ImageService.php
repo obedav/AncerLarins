@@ -26,6 +26,20 @@ class ImageService
         ];
     }
 
+    public function uploadPrivate($file, string $folder = 'verification'): array
+    {
+        return $this->cloudinaryService->uploadPrivate($file, $folder);
+    }
+
+    public function getSignedUrl(?string $publicId): ?string
+    {
+        if (! $publicId) {
+            return null;
+        }
+
+        return $this->cloudinaryService->getSignedUrl($publicId);
+    }
+
     public function delete(?string $publicId): bool
     {
         if (! $publicId) {

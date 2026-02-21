@@ -10,6 +10,7 @@ use App\Models\RefreshToken;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class AuthService
@@ -39,17 +40,7 @@ class AuthService
                 ]);
             }
 
-            // DEV BYPASS: Skip OTP sending in local environment
-            if (app()->environment('local')) {
-                OtpCode::create([
-                    'phone'      => $phone,
-                    'code'       => '000000',
-                    'purpose'    => OtpPurpose::Registration,
-                    'expires_at' => now()->addMinutes(10),
-                ]);
-            } else {
-                $this->sendOtp($phone, OtpPurpose::Registration);
-            }
+            $this->sendOtp($phone, OtpPurpose::Registration);
 
             return $user;
         });
@@ -70,17 +61,7 @@ class AuthService
             return null;
         }
 
-        // DEV BYPASS: Skip OTP sending in local environment
-        if (app()->environment('local')) {
-            OtpCode::create([
-                'phone'      => $phone,
-                'code'       => '000000',
-                'purpose'    => OtpPurpose::Login,
-                'expires_at' => now()->addMinutes(10),
-            ]);
-        } else {
-            $this->sendOtp($phone, OtpPurpose::Login);
-        }
+        $this->sendOtp($phone, OtpPurpose::Login);
 
         return ['otp_sent' => true];
     }
@@ -89,33 +70,6 @@ class AuthService
     {
         $phone = $this->normalizePhone($phone);
         $purpose = OtpPurpose::from($purpose);
-
-        // DEV BYPASS: Accept code 000000 in local environment
-        if (app()->environment('local') && $code === '000000') {
-            $user = User::where('phone', $phone)->first();
-
-            if (! $user) {
-                return null;
-            }
-
-            if ($purpose === OtpPurpose::Registration || $purpose === OtpPurpose::Login) {
-                $user->update([
-                    'phone_verified' => true,
-                    'last_login_at'  => now(),
-                    'last_login_ip'  => request()->ip(),
-                ]);
-
-                $tokens = $this->generateTokens($user);
-
-                return [
-                    'user'          => $user,
-                    'access_token'  => $tokens['access_token'],
-                    'refresh_token' => $tokens['refresh_token'],
-                ];
-            }
-
-            return ['user' => $user];
-        }
 
         $otp = OtpCode::where('phone', $phone)
             ->where('purpose', $purpose)
@@ -191,16 +145,7 @@ class AuthService
             return; // Silent fail to prevent user enumeration
         }
 
-        if (app()->environment('local')) {
-            OtpCode::create([
-                'phone'      => $phone,
-                'code'       => '000000',
-                'purpose'    => OtpPurpose::PasswordReset,
-                'expires_at' => now()->addMinutes(10),
-            ]);
-        } else {
-            $this->sendOtp($phone, OtpPurpose::PasswordReset);
-        }
+        $this->sendOtp($phone, OtpPurpose::PasswordReset);
     }
 
     public function sendOtp(string $phone, OtpPurpose $purpose): void
@@ -221,6 +166,12 @@ class AuthService
             'purpose'    => $purpose,
             'expires_at' => now()->addMinutes(10),
         ]);
+
+        $termiiKey = config('services.termii.api_key');
+        if (empty($termiiKey) || str_starts_with($termiiKey, 'your_')) {
+            Log::info("OTP for {$phone}: {$code} (Termii not configured)");
+            return;
+        }
 
         $this->termiiService->sendOtp($phone);
     }

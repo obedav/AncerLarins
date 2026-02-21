@@ -14,6 +14,11 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @group Blog
+ *
+ * Blog posts and articles about real estate in Lagos.
+ */
 class BlogPostController extends Controller
 {
     use ApiResponse;
@@ -63,6 +68,7 @@ class BlogPostController extends Controller
 
     // ── Admin ─────────────────────────────────────────────
 
+    /** @authenticated */
     public function store(CreateBlogPostRequest $request): JsonResponse
     {
         $post = $this->blogService->create($request->validated(), $request->user());
@@ -70,6 +76,7 @@ class BlogPostController extends Controller
         return $this->successResponse(new BlogPostResource($post), 'Blog post created.', 201);
     }
 
+    /** @authenticated */
     public function update(UpdateBlogPostRequest $request, BlogPost $blogPost): JsonResponse
     {
         $post = $this->blogService->update($blogPost, $request->validated());
@@ -77,6 +84,7 @@ class BlogPostController extends Controller
         return $this->successResponse(new BlogPostResource($post), 'Blog post updated.');
     }
 
+    /** @authenticated */
     public function destroy(Request $request, BlogPost $blogPost): JsonResponse
     {
         $this->blogService->delete($blogPost);

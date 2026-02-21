@@ -11,6 +11,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @group Webhooks
+ *
+ * Payment and SMS webhook handlers (Paystack, Termii). Verified by signature, no auth required.
+ */
 class WebhookController extends Controller
 {
     use ApiResponse;

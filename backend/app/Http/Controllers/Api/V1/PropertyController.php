@@ -18,6 +18,11 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @group Properties
+ *
+ * Browse, create, and manage property listings.
+ */
 class PropertyController extends Controller
 {
     use ApiResponse;
@@ -61,6 +66,7 @@ class PropertyController extends Controller
         return $this->successResponse(new PropertyDetailResource($property));
     }
 
+    /** @authenticated */
     public function store(CreatePropertyRequest $request): JsonResponse
     {
         $agent = $request->user()->agentProfile;
@@ -78,6 +84,7 @@ class PropertyController extends Controller
         );
     }
 
+    /** @authenticated */
     public function update(UpdatePropertyRequest $request, Property $property): JsonResponse
     {
         $property = $this->propertyService->update($property, $request->validated());
@@ -88,6 +95,7 @@ class PropertyController extends Controller
         );
     }
 
+    /** @authenticated */
     public function destroy(Request $request, Property $property): JsonResponse
     {
         if ($request->user()->id !== $property->agent?->user_id) {
@@ -99,6 +107,7 @@ class PropertyController extends Controller
         return response()->json(null, 204);
     }
 
+    /** @authenticated */
     public function uploadImages(Request $request, Property $property): JsonResponse
     {
         $request->validate([
@@ -116,6 +125,7 @@ class PropertyController extends Controller
         return $this->successResponse($images, 'Images uploaded.', 201);
     }
 
+    /** @authenticated */
     public function removeImage(Request $request, PropertyImage $image): JsonResponse
     {
         if ($request->user()->id !== $image->property?->agent?->user_id) {
@@ -127,6 +137,7 @@ class PropertyController extends Controller
         return response()->json(null, 204);
     }
 
+    /** @authenticated */
     public function save(Request $request, Property $property): JsonResponse
     {
         $existing = $request->user()->savedProperties()
@@ -143,6 +154,7 @@ class PropertyController extends Controller
         return $this->successResponse(['saved' => true], 'Property saved.', 201);
     }
 
+    /** @authenticated */
     public function contact(ContactAgentRequest $request, Property $property): JsonResponse
     {
         $data = $request->validated();
@@ -171,6 +183,7 @@ class PropertyController extends Controller
         return $this->successResponse($response, 'Contact logged.');
     }
 
+    /** @authenticated */
     public function report(CreateReportRequest $request): JsonResponse
     {
         $report = $this->reportService->create($request->user(), $request->validated());

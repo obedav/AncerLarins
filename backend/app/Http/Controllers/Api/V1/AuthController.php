@@ -12,6 +12,11 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @group Authentication
+ *
+ * OTP-based authentication for the AncerLarins platform.
+ */
 class AuthController extends Controller
 {
     use ApiResponse;

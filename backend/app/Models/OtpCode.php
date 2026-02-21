@@ -5,11 +5,12 @@ namespace App\Models;
 use App\Enums\OtpPurpose;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class OtpCode extends Model
 {
-    use HasUuids;
+    use HasFactory, HasUuids;
 
     public $timestamps = false;
 

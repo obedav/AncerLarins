@@ -19,17 +19,25 @@ use App\Models\Property;
 use App\Models\Report;
 use App\Models\User;
 use App\Services\AdminService;
+use App\Services\AgentService;
 use App\Services\ReportService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @group Admin
+ * @authenticated
+ *
+ * Admin dashboard, property/agent moderation, user management, and reports.
+ */
 class AdminController extends Controller
 {
     use ApiResponse;
 
     public function __construct(
         protected AdminService $adminService,
+        protected AgentService $agentService,
         protected ReportService $reportService,
     ) {}
 
@@ -118,6 +126,20 @@ class AdminController extends Controller
         $this->adminService->rejectAgent($agent, $request->rejection_reason, $request->user());
 
         return $this->successResponse(null, 'Agent verification rejected.');
+    }
+
+    public function agentDocuments(AgentProfile $agent): JsonResponse
+    {
+        $urls = $this->agentService->getVerificationDocumentUrls($agent);
+
+        return $this->successResponse([
+            'agent_id'            => $agent->id,
+            'company_name'        => $agent->company_name,
+            'documents'           => $urls,
+            'id_document_type'    => $agent->id_document_type,
+            'id_document_number'  => $agent->id_document_number,
+            'verification_status' => $agent->verification_status,
+        ]);
     }
 
     public function banUser(BanUserRequest $request): JsonResponse

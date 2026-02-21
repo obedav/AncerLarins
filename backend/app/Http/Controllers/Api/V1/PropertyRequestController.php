@@ -16,6 +16,11 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @group Property Requests
+ *
+ * Reverse listings — buyers post what they need, agents respond.
+ */
 class PropertyRequestController extends Controller
 {
     use ApiResponse;

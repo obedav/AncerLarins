@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Cloudinary\Asset\Image;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Support\Facades\Log;
 
@@ -23,6 +24,42 @@ class CloudinaryService
         } catch (\Exception $e) {
             Log::error('Cloudinary upload failed', ['error' => $e->getMessage()]);
             return ['url' => null, 'public_id' => null];
+        }
+    }
+
+    public function uploadPrivate($file, string $folder = 'verification'): array
+    {
+        try {
+            $result = Cloudinary::upload($file->getRealPath(), [
+                'folder'         => "ancerlarins/{$folder}",
+                'resource_type'  => 'auto',
+                'type'           => 'authenticated',
+            ]);
+
+            return [
+                'url'       => $result->getSecurePath(),
+                'public_id' => $result->getPublicId(),
+            ];
+        } catch (\Exception $e) {
+            Log::error('Cloudinary private upload failed', ['error' => $e->getMessage()]);
+            return ['url' => null, 'public_id' => null];
+        }
+    }
+
+    public function getSignedUrl(string $publicId): ?string
+    {
+        try {
+            $url = (string) Image::authenticated($publicId)
+                ->signUrl()
+                ->toUrl();
+
+            return $url ?: null;
+        } catch (\Exception $e) {
+            Log::error('Cloudinary signed URL generation failed', [
+                'public_id' => $publicId,
+                'error'     => $e->getMessage(),
+            ]);
+            return null;
         }
     }
 

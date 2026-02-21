@@ -11,6 +11,11 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @group Search
+ *
+ * Property search, suggestions, and map view.
+ */
 class SearchController extends Controller
 {
     use ApiResponse;

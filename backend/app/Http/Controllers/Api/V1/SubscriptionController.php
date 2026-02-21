@@ -9,6 +9,11 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @group Subscriptions
+ *
+ * Agent subscription plans and payment management via Paystack.
+ */
 class SubscriptionController extends Controller
 {
     use ApiResponse;
@@ -22,6 +27,7 @@ class SubscriptionController extends Controller
         return $this->successResponse($this->subscriptionService->getPlans());
     }
 
+    /** @authenticated */
     public function initialize(Request $request): JsonResponse
     {
         $request->validate([
@@ -47,6 +53,7 @@ class SubscriptionController extends Controller
         ], 'Payment initialized.');
     }
 
+    /** @authenticated */
     public function verify(Request $request): JsonResponse
     {
         $request->validate([
@@ -65,6 +72,7 @@ class SubscriptionController extends Controller
         );
     }
 
+    /** @authenticated */
     public function current(Request $request): JsonResponse
     {
         $agent = $request->user()->agentProfile;

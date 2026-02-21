@@ -31,29 +31,54 @@ class AgentService
             ];
 
             if (isset($files['id_document_front'])) {
-                $result = $this->imageService->upload($files['id_document_front'], 'verification');
+                $result = $this->imageService->uploadPrivate($files['id_document_front']);
                 $updateData['id_document_front_url'] = $result['url'];
+                $updateData['id_document_front_public_id'] = $result['public_id'];
             }
 
             if (isset($files['id_document_back'])) {
-                $result = $this->imageService->upload($files['id_document_back'], 'verification');
+                $result = $this->imageService->uploadPrivate($files['id_document_back']);
                 $updateData['id_document_back_url'] = $result['url'];
+                $updateData['id_document_back_public_id'] = $result['public_id'];
             }
 
             if (isset($files['selfie'])) {
-                $result = $this->imageService->upload($files['selfie'], 'verification');
+                $result = $this->imageService->uploadPrivate($files['selfie']);
                 $updateData['selfie_url'] = $result['url'];
+                $updateData['selfie_public_id'] = $result['public_id'];
             }
 
             if (isset($files['cac_document'])) {
-                $result = $this->imageService->upload($files['cac_document'], 'verification');
+                $result = $this->imageService->uploadPrivate($files['cac_document']);
                 $updateData['cac_document_url'] = $result['url'];
+                $updateData['cac_document_public_id'] = $result['public_id'];
             }
 
             $agent->update($updateData);
 
             return $agent->fresh();
         });
+    }
+
+    public function getVerificationDocumentUrls(AgentProfile $agent): array
+    {
+        $docs = [];
+
+        $fields = [
+            'id_document_front' => 'id_document_front_public_id',
+            'id_document_back'  => 'id_document_back_public_id',
+            'selfie'            => 'selfie_public_id',
+            'cac_document'      => 'cac_document_public_id',
+        ];
+
+        foreach ($fields as $name => $publicIdField) {
+            $publicId = $agent->{$publicIdField};
+            $docs[$name] = $publicId
+                ? $this->imageService->getSignedUrl($publicId)
+                : null;
+        }
+
+        return $docs;
     }
 
     public function getLeads(AgentProfile $agent, int $perPage = 15): LengthAwarePaginator

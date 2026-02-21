@@ -22,6 +22,11 @@ yarn-error.log
 /.vscode
 /.zed
 
+# Scribe API docs (regenerated via `php artisan scribe:generate`)
+.scribe/
+public/vendor/scribe/
+resources/views/scribe/
+
 # Scrapers (dev-only, not for public repos)
 /app/Services/Scrapers/
 /app/Console/Commands/RunScrapers.php

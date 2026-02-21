@@ -17,6 +17,12 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @group User Profile
+ * @authenticated
+ *
+ * Manage user profile, saved properties, saved searches, notifications, and push tokens.
+ */
 class UserController extends Controller
 {
     use ApiResponse;

@@ -144,8 +144,8 @@ Route::prefix('v1')->group(function () {
         Route::delete('/property-requests/{propertyRequest}', [PropertyRequestController::class, 'destroy']);
         Route::post('/property-requests/{propertyRequest}/responses/{response}/accept', [PropertyRequestController::class, 'acceptResponse']);
 
-        // Contact / leads
-        Route::post('/properties/{property}/contact', [PropertyController::class, 'contact']);
+        // Contact / leads (rate limited to prevent spam)
+        Route::post('/properties/{property}/contact', [PropertyController::class, 'contact'])->middleware('throttle:10,1');
 
         // Reports
         Route::post('/reports', [PropertyController::class, 'report']);
@@ -158,6 +158,7 @@ Route::prefix('v1')->group(function () {
             Route::put('/leads/{lead}/respond', [AgentController::class, 'respondToLead']);
             Route::put('/profile', [AgentController::class, 'updateProfile']);
             Route::post('/verification', [AgentController::class, 'submitVerification']);
+            Route::get('/verification/documents', [AgentController::class, 'verificationDocuments']);
 
             // Property management
             Route::post('/properties', [PropertyController::class, 'store']);
@@ -176,7 +177,7 @@ Route::prefix('v1')->group(function () {
         });
 
         // ── Admin routes ────────────────────────────────
-        Route::middleware('ensure.admin')->prefix('admin')->group(function () {
+        Route::middleware(['ensure.admin', 'throttle:120,1'])->prefix('admin')->group(function () {
 
             Route::get('/dashboard', [AdminController::class, 'dashboard']);
 
@@ -188,6 +189,7 @@ Route::prefix('v1')->group(function () {
 
             // Agent moderation
             Route::get('/agents/pending', [AdminController::class, 'pendingAgents']);
+            Route::get('/agents/{agent}/documents', [AdminController::class, 'agentDocuments']);
             Route::post('/agents/verify', [AdminController::class, 'verifyAgent']);
             Route::post('/agents/reject', [AdminController::class, 'rejectAgent']);
 
