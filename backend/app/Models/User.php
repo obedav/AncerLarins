@@ -76,6 +76,11 @@ class User extends Authenticatable
         return $this->hasMany(Lead::class);
     }
 
+    public function assignedInquiries(): Relations\HasMany
+    {
+        return $this->hasMany(Lead::class, 'assigned_to');
+    }
+
     public function agentReviews(): Relations\HasMany
     {
         return $this->hasMany(AgentReview::class);

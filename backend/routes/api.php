@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BlogPostController;
 use App\Http\Controllers\Api\V1\CooperativeController;
 use App\Http\Controllers\Api\V1\EstateController;
+use App\Http\Controllers\Api\V1\InquiryController;
 use App\Http\Controllers\Api\V1\LandmarkController;
 use App\Http\Controllers\Api\V1\LocationController;
 use App\Http\Controllers\Api\V1\PropertyController;
@@ -90,6 +91,9 @@ Route::prefix('v1')->group(function () {
     // ── Public: Subscription Plans ────────────────────────
     Route::get('/subscription/plans', [SubscriptionController::class, 'plans']);
 
+    // ── Public: Inquiries (guest-friendly, rate limited) ──
+    Route::post('/inquiries', [InquiryController::class, 'store'])->middleware('throttle:5,1');
+
     // ── Protected: Authenticated users ──────────────────
     Route::middleware(['auth:sanctum', 'throttle:60,1', 'ensure.phone_verified', 'track.activity'])->group(function () {
 
@@ -170,6 +174,9 @@ Route::prefix('v1')->group(function () {
             // Property request responses
             Route::post('/property-requests/{propertyRequest}/respond', [PropertyRequestController::class, 'respond']);
 
+            // Agent inquiries (limited view — no buyer contact info)
+            Route::get('/inquiries', [InquiryController::class, 'agentInquiries']);
+
             // Subscription management
             Route::post('/subscription/initialize', [SubscriptionController::class, 'initialize']);
             Route::post('/subscription/verify', [SubscriptionController::class, 'verify']);
@@ -232,6 +239,12 @@ Route::prefix('v1')->group(function () {
             Route::post('/blog-posts', [BlogPostController::class, 'store']);
             Route::put('/blog-posts/{blogPost}', [BlogPostController::class, 'update']);
             Route::delete('/blog-posts/{blogPost}', [BlogPostController::class, 'destroy']);
+
+            // Inquiry management
+            Route::get('/inquiries', [InquiryController::class, 'index']);
+            Route::get('/inquiries/{lead}', [InquiryController::class, 'show']);
+            Route::put('/inquiries/{lead}/status', [InquiryController::class, 'updateStatus']);
+            Route::put('/inquiries/{lead}/assign', [InquiryController::class, 'assign']);
         });
     });
 });
