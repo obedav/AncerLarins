@@ -35,11 +35,48 @@ class PropertyController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $properties = Property::query()
+        $query = Property::query()
             ->approved()
-            ->with(['propertyType', 'state', 'city', 'area', 'images', 'agent.user'])
-            ->latest('published_at')
-            ->paginate($request->integer('per_page', 20));
+            ->with(['propertyType', 'state', 'city', 'area', 'images', 'agent.user']);
+
+        // Filters
+        if ($request->filled('listing_type')) {
+            $query->where('listing_type', $request->input('listing_type'));
+        }
+        if ($request->filled('property_type_id')) {
+            $query->where('property_type_id', $request->input('property_type_id'));
+        }
+        if ($request->filled('city_id')) {
+            $query->inCity($request->input('city_id'));
+        }
+        if ($request->filled('area_id')) {
+            $query->inArea($request->input('area_id'));
+        }
+        if ($request->filled('min_price') || $request->filled('max_price')) {
+            $query->priceBetween(
+                $request->filled('min_price') ? (int) $request->input('min_price') : null,
+                $request->filled('max_price') ? (int) $request->input('max_price') : null,
+            );
+        }
+        if ($request->filled('min_bedrooms') || $request->filled('max_bedrooms')) {
+            $query->withBedrooms(
+                $request->filled('min_bedrooms') ? (int) $request->input('min_bedrooms') : null,
+                $request->filled('max_bedrooms') ? (int) $request->input('max_bedrooms') : null,
+            );
+        }
+        if ($request->filled('q')) {
+            $query->search($request->input('q'));
+        }
+
+        // Sorting
+        match ($request->input('sort_by')) {
+            'price_asc'  => $query->orderBy('price_kobo', 'asc'),
+            'price_desc' => $query->orderBy('price_kobo', 'desc'),
+            'popular'    => $query->orderBy('view_count', 'desc'),
+            default      => $query->latest('published_at'),
+        };
+
+        $properties = $query->paginate($request->integer('per_page', 20));
 
         return $this->paginatedResponse(
             $properties->setCollection(

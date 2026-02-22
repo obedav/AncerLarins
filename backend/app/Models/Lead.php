@@ -20,7 +20,7 @@ class Lead extends Model
         'responded_at', 'response_time_min',
         'full_name', 'email', 'phone', 'budget_range',
         'timeline', 'financing_type', 'message',
-        'status', 'assigned_to', 'staff_notes',
+        'status', 'qualification', 'assigned_to', 'staff_notes',
         'qualified_at', 'inspection_at', 'closed_at',
     ];
 
@@ -64,6 +64,11 @@ class Lead extends Model
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
+    public function documents(): Relations\HasMany
+    {
+        return $this->hasMany(Document::class);
+    }
+
     // ── Scopes ───────────────────────────────────────────
 
     public function scopeByAgent(Builder $query, string $agentId): Builder
@@ -94,6 +99,11 @@ class Lead extends Model
     public function scopeByAssignedTo(Builder $query, string $userId): Builder
     {
         return $query->where('assigned_to', $userId);
+    }
+
+    public function scopeByQualification(Builder $query, string $qualification): Builder
+    {
+        return $query->where('qualification', $qualification);
     }
 
     // ── Helpers ──────────────────────────────────────────
