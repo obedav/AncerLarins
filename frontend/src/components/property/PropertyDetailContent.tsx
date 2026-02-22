@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import PropertyCard from '@/components/property/PropertyCard';
-import ContactAgent from '@/components/property/ContactAgent';
+import InquiryForm from '@/components/property/InquiryForm';
 import MortgageCalculator from '@/components/property/MortgageCalculator';
 import NeighborhoodInsights from '@/components/property/NeighborhoodInsights';
 import MarketTrends from '@/components/property/MarketTrends';
@@ -505,7 +505,7 @@ export default function PropertyDetailContent({ slug }: { slug: string }) {
 
             {/* Sidebar - ContactAgent handles desktop view */}
             <div className="space-y-6">
-              <ContactAgent property={property} />
+              <InquiryForm property={property} />
             </div>
           </div>
 

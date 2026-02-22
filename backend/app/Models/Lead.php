@@ -18,6 +18,10 @@ class Lead extends Model
         'property_id', 'agent_id', 'user_id',
         'contact_type', 'source', 'utm_campaign',
         'responded_at', 'response_time_min',
+        'full_name', 'email', 'phone', 'budget_range',
+        'timeline', 'financing_type', 'message',
+        'status', 'assigned_to', 'staff_notes',
+        'qualified_at', 'inspection_at', 'closed_at',
     ];
 
     protected function casts(): array
@@ -27,6 +31,9 @@ class Lead extends Model
             'responded_at'      => 'datetime',
             'response_time_min' => 'integer',
             'created_at'        => 'datetime',
+            'qualified_at'      => 'datetime',
+            'inspection_at'     => 'datetime',
+            'closed_at'         => 'datetime',
         ];
     }
 
@@ -52,6 +59,11 @@ class Lead extends Model
         return $this->hasOne(AgentReview::class);
     }
 
+    public function assignedStaff(): Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
+
     // ── Scopes ───────────────────────────────────────────
 
     public function scopeByAgent(Builder $query, string $agentId): Builder
@@ -72,6 +84,16 @@ class Lead extends Model
     public function scopeUnresponded(Builder $query): Builder
     {
         return $query->whereNull('responded_at');
+    }
+
+    public function scopeByStatus(Builder $query, string $status): Builder
+    {
+        return $query->where('status', $status);
+    }
+
+    public function scopeByAssignedTo(Builder $query, string $userId): Builder
+    {
+        return $query->where('assigned_to', $userId);
     }
 
     // ── Helpers ──────────────────────────────────────────

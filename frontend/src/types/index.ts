@@ -9,3 +9,4 @@ export type * from './blog';
 export type * from './request';
 export type * from './estate';
 export type * from './cooperative';
+export type * from './inquiry';
