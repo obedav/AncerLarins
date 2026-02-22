@@ -1,141 +1,92 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
-const DIFFERENTIATORS = [
+const PERSONAS = [
   {
-    title: 'AncerEstimate',
-    description: 'Get instant property valuations powered by real market data. Know the true worth before you buy, sell, or rent.',
-    icon: 'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z',
-    accent: 'from-amber-400 to-yellow-500',
-    iconBg: 'bg-amber-500/10 dark:bg-amber-400/15',
-    iconColor: 'text-amber-600 dark:text-amber-400',
+    title: 'Investor',
+    description: 'Access high-yield properties with verified market data, AncerEstimate valuations, and a dedicated concierge to negotiate the best deals on your behalf.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+      </svg>
+    ),
   },
   {
-    title: 'WhatsApp Connect',
-    description: 'Reach verified agents directly via WhatsApp. No waiting, no gatekeepers — just open a chat and schedule a viewing.',
-    icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
-    accent: 'from-green-400 to-emerald-500',
-    iconBg: 'bg-green-500/10 dark:bg-green-400/15',
-    iconColor: 'text-green-600 dark:text-green-400',
+    title: 'Seller',
+    description: 'List your property and reach qualified, pre-screened buyers through our concierge service. We present your property at its best and close deals faster.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
   },
   {
-    title: 'Neighborhood Intelligence',
-    description: 'Community-driven area scores for safety, transport, and amenities. Real insights from real residents to guide your decision.',
-    icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z',
-    accent: 'from-blue-400 to-indigo-500',
-    iconBg: 'bg-blue-500/10 dark:bg-blue-400/15',
-    iconColor: 'text-blue-600 dark:text-blue-400',
-  },
-  {
-    title: 'Verified Agents Only',
-    description: 'Every agent is vetted and verified. Browse with confidence knowing every listing is backed by a real, accountable professional.',
-    icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
-    accent: 'from-violet-400 to-purple-500',
-    iconBg: 'bg-violet-500/10 dark:bg-violet-400/15',
-    iconColor: 'text-violet-600 dark:text-violet-400',
+    title: 'Buyer',
+    description: 'Find your dream home with private viewings arranged by our team. We handle inspections, negotiations, and paperwork so you can focus on choosing.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+      </svg>
+    ),
   },
 ];
 
-function DifferentiatorCard({ item, index }: { item: typeof DIFFERENTIATORS[0]; index: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-
-  useEffect(() => {
-    if (prefersReducedMotion) {
-      setVisible(true);
-      return;
-    }
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.2 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [prefersReducedMotion]);
+export default function WhyAncerLarins() {
+  const { ref, isVisible } = useScrollReveal({ threshold: 0.15 });
 
   return (
-    <div
-      ref={ref}
-      className="relative group"
-      style={prefersReducedMotion ? undefined : {
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : 'translateY(24px)',
-        transition: `opacity 0.6s ease-out ${index * 0.15}s, transform 0.6s ease-out ${index * 0.15}s`,
-      }}
-    >
-      <div className="bg-surface rounded-2xl border border-border p-6 md:p-8 h-full relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-accent/30">
-        {/* Gradient accent line */}
-        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${item.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-
-        <div className={`w-14 h-14 rounded-2xl ${item.iconBg} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}>
-          <svg className={`w-7 h-7 ${item.iconColor}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
-          </svg>
+    <section className="py-16 md:py-24 bg-primary" aria-label="Who we work for" ref={ref}>
+      <div className="container-app">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-12 md:mb-16">
+          <div className="reveal-left" data-visible={isVisible}>
+            <span className="text-xs font-bold text-accent tracking-widest uppercase">Who We Are</span>
+            <h2 className="text-2xl md:text-4xl font-bold text-white mt-3 font-playfair">
+              Who we<br />work for
+            </h2>
+          </div>
+          <p className="text-white/40 max-w-md text-sm leading-relaxed reveal-right" data-visible={isVisible}>
+            Proprietary technology, latest market data and strong real
+            estate expertise allow us to reach potential buyers and present
+            them with a well-priced property.
+          </p>
         </div>
 
-        <h3 className="text-lg font-bold text-text-primary mb-2">
-          {item.title}
-        </h3>
-        <p className="text-text-muted text-sm leading-relaxed">
-          {item.description}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-export default function WhyAncerLarins() {
-  return (
-    <section className="py-14 md:py-20 bg-surface relative overflow-hidden" aria-label="Why AncerLarins">
-      {/* Radial gradient overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-accent)/0.04_0%,_transparent_60%)] pointer-events-none" />
-
-      <div className="container-app relative">
-        {/* Desktop: split layout */}
-        <div className="lg:grid lg:grid-cols-5 lg:gap-12 lg:items-start">
-          {/* Left: title area */}
-          <div className="lg:col-span-2 mb-10 lg:mb-0 lg:sticky lg:top-32 text-center lg:text-left">
-            <span className="text-xs font-bold text-accent-dark tracking-widest uppercase">Why AncerLarins</span>
-            <h2 className="text-2xl md:text-3xl font-bold text-text-primary mt-2">
-              Not Just Listings — Intelligence
-            </h2>
-            <p className="text-text-muted mt-3 max-w-xl lg:max-w-none mx-auto lg:mx-0">
-              Tools that give you real market context — valuations, area scores, and direct agent access — so you know what you&apos;re getting into.
-            </p>
-            <a
-              href="/about"
-              className="inline-flex items-center gap-2 text-accent-dark hover:text-accent font-semibold transition-colors mt-5 group"
+        {/* Persona Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
+          {PERSONAS.map((persona, i) => (
+            <div
+              key={persona.title}
+              className={`reveal-up stagger-${i + 1}`}
+              data-visible={isVisible}
             >
-              Learn More
-              <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </a>
-          </div>
+              {/* Icon */}
+              <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center text-accent mb-5">
+                {persona.icon}
+              </div>
 
-          {/* Right: 2x2 card grid */}
-          <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {DIFFERENTIATORS.map((item, i) => (
-              <DifferentiatorCard key={item.title} item={item} index={i} />
-            ))}
-          </div>
+              {/* Title */}
+              <h3 className="text-white text-xl font-bold mb-3">{persona.title}</h3>
+
+              {/* Description */}
+              <p className="text-white/40 text-sm leading-relaxed mb-5">
+                {persona.description}
+              </p>
+
+              {/* Link */}
+              <Link
+                href="/properties"
+                className="inline-flex items-center gap-2 text-accent hover:text-accent-dark font-semibold text-sm transition-colors group uppercase tracking-wider"
+              >
+                Get in Touch
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+            </div>
+          ))}
         </div>
       </div>
     </section>

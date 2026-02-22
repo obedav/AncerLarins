@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BlogPostController;
 use App\Http\Controllers\Api\V1\CooperativeController;
 use App\Http\Controllers\Api\V1\EstateController;
+use App\Http\Controllers\Api\V1\CommissionController;
+use App\Http\Controllers\Api\V1\DocumentController;
 use App\Http\Controllers\Api\V1\InquiryController;
 use App\Http\Controllers\Api\V1\LandmarkController;
 use App\Http\Controllers\Api\V1\LocationController;
@@ -245,6 +247,20 @@ Route::prefix('v1')->group(function () {
             Route::get('/inquiries/{lead}', [InquiryController::class, 'show']);
             Route::put('/inquiries/{lead}/status', [InquiryController::class, 'updateStatus']);
             Route::put('/inquiries/{lead}/assign', [InquiryController::class, 'assign']);
+
+            // Document management
+            Route::get('/inquiries/{lead}/documents', [DocumentController::class, 'index']);
+            Route::post('/inquiries/{lead}/documents', [DocumentController::class, 'store']);
+            Route::get('/documents/{document}/download', [DocumentController::class, 'download']);
+            Route::put('/documents/{document}/status', [DocumentController::class, 'updateStatus']);
+            Route::delete('/documents/{document}', [DocumentController::class, 'destroy']);
+
+            // Commission & revenue management
+            Route::get('/commissions', [CommissionController::class, 'index']);
+            Route::get('/commissions/summary', [CommissionController::class, 'summary']);
+            Route::post('/commissions', [CommissionController::class, 'store']);
+            Route::put('/commissions/{commission}/status', [CommissionController::class, 'updateStatus']);
+            Route::post('/commissions/calculate', [CommissionController::class, 'calculate']);
         });
     });
 });

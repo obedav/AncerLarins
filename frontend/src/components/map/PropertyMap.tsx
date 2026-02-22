@@ -45,6 +45,7 @@ export default function PropertyMap({
     if (typeof window === 'undefined' || !mapRef.current) return;
 
     let cancelled = false;
+    let rafId: number | null = null;
 
     Promise.all([
       import('leaflet'),
@@ -54,10 +55,14 @@ export default function PropertyMap({
       if (cancelled || !mapRef.current) return;
 
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
+        try { mapInstanceRef.current.remove(); } catch { /* already removed */ }
+        mapInstanceRef.current = null;
       }
 
-      const map = L.map(mapRef.current, { zoomControl: true }).setView(center, zoom);
+      const container = mapRef.current;
+      if (!container || !container.isConnected) return;
+
+      const map = L.map(container, { zoomControl: true }).setView(center, zoom);
       mapInstanceRef.current = map;
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -66,24 +71,31 @@ export default function PropertyMap({
       }).addTo(map);
 
       // Emit bounds on move/zoom
-      map.on('moveend', () => emitBounds(map));
+      map.on('moveend', () => {
+        if (!cancelled) emitBounds(map);
+      });
 
       // Initial bounds — defer until container has layout
       const tryEmit = () => {
         if (cancelled) return;
-        if (map.getSize().x > 0) {
-          emitBounds(map);
-        } else {
-          requestAnimationFrame(tryEmit);
+        try {
+          if (map.getSize().x > 0) {
+            emitBounds(map);
+          } else {
+            rafId = requestAnimationFrame(tryEmit);
+          }
+        } catch {
+          // Map container removed
         }
       };
-      map.whenReady(() => requestAnimationFrame(tryEmit));
+      map.whenReady(() => { rafId = requestAnimationFrame(tryEmit); });
     });
 
     return () => {
       cancelled = true;
+      if (rafId !== null) cancelAnimationFrame(rafId);
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
+        try { mapInstanceRef.current.remove(); } catch { /* already removed */ }
         mapInstanceRef.current = null;
       }
     };
@@ -96,11 +108,13 @@ export default function PropertyMap({
 
     import('leaflet').then((L) => {
       const map = mapInstanceRef.current;
-      if (!map) return;
+      if (!map || !mapRef.current?.isConnected) return;
 
       // Remove old markers
       if (markersRef.current) {
-        markersRef.current.forEach((m: any) => map.removeLayer(m));
+        markersRef.current.forEach((m: any) => {
+          try { map.removeLayer(m); } catch { /* map already cleaned up */ }
+        });
       }
 
       const markers: any[] = [];

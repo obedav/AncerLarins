@@ -46,12 +46,22 @@ class InquiryController extends Controller
             'status'         => 'new',
         ];
 
-        // Round-robin assignment: pick admin with fewest active leads
-        $staffMember = User::whereIn('role', ['admin', 'super_admin'])
-            ->where('status', 'active')
+        // Smart assignment: high-value properties (>₦300M) → super_admin, else round-robin
+        $highValueThreshold = 30_000_000_000; // ₦300M in kobo
+        $isHighValue = $property->price_kobo >= $highValueThreshold;
+
+        $staffQuery = User::where('status', 'active')
             ->withCount(['assignedInquiries' => fn ($q) => $q->whereNotIn('status', ['closed_won', 'closed_lost'])])
-            ->orderBy('assigned_inquiries_count', 'asc')
-            ->first();
+            ->orderBy('assigned_inquiries_count', 'asc');
+
+        if ($isHighValue) {
+            // High-value: prefer super_admin, fall back to admin
+            $staffMember = (clone $staffQuery)->where('role', 'super_admin')->first()
+                ?? $staffQuery->whereIn('role', ['admin', 'super_admin'])->first();
+        } else {
+            // Standard: round-robin across all admin staff
+            $staffMember = $staffQuery->whereIn('role', ['admin', 'super_admin'])->first();
+        }
 
         if ($staffMember) {
             $leadData['assigned_to'] = $staffMember->id;
@@ -103,6 +113,9 @@ class InquiryController extends Controller
         if ($to = $request->query('to')) {
             $query->where('created_at', '<=', $to);
         }
+        if ($qualification = $request->query('qualification')) {
+            $query->byQualification($qualification);
+        }
 
         $paginator = $query->orderByDesc('created_at')
             ->paginate($request->integer('per_page', 20));
@@ -115,9 +128,10 @@ class InquiryController extends Controller
             'email'          => $lead->email,
             'budget_range'   => $lead->budget_range,
             'timeline'       => $lead->timeline,
-            'financing_type' => $lead->financing_type,
-            'status'         => $lead->status,
-            'assigned_to'    => $lead->assignedStaff ? [
+            'financing_type'  => $lead->financing_type,
+            'status'          => $lead->status,
+            'qualification'   => $lead->qualification,
+            'assigned_to'     => $lead->assignedStaff ? [
                 'id'        => $lead->assignedStaff->id,
                 'full_name' => $lead->assignedStaff->full_name,
             ] : null,
@@ -163,6 +177,7 @@ class InquiryController extends Controller
             'financing_type' => $lead->financing_type,
             'message'        => $lead->message,
             'status'         => $lead->status,
+            'qualification'  => $lead->qualification,
             'staff_notes'    => $lead->staff_notes,
             'assigned_to'    => $lead->assignedStaff ? [
                 'id'        => $lead->assignedStaff->id,
@@ -192,11 +207,16 @@ class InquiryController extends Controller
     public function updateStatus(Request $request, Lead $lead): JsonResponse
     {
         $data = $request->validate([
-            'status'      => ['required', 'in:new,contacted,qualified,agreement_signed,inspection_scheduled,negotiating,offer_made,closed_won,closed_lost'],
-            'staff_notes' => ['nullable', 'string', 'max:2000'],
+            'status'        => ['required', 'in:new,contacted,qualified,agreement_signed,inspection_scheduled,negotiating,offer_made,closed_won,closed_lost'],
+            'qualification' => ['nullable', 'in:qualified,not_qualified,cold,fake'],
+            'staff_notes'   => ['nullable', 'string', 'max:2000'],
         ]);
 
         $updates = ['status' => $data['status']];
+
+        if (array_key_exists('qualification', $data)) {
+            $updates['qualification'] = $data['qualification'];
+        }
 
         if (array_key_exists('staff_notes', $data)) {
             $updates['staff_notes'] = $data['staff_notes'];

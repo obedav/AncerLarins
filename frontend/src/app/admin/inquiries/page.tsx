@@ -9,7 +9,9 @@ import {
   useAssignInquiryMutation,
 } from '@/store/api/inquiryApi';
 import { formatRelativeTime } from '@/lib/utils';
-import type { InquiryStatus } from '@/types/inquiry';
+import type { InquiryStatus, QualificationType } from '@/types/inquiry';
+import InquiryKanban from '@/components/admin/InquiryKanban';
+import DocumentPanel from '@/components/admin/DocumentPanel';
 
 const STATUS_TABS: { value: '' | InquiryStatus; label: string }[] = [
   { value: '', label: 'All' },
@@ -46,6 +48,21 @@ const STATUS_COLORS: Record<InquiryStatus, string> = {
   closed_lost: 'bg-red-100 text-red-700',
 };
 
+const QUALIFICATION_OPTIONS: { value: '' | QualificationType; label: string }[] = [
+  { value: '', label: 'Not Set' },
+  { value: 'qualified', label: 'Qualified' },
+  { value: 'not_qualified', label: 'Not Qualified' },
+  { value: 'cold', label: 'Cold' },
+  { value: 'fake', label: 'Fake' },
+];
+
+const QUALIFICATION_COLORS: Record<string, string> = {
+  qualified: 'bg-green-100 text-green-700',
+  not_qualified: 'bg-yellow-100 text-yellow-700',
+  cold: 'bg-slate-100 text-slate-700',
+  fake: 'bg-red-100 text-red-700',
+};
+
 const TIMELINE_LABELS: Record<string, string> = {
   immediately: 'Immediately',
   '1_3_months': '1-3 months',
@@ -55,11 +72,13 @@ const TIMELINE_LABELS: Record<string, string> = {
 };
 
 export default function AdminInquiriesPage() {
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban');
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<'' | InquiryStatus>('');
   const [detailId, setDetailId] = useState<string | null>(null);
   const [editingStatus, setEditingStatus] = useState<string | null>(null);
   const [newStatus, setNewStatus] = useState<InquiryStatus>('new');
+  const [newQualification, setNewQualification] = useState<'' | QualificationType>('');
   const [staffNotes, setStaffNotes] = useState('');
 
   const { data, isLoading } = useGetAdminInquiriesQuery({
@@ -80,6 +99,7 @@ export default function AdminInquiriesPage() {
       await updateStatus({
         id,
         status: newStatus,
+        qualification: newQualification || null,
         ...(staffNotes ? { staff_notes: staffNotes } : {}),
       }).unwrap();
       setEditingStatus(null);
@@ -95,10 +115,34 @@ export default function AdminInquiriesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-text-primary">Inquiry Management</h1>
-        {meta && (
-          <span className="text-sm text-text-muted">{meta.total} total</span>
-        )}
+        <div className="flex items-center gap-3">
+          {meta && (
+            <span className="text-sm text-text-muted">{meta.total} total</span>
+          )}
+          <div className="flex bg-surface border border-border rounded-lg overflow-hidden">
+            <button
+              onClick={() => setViewMode('kanban')}
+              className={`px-3 py-1.5 text-xs font-medium transition-colors ${viewMode === 'kanban' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-background'}`}
+              title="Kanban board"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125z" /></svg>
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1.5 text-xs font-medium transition-colors ${viewMode === 'list' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-background'}`}
+              title="List view"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" /></svg>
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* Kanban View */}
+      {viewMode === 'kanban' ? (
+        <InquiryKanban onCardClick={(inq) => setDetailId(inq.id)} />
+      ) : (
+      <>
 
       {/* Status filter tabs */}
       <div className="flex flex-wrap gap-2">
@@ -142,6 +186,11 @@ export default function AdminInquiriesPage() {
                     <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${STATUS_COLORS[inq.status]}`}>
                       {inq.status.replace(/_/g, ' ')}
                     </span>
+                    {inq.qualification && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${QUALIFICATION_COLORS[inq.qualification] || ''}`}>
+                        {inq.qualification.replace(/_/g, ' ')}
+                      </span>
+                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-muted">
                     {inq.phone && (
@@ -181,6 +230,7 @@ export default function AdminInquiriesPage() {
                     onClick={() => {
                       setEditingStatus(editingStatus === inq.id ? null : inq.id);
                       setNewStatus(inq.status);
+                      setNewQualification((inq.qualification as QualificationType) || '');
                       setStaffNotes('');
                     }}
                     className="text-xs text-amber-600 hover:underline px-2 py-1"
@@ -193,7 +243,7 @@ export default function AdminInquiriesPage() {
               {/* Inline status change */}
               {editingStatus === inq.id && (
                 <div className="pt-2 border-t border-border space-y-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <select
                       value={newStatus}
                       onChange={(e) => setNewStatus(e.target.value as InquiryStatus)}
@@ -201,6 +251,15 @@ export default function AdminInquiriesPage() {
                     >
                       {ALL_STATUSES.map((s) => (
                         <option key={s.value} value={s.value}>{s.label}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={newQualification}
+                      onChange={(e) => setNewQualification(e.target.value as '' | QualificationType)}
+                      className="px-3 py-1.5 border border-border rounded-lg bg-background text-text-primary text-sm"
+                    >
+                      {QUALIFICATION_OPTIONS.map((q) => (
+                        <option key={q.value} value={q.value}>{q.label}</option>
                       ))}
                     </select>
                     <button
@@ -254,6 +313,9 @@ export default function AdminInquiriesPage() {
         </div>
       )}
 
+      </>
+      )}
+
       {/* Detail Modal */}
       {detailId && detail && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setDetailId(null)}>
@@ -264,11 +326,16 @@ export default function AdminInquiriesPage() {
             </div>
 
             <div className="space-y-5">
-              {/* Status badge */}
-              <div className="flex items-center gap-2">
+              {/* Status + qualification badges */}
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${STATUS_COLORS[detail.status]}`}>
                   {detail.status.replace(/_/g, ' ')}
                 </span>
+                {detail.qualification && (
+                  <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${QUALIFICATION_COLORS[detail.qualification] || ''}`}>
+                    {detail.qualification.replace(/_/g, ' ')}
+                  </span>
+                )}
                 {detail.assigned_to && (
                   <span className="text-xs text-text-muted">Assigned: {detail.assigned_to.full_name}</span>
                 )}
@@ -338,10 +405,15 @@ export default function AdminInquiriesPage() {
                 </div>
               )}
 
+              {/* Documents */}
+              <div className="pt-3 border-t border-border">
+                <DocumentPanel leadId={detail.id} />
+              </div>
+
               {/* Quick actions */}
               <div className="pt-3 border-t border-border">
                 <p className="text-sm font-semibold text-text-primary mb-2">Update Status</p>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <select
                     defaultValue={detail.status}
                     id="detail-status-select"
@@ -351,11 +423,25 @@ export default function AdminInquiriesPage() {
                       <option key={s.value} value={s.value}>{s.label}</option>
                     ))}
                   </select>
+                  <select
+                    defaultValue={detail.qualification || ''}
+                    id="detail-qualification-select"
+                    className="px-3 py-1.5 border border-border rounded-lg bg-background text-text-primary text-sm"
+                  >
+                    {QUALIFICATION_OPTIONS.map((q) => (
+                      <option key={q.value} value={q.value}>{q.label}</option>
+                    ))}
+                  </select>
                   <button
                     onClick={async () => {
-                      const select = document.getElementById('detail-status-select') as HTMLSelectElement;
+                      const statusSelect = document.getElementById('detail-status-select') as HTMLSelectElement;
+                      const qualSelect = document.getElementById('detail-qualification-select') as HTMLSelectElement;
                       try {
-                        await updateStatus({ id: detail.id, status: select.value }).unwrap();
+                        await updateStatus({
+                          id: detail.id,
+                          status: statusSelect.value,
+                          qualification: qualSelect.value || null,
+                        }).unwrap();
                       } catch { /* handled */ }
                     }}
                     disabled={updatingStatus}

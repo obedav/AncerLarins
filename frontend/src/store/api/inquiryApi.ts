@@ -34,7 +34,7 @@ export const inquiryApi = baseApi.injectEndpoints({
       providesTags: (_r, _e, id) => [{ type: 'Inquiry', id }],
     }),
 
-    updateInquiryStatus: builder.mutation<ApiResponse<null>, { id: string; status: string; staff_notes?: string }>({
+    updateInquiryStatus: builder.mutation<ApiResponse<null>, { id: string; status: string; qualification?: string | null; staff_notes?: string }>({
       query: ({ id, ...body }) => ({
         url: `/admin/inquiries/${id}/status`,
         method: 'PUT',

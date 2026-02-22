@@ -635,7 +635,7 @@ export default function Navbar() {
         className={`sticky top-0 z-50 motion-safe:transition-all motion-safe:duration-300 ${
           scrolled
             ? 'bg-primary/85 backdrop-blur-xl border-b border-white/10 shadow-lg'
-            : 'bg-primary border-b border-transparent'
+            : 'bg-transparent border-b border-transparent'
         }`}
         aria-label="Main navigation"
       >

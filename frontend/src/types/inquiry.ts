@@ -9,6 +9,8 @@ export type InquiryStatus =
   | 'closed_won'
   | 'closed_lost';
 
+export type QualificationType = 'qualified' | 'not_qualified' | 'cold' | 'fake';
+
 export interface InquiryListItem {
   id: string;
   full_name: string;
@@ -18,6 +20,7 @@ export interface InquiryListItem {
   timeline: string | null;
   financing_type: string | null;
   status: InquiryStatus;
+  qualification: QualificationType | null;
   assigned_to: { id: string; full_name: string } | null;
   property: { id: string; title: string; slug: string; formatted_price: string } | null;
   created_at: string;
