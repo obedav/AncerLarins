@@ -45,7 +45,7 @@ class EstateController extends Controller
 
         if ($request->filled('q')) {
             $q = str_replace(['%', '_'], ['\\%', '\\_'], $request->input('q'));
-            $query->where('name', 'ilike', '%' . $q . '%');
+            $query->where('name', 'ilike', '%'.$q.'%');
         }
 
         $estates = $query->paginate($request->perPage(15));
@@ -80,6 +80,7 @@ class EstateController extends Controller
      * Submit a review for an estate. One review per user per estate.
      *
      * @authenticated
+     *
      * @bodyParam rating integer required Rating from 1 to 5. Example: 4
      * @bodyParam pros string What you liked about the estate. Example: Great security and amenities
      * @bodyParam cons string What could be improved. Example: Service charge is high
@@ -92,11 +93,11 @@ class EstateController extends Controller
     public function createReview(Request $request, Estate $estate): JsonResponse
     {
         $validated = $request->validate([
-            'rating'     => ['required', 'integer', 'min:1', 'max:5'],
-            'pros'       => ['nullable', 'string', 'max:2000'],
-            'cons'       => ['nullable', 'string', 'max:2000'],
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'pros' => ['nullable', 'string', 'max:2000'],
+            'cons' => ['nullable', 'string', 'max:2000'],
             'lived_from' => ['nullable', 'date'],
-            'lived_to'   => ['nullable', 'date', 'after_or_equal:lived_from'],
+            'lived_to' => ['nullable', 'date', 'after_or_equal:lived_from'],
         ]);
 
         $existing = EstateReview::where('estate_id', $estate->id)
@@ -140,7 +141,7 @@ class EstateController extends Controller
 
         if ($request->filled('q')) {
             $q = str_replace(['%', '_'], ['\\%', '\\_'], $request->input('q'));
-            $query->where('name', 'ilike', '%' . $q . '%');
+            $query->where('name', 'ilike', '%'.$q.'%');
         }
 
         $estates = $query->paginate($request->perPage(20));
@@ -157,6 +158,7 @@ class EstateController extends Controller
      * Create a new estate/development listing.
      *
      * @authenticated
+     *
      * @bodyParam name string required Estate name. Example: Lekki Gardens Phase 2
      * @bodyParam area_id string required UUID of the area. Example: 9c1a2b3d-4e5f-6789-abcd-ef0123456789
      * @bodyParam estate_type string required Type of estate: gated_estate, open_estate, highrise, mixed_use. Example: gated_estate
@@ -179,20 +181,20 @@ class EstateController extends Controller
         $this->authorize('create', Estate::class);
 
         $validated = $request->validate([
-            'name'                  => ['required', 'string', 'max:255'],
-            'area_id'               => ['required', 'uuid', 'exists:areas,id'],
-            'description'           => ['nullable', 'string'],
-            'estate_type'           => ['required', 'string'],
-            'developer'             => ['nullable', 'string', 'max:255'],
-            'year_built'            => ['nullable', 'integer', 'min:1900', 'max:2100'],
-            'total_units'           => ['nullable', 'integer', 'min:1'],
-            'amenities'             => ['nullable', 'array'],
-            'security_type'         => ['nullable', 'string', 'max:255'],
-            'service_charge_kobo'   => ['nullable', 'integer', 'min:0'],
+            'name' => ['required', 'string', 'max:255'],
+            'area_id' => ['required', 'uuid', 'exists:areas,id'],
+            'description' => ['nullable', 'string'],
+            'estate_type' => ['required', 'string'],
+            'developer' => ['nullable', 'string', 'max:255'],
+            'year_built' => ['nullable', 'integer', 'min:1900', 'max:2100'],
+            'total_units' => ['nullable', 'integer', 'min:1'],
+            'amenities' => ['nullable', 'array'],
+            'security_type' => ['nullable', 'string', 'max:255'],
+            'service_charge_kobo' => ['nullable', 'integer', 'min:0'],
             'service_charge_period' => ['nullable', 'string'],
-            'electricity_source'    => ['nullable', 'string', 'max:255'],
-            'water_source'          => ['nullable', 'string', 'max:255'],
-            'cover_image_url'       => ['nullable', 'url', 'max:2048'],
+            'electricity_source' => ['nullable', 'string', 'max:255'],
+            'water_source' => ['nullable', 'string', 'max:255'],
+            'cover_image_url' => ['nullable', 'url', 'max:2048'],
         ]);
 
         $validated['slug'] = str($validated['name'])->slug()->toString();
@@ -217,20 +219,20 @@ class EstateController extends Controller
         $this->authorize('update', $estate);
 
         $validated = $request->validate([
-            'name'                  => ['sometimes', 'string', 'max:255'],
-            'area_id'               => ['sometimes', 'uuid', 'exists:areas,id'],
-            'description'           => ['nullable', 'string'],
-            'estate_type'           => ['sometimes', 'string'],
-            'developer'             => ['nullable', 'string', 'max:255'],
-            'year_built'            => ['nullable', 'integer', 'min:1900', 'max:2100'],
-            'total_units'           => ['nullable', 'integer', 'min:1'],
-            'amenities'             => ['nullable', 'array'],
-            'security_type'         => ['nullable', 'string', 'max:255'],
-            'service_charge_kobo'   => ['nullable', 'integer', 'min:0'],
+            'name' => ['sometimes', 'string', 'max:255'],
+            'area_id' => ['sometimes', 'uuid', 'exists:areas,id'],
+            'description' => ['nullable', 'string'],
+            'estate_type' => ['sometimes', 'string'],
+            'developer' => ['nullable', 'string', 'max:255'],
+            'year_built' => ['nullable', 'integer', 'min:1900', 'max:2100'],
+            'total_units' => ['nullable', 'integer', 'min:1'],
+            'amenities' => ['nullable', 'array'],
+            'security_type' => ['nullable', 'string', 'max:255'],
+            'service_charge_kobo' => ['nullable', 'integer', 'min:0'],
             'service_charge_period' => ['nullable', 'string'],
-            'electricity_source'    => ['nullable', 'string', 'max:255'],
-            'water_source'          => ['nullable', 'string', 'max:255'],
-            'cover_image_url'       => ['nullable', 'url', 'max:2048'],
+            'electricity_source' => ['nullable', 'string', 'max:255'],
+            'water_source' => ['nullable', 'string', 'max:255'],
+            'cover_image_url' => ['nullable', 'url', 'max:2048'],
         ]);
 
         if (isset($validated['name']) && $validated['name'] !== $estate->name) {

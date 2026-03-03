@@ -14,7 +14,7 @@ class RejectPropertyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'property_id'      => ['required', 'uuid', 'exists:properties,id'],
+            'property_id' => ['required', 'uuid', 'exists:properties,id'],
             'rejection_reason' => ['required', 'string', 'max:1000'],
         ];
     }

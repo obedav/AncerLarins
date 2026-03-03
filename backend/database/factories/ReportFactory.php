@@ -17,12 +17,12 @@ class ReportFactory extends Factory
     public function definition(): array
     {
         return [
-            'reporter_id'     => User::factory(),
+            'reporter_id' => User::factory(),
             'reportable_type' => Property::class,
-            'reportable_id'   => Property::factory(),
-            'reason'          => fake()->randomElement(ReportReason::cases()),
-            'description'     => fake()->sentence(10),
-            'status'          => ReportStatus::Open,
+            'reportable_id' => Property::factory(),
+            'reason' => fake()->randomElement(ReportReason::cases()),
+            'description' => fake()->sentence(10),
+            'status' => ReportStatus::Open,
         ];
     }
 }

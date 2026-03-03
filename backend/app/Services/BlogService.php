@@ -29,7 +29,7 @@ class BlogService
 
         $post = BlogPost::create(array_merge($data, [
             'author_id' => $author->id,
-            'slug'      => $slug,
+            'slug' => $slug,
         ]));
 
         if (($data['status'] ?? null) === BlogPostStatus::Published->value && ! $post->published_at) {

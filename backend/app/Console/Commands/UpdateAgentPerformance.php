@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 class UpdateAgentPerformance extends Command
 {
     protected $signature = 'agents:update-performance';
+
     protected $description = 'Recalculate agent performance metrics (response rate, response time, active listings)';
 
     public function handle(): int
@@ -39,9 +40,9 @@ class UpdateAgentPerformance extends Command
                 : null;
 
             $agent->forceFill([
-                'response_rate'     => $responseRate,
+                'response_rate' => $responseRate,
                 'avg_response_time' => $avgResponseMinutes,
-                'active_listings'   => $activeListings,
+                'active_listings' => $activeListings,
             ])->save();
         }
 

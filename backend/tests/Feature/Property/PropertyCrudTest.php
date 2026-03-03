@@ -4,7 +4,6 @@ namespace Tests\Feature\Property;
 
 use App\Enums\PropertyStatus;
 use App\Models\Property;
-use App\Models\User;
 use App\Services\FraudDetectionService;
 use App\Services\NotificationService;
 use App\Services\ValuationService;
@@ -14,7 +13,7 @@ use Tests\Traits\CreatesTestData;
 
 class PropertyCrudTest extends TestCase
 {
-    use RefreshDatabase, CreatesTestData;
+    use CreatesTestData, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -25,7 +24,7 @@ class PropertyCrudTest extends TestCase
         });
 
         $this->mock(NotificationService::class, function ($mock) {
-            $mock->shouldReceive('send')->andReturn(new \App\Models\Notification());
+            $mock->shouldReceive('send')->andReturn(new \App\Models\Notification);
         });
 
         $this->mock(ValuationService::class, function ($mock) {
@@ -43,24 +42,24 @@ class PropertyCrudTest extends TestCase
 
         $response = $this->actingAs($agent['user'])
             ->postJson('/api/v1/agent/properties', [
-                'listing_type'     => 'sale',
+                'listing_type' => 'sale',
                 'property_type_id' => $propertyType->id,
-                'title'            => 'Beautiful Duplex in Lagos',
-                'description'      => 'A stunning 4 bedroom duplex.',
-                'price_kobo'       => 50_000_000,
-                'state_id'         => $location['state']->id,
-                'city_id'          => $location['city']->id,
-                'area_id'          => $location['area']->id,
-                'address'          => '123 Main Street',
-                'bedrooms'         => 4,
-                'bathrooms'        => 3,
+                'title' => 'Beautiful Duplex in Lagos',
+                'description' => 'A stunning 4 bedroom duplex.',
+                'price_kobo' => 50_000_000,
+                'state_id' => $location['state']->id,
+                'city_id' => $location['city']->id,
+                'area_id' => $location['area']->id,
+                'address' => '123 Main Street',
+                'bedrooms' => 4,
+                'bathrooms' => 3,
             ]);
 
         $response->assertStatus(201)
             ->assertJsonPath('success', true);
 
         $this->assertDatabaseHas('properties', [
-            'title'  => 'Beautiful Duplex in Lagos',
+            'title' => 'Beautiful Duplex in Lagos',
             'status' => PropertyStatus::Pending->value,
         ]);
 
@@ -88,14 +87,14 @@ class PropertyCrudTest extends TestCase
 
         $response = $this->actingAs($agent['user'])
             ->postJson('/api/v1/agent/properties', [
-                'listing_type'     => 'sale',
+                'listing_type' => 'sale',
                 'property_type_id' => $propertyType->id,
-                'title'            => 'Mismatched City Property',
-                'description'      => 'This should fail validation.',
-                'price_kobo'       => 10_000_000,
-                'state_id'         => $location1['state']->id,
-                'city_id'          => $location2['city']->id, // Wrong state
-                'address'          => '456 Wrong Street',
+                'title' => 'Mismatched City Property',
+                'description' => 'This should fail validation.',
+                'price_kobo' => 10_000_000,
+                'state_id' => $location1['state']->id,
+                'city_id' => $location2['city']->id, // Wrong state
+                'address' => '456 Wrong Street',
             ]);
 
         $response->assertStatus(422);
@@ -197,12 +196,11 @@ class PropertyCrudTest extends TestCase
         $this->createApprovedProperty($agent['profile']);
 
         Property::factory()->create([
-            'agent_id'         => $agent['profile']->id,
-            'status'           => PropertyStatus::Pending,
+            'agent_id' => $agent['profile']->id,
             'property_type_id' => \App\Models\PropertyType::factory(),
-            'state_id'         => \App\Models\State::factory(),
-            'city_id'          => \App\Models\City::factory(),
-            'area_id'          => \App\Models\Area::factory(),
+            'state_id' => \App\Models\State::factory(),
+            'city_id' => \App\Models\City::factory(),
+            'area_id' => \App\Models\Area::factory(),
         ]);
 
         $response = $this->getJson('/api/v1/properties');

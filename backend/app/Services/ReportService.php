@@ -14,18 +14,18 @@ class ReportService
     {
         $typeMap = [
             'property' => \App\Models\Property::class,
-            'agent'    => \App\Models\AgentProfile::class,
-            'review'   => \App\Models\AgentReview::class,
+            'agent' => \App\Models\AgentProfile::class,
+            'review' => \App\Models\AgentReview::class,
         ];
 
         $report = Report::create([
-            'reporter_id'     => $user->id,
+            'reporter_id' => $user->id,
             'reportable_type' => $typeMap[$data['reportable_type']],
-            'reportable_id'   => $data['reportable_id'],
-            'reason'          => $data['reason'],
-            'description'     => $data['description'] ?? null,
-            'evidence_urls'   => $data['evidence_urls'] ?? null,
-            'status'          => ReportStatus::Open,
+            'reportable_id' => $data['reportable_id'],
+            'reason' => $data['reason'],
+            'description' => $data['description'] ?? null,
+            'evidence_urls' => $data['evidence_urls'] ?? null,
+            'status' => ReportStatus::Open,
         ]);
 
         $this->checkAutoArchive($data['reportable_type'], $data['reportable_id']);
@@ -41,10 +41,10 @@ class ReportService
     public function dismiss(Report $report, User $admin, ?string $note = null): void
     {
         $report->update([
-            'status'          => ReportStatus::Dismissed,
-            'resolved_by'     => $admin->id,
+            'status' => ReportStatus::Dismissed,
+            'resolved_by' => $admin->id,
             'resolution_note' => $note,
-            'resolved_at'     => now(),
+            'resolved_at' => now(),
         ]);
     }
 

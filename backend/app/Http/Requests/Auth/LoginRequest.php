@@ -14,8 +14,8 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone'    => ['required_without:email', 'nullable', 'string', 'regex:/^(\+234|0)[789]\d{9}$/'],
-            'email'    => ['required_without:phone', 'nullable', 'email'],
+            'phone' => ['required_without:email', 'nullable', 'string', 'regex:/^(\+234|0)[789]\d{9}$/'],
+            'email' => ['required_without:phone', 'nullable', 'email'],
             'password' => ['nullable', 'string'],
         ];
     }
@@ -23,7 +23,7 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'phone.regex'            => 'Phone must be a valid Nigerian number.',
+            'phone.regex' => 'Phone must be a valid Nigerian number.',
             'phone.required_without' => 'Phone or email is required.',
             'email.required_without' => 'Email or phone is required.',
         ];

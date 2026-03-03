@@ -25,7 +25,7 @@ class AgentService
     {
         return DB::transaction(function () use ($agent, $data, $files) {
             $updateData = [
-                'id_document_type'   => $data['id_document_type'],
+                'id_document_type' => $data['id_document_type'],
                 'id_document_number' => $data['id_document_number'],
             ];
             $guardedData = [
@@ -69,9 +69,9 @@ class AgentService
 
         $fields = [
             'id_document_front' => 'id_document_front_public_id',
-            'id_document_back'  => 'id_document_back_public_id',
-            'selfie'            => 'selfie_public_id',
-            'cac_document'      => 'cac_document_public_id',
+            'id_document_back' => 'id_document_back_public_id',
+            'selfie' => 'selfie_public_id',
+            'cac_document' => 'cac_document_public_id',
         ];
 
         foreach ($fields as $name => $publicIdField) {
@@ -107,7 +107,7 @@ class AgentService
             ->avg('response_time_min');
 
         $agent->forceFill([
-            'response_rate'     => $responseRate,
+            'response_rate' => $responseRate,
             'avg_response_time' => $avgResponseTime ? (int) round($avgResponseTime) : null,
         ])->save();
     }
@@ -115,19 +115,19 @@ class AgentService
     public function getDashboardStats(AgentProfile $agent): array
     {
         return [
-            'total_properties'   => $agent->properties()->count(),
-            'active_properties'  => $agent->properties()->approved()->count(),
+            'total_properties' => $agent->properties()->count(),
+            'active_properties' => $agent->properties()->approved()->count(),
             'pending_properties' => $agent->properties()->pending()->count(),
-            'total_leads'        => $agent->leads()->count(),
-            'unresponded_leads'  => $agent->leads()->whereNull('responded_at')->count(),
-            'total_views'        => $agent->properties()
+            'total_leads' => $agent->leads()->count(),
+            'unresponded_leads' => $agent->leads()->whereNull('responded_at')->count(),
+            'total_views' => $agent->properties()
                 ->withCount('views')
                 ->get()
                 ->sum('views_count'),
-            'avg_rating'         => $agent->avg_rating,
-            'total_reviews'      => $agent->total_reviews,
+            'avg_rating' => $agent->avg_rating,
+            'total_reviews' => $agent->total_reviews,
             'verification_status' => $agent->verification_status,
-            'subscription_tier'  => $agent->subscription_tier,
+            'subscription_tier' => $agent->subscription_tier,
         ];
     }
 }

@@ -21,10 +21,10 @@ class ExternalPriceData extends Model
     protected function casts(): array
     {
         return [
-            'price_kobo'  => 'integer',
-            'bedrooms'    => 'integer',
-            'raw_data'    => 'array',
-            'data_date'   => 'date',
+            'price_kobo' => 'integer',
+            'bedrooms' => 'integer',
+            'raw_data' => 'array',
+            'data_date' => 'date',
         ];
     }
 

@@ -20,10 +20,10 @@ class CooperativeMember extends Model
     protected function casts(): array
     {
         return [
-            'role'                  => CooperativeMemberRole::class,
-            'status'                => CooperativeMemberStatus::class,
+            'role' => CooperativeMemberRole::class,
+            'status' => CooperativeMemberStatus::class,
             'total_contributed_kobo' => 'integer',
-            'joined_at'             => 'datetime',
+            'joined_at' => 'datetime',
         ];
     }
 

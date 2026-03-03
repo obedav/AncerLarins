@@ -18,9 +18,9 @@ class EstateReview extends Model
     protected function casts(): array
     {
         return [
-            'rating'     => 'integer',
+            'rating' => 'integer',
             'lived_from' => 'date',
-            'lived_to'   => 'date',
+            'lived_to' => 'date',
         ];
     }
 

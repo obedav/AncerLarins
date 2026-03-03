@@ -10,18 +10,18 @@ class LeadResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'           => $this->id,
+            'id' => $this->id,
             'contact_type' => $this->contact_type,
-            'source'       => $this->source,
+            'source' => $this->source,
             'responded_at' => $this->responded_at?->toISOString(),
-            'property'     => $this->when(
+            'property' => $this->when(
                 $this->relationLoaded('property'),
                 fn () => [
-                    'id'    => $this->property->id,
+                    'id' => $this->property->id,
                     'title' => $this->property->title,
-                    'slug'  => $this->property->slug,
+                    'slug' => $this->property->slug,
                     'cover_image' => $this->property->coverImage ? [
-                        'url'           => $this->property->coverImage->url,
+                        'url' => $this->property->coverImage->url,
                         'thumbnail_url' => $this->property->coverImage->thumbnail_url,
                     ] : null,
                 ]
@@ -29,9 +29,9 @@ class LeadResource extends JsonResource
             'user' => $this->when(
                 $this->relationLoaded('user'),
                 fn () => $this->user ? [
-                    'id'        => $this->user->id,
+                    'id' => $this->user->id,
                     'full_name' => $this->user->full_name,
-                    'phone'     => $this->user->phone,
+                    'phone' => $this->user->phone,
                 ] : null
             ),
             'created_at' => $this->created_at?->toISOString(),

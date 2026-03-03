@@ -37,8 +37,8 @@ class LandmarkController extends Controller
     public function nearby(Request $request): JsonResponse
     {
         $request->validate([
-            'lat'    => 'required|numeric|between:-90,90',
-            'lng'    => 'required|numeric|between:-180,180',
+            'lat' => 'required|numeric|between:-90,90',
+            'lng' => 'required|numeric|between:-180,180',
             'radius' => 'nullable|numeric|min:0.5|max:20',
         ]);
 
@@ -61,9 +61,9 @@ class LandmarkController extends Controller
             ->get();
 
         return $this->successResponse($landmarks->map(fn ($l) => [
-            'id'          => $l->id,
-            'name'        => $l->name,
-            'type'        => $l->type,
+            'id' => $l->id,
+            'name' => $l->name,
+            'type' => $l->type,
             'distance_km' => (float) $l->distance_km,
         ]));
     }

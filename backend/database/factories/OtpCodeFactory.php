@@ -16,9 +16,9 @@ class OtpCodeFactory extends Factory
     public function definition(): array
     {
         return [
-            'phone'      => '+234' . fake()->numerify('80########'),
-            'code'       => str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT),
-            'purpose'    => OtpPurpose::Registration,
+            'phone' => '+234'.fake()->numerify('80########'),
+            'code' => str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT),
+            'purpose' => OtpPurpose::Registration,
             'expires_at' => now()->addMinutes(10),
         ];
     }

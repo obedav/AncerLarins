@@ -14,10 +14,10 @@ class UpdateProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name'        => ['sometimes', 'string', 'max:100'],
-            'last_name'         => ['sometimes', 'string', 'max:100'],
-            'email'             => ['nullable', 'email', 'unique:users,email,' . $this->user()->id],
-            'avatar_url'        => ['nullable', 'url'],
+            'first_name' => ['sometimes', 'string', 'max:100'],
+            'last_name' => ['sometimes', 'string', 'max:100'],
+            'email' => ['nullable', 'email', 'unique:users,email,'.$this->user()->id],
+            'avatar_url' => ['nullable', 'url'],
             'preferred_city_id' => ['nullable', 'uuid', 'exists:cities,id'],
         ];
     }

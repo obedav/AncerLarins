@@ -70,7 +70,7 @@ class AppServiceProvider extends ServiceProvider
             try {
                 $prefix = config('database.redis.options.prefix', '');
                 $keys = Redis::keys("{$prefix}search_suggestions:*");
-                if (!empty($keys)) {
+                if (! empty($keys)) {
                     Redis::del(array_map(fn ($k) => str_replace($prefix, '', $k), $keys));
                 }
             } catch (\Throwable) {

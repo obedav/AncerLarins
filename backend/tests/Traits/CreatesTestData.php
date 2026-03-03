@@ -53,11 +53,11 @@ trait CreatesTestData
         $propertyType = PropertyType::factory()->create();
 
         return Property::factory()->approved()->create(array_merge([
-            'agent_id'         => $agent->id,
+            'agent_id' => $agent->id,
             'property_type_id' => $propertyType->id,
-            'state_id'         => $location['state']->id,
-            'city_id'          => $location['city']->id,
-            'area_id'          => $location['area']->id,
+            'state_id' => $location['state']->id,
+            'city_id' => $location['city']->id,
+            'area_id' => $location['area']->id,
         ], $overrides));
     }
 }

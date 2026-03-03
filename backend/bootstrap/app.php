@@ -27,9 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'ensure.phone_verified' => EnsurePhoneVerified::class,
-            'ensure.agent'          => EnsureAgent::class,
-            'ensure.admin'          => EnsureAdmin::class,
-            'track.activity'        => TrackActivity::class,
+            'ensure.agent' => EnsureAgent::class,
+            'ensure.admin' => EnsureAdmin::class,
+            'track.activity' => TrackActivity::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -19,7 +19,7 @@ class Document extends Model
     protected function casts(): array
     {
         return [
-            'file_size'  => 'integer',
+            'file_size' => 'integer',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

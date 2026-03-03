@@ -43,12 +43,12 @@ class CommissionController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => $items,
-            'meta'    => [
+            'data' => $items,
+            'meta' => [
                 'current_page' => $paginator->currentPage(),
-                'last_page'    => $paginator->lastPage(),
-                'per_page'     => $paginator->perPage(),
-                'total'        => $paginator->total(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
             ],
         ]);
     }
@@ -81,9 +81,9 @@ class CommissionController extends Controller
         // Monthly revenue for the year
         $monthlyRevenue = Commission::where('status', 'paid')
             ->whereYear('paid_at', $year)
-            ->selectRaw("EXTRACT(MONTH FROM paid_at) as month, SUM(commission_amount_kobo) as total")
-            ->groupByRaw("EXTRACT(MONTH FROM paid_at)")
-            ->orderByRaw("EXTRACT(MONTH FROM paid_at)")
+            ->selectRaw('EXTRACT(MONTH FROM paid_at) as month, SUM(commission_amount_kobo) as total')
+            ->groupByRaw('EXTRACT(MONTH FROM paid_at)')
+            ->orderByRaw('EXTRACT(MONTH FROM paid_at)')
             ->pluck('total', 'month')
             ->toArray();
 
@@ -97,12 +97,12 @@ class CommissionController extends Controller
         }
 
         return $this->successResponse([
-            'year'            => $year,
-            'total_earned'    => $totalEarned,
-            'total_pending'   => $totalPending,
-            'total_invoiced'  => $totalInvoiced,
-            'deals_won'       => $dealsWon,
-            'deals_lost'      => $dealsLost,
+            'year' => $year,
+            'total_earned' => $totalEarned,
+            'total_pending' => $totalPending,
+            'total_invoiced' => $totalInvoiced,
+            'deals_won' => $dealsWon,
+            'deals_lost' => $dealsLost,
             'monthly_revenue' => $monthly,
         ]);
     }
@@ -115,11 +115,11 @@ class CommissionController extends Controller
         $this->authorize('create', Commission::class);
 
         $data = $request->validate([
-            'lead_id'          => ['required', 'uuid', 'exists:leads,id'],
-            'sale_price_kobo'  => ['required', 'integer', 'min:1'],
-            'commission_rate'  => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'payment_method'   => ['nullable', 'in:bank_transfer,cash,cheque'],
-            'notes'            => ['nullable', 'string', 'max:1000'],
+            'lead_id' => ['required', 'uuid', 'exists:leads,id'],
+            'sale_price_kobo' => ['required', 'integer', 'min:1'],
+            'commission_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'payment_method' => ['nullable', 'in:bank_transfer,cash,cheque'],
+            'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
         $lead = Lead::with('property')->findOrFail($data['lead_id']);
@@ -127,14 +127,14 @@ class CommissionController extends Controller
         $amount = Commission::calculate($data['sale_price_kobo'], $rate);
 
         $commission = new Commission([
-            'lead_id'               => $lead->id,
-            'property_id'           => $lead->property_id,
-            'sale_price_kobo'       => $data['sale_price_kobo'],
-            'commission_rate'       => $rate,
+            'lead_id' => $lead->id,
+            'property_id' => $lead->property_id,
+            'sale_price_kobo' => $data['sale_price_kobo'],
+            'commission_rate' => $rate,
             'commission_amount_kobo' => $amount,
-            'payment_method'        => $data['payment_method'] ?? null,
-            'notes'                 => $data['notes'] ?? null,
-            'created_by'            => $request->user()->id,
+            'payment_method' => $data['payment_method'] ?? null,
+            'notes' => $data['notes'] ?? null,
+            'created_by' => $request->user()->id,
         ]);
         $commission->forceFill(['status' => 'pending'])->save();
 
@@ -155,14 +155,14 @@ class CommissionController extends Controller
         $this->authorize('updateStatus', $commission);
 
         $data = $request->validate([
-            'status'            => ['required', 'in:pending,invoiced,paid,cancelled'],
+            'status' => ['required', 'in:pending,invoiced,paid,cancelled'],
             'payment_reference' => ['nullable', 'string', 'max:200'],
-            'notes'             => ['nullable', 'string', 'max:1000'],
+            'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
         $updates = ['status' => $data['status']];
 
-        if ($data['status'] === 'paid' && !$commission->paid_at) {
+        if ($data['status'] === 'paid' && ! $commission->paid_at) {
             $updates['paid_at'] = now();
         }
         if (isset($data['payment_reference'])) {
@@ -191,29 +191,29 @@ class CommissionController extends Controller
         $amount = Commission::calculate($data['sale_price_kobo'], $rate);
 
         return $this->successResponse([
-            'sale_price_kobo'        => $data['sale_price_kobo'],
-            'commission_rate'        => $rate,
+            'sale_price_kobo' => $data['sale_price_kobo'],
+            'commission_rate' => $rate,
             'commission_amount_kobo' => $amount,
-            'formatted_sale_price'   => '₦' . number_format($data['sale_price_kobo'] / 100, 0, '.', ','),
-            'formatted_commission'   => '₦' . number_format($amount / 100, 0, '.', ','),
+            'formatted_sale_price' => '₦'.number_format($data['sale_price_kobo'] / 100, 0, '.', ','),
+            'formatted_commission' => '₦'.number_format($amount / 100, 0, '.', ','),
         ]);
     }
 
     private function format(Commission $c): array
     {
         return [
-            'id'                     => $c->id,
-            'sale_price_kobo'        => $c->sale_price_kobo,
-            'formatted_sale_price'   => $c->getFormattedSalePrice(),
-            'commission_rate'        => $c->commission_rate,
+            'id' => $c->id,
+            'sale_price_kobo' => $c->sale_price_kobo,
+            'formatted_sale_price' => $c->getFormattedSalePrice(),
+            'commission_rate' => $c->commission_rate,
             'commission_amount_kobo' => $c->commission_amount_kobo,
-            'formatted_commission'   => $c->getFormattedCommission(),
-            'status'                 => $c->status,
-            'payment_method'         => $c->payment_method,
-            'payment_reference'      => $c->payment_reference,
-            'paid_at'                => $c->paid_at?->toIso8601String(),
-            'notes'                  => $c->notes,
-            'lead'    => $c->lead ? ['id' => $c->lead->id, 'full_name' => $c->lead->full_name, 'status' => $c->lead->status] : null,
+            'formatted_commission' => $c->getFormattedCommission(),
+            'status' => $c->status,
+            'payment_method' => $c->payment_method,
+            'payment_reference' => $c->payment_reference,
+            'paid_at' => $c->paid_at?->toIso8601String(),
+            'notes' => $c->notes,
+            'lead' => $c->lead ? ['id' => $c->lead->id, 'full_name' => $c->lead->full_name, 'status' => $c->lead->status] : null,
             'property' => $c->property ? ['id' => $c->property->id, 'title' => $c->property->title, 'slug' => $c->property->slug] : null,
             'created_by' => $c->creator ? ['id' => $c->creator->id, 'full_name' => $c->creator->full_name] : null,
             'created_at' => $c->created_at?->toIso8601String(),

@@ -36,21 +36,21 @@ class AgentProfile extends Model
     protected function casts(): array
     {
         return [
-            'verification_status'     => VerificationStatus::class,
-            'id_document_type'        => IdDocumentType::class,
-            'subscription_tier'       => SubscriptionTier::class,
-            'verified_at'             => 'datetime',
+            'verification_status' => VerificationStatus::class,
+            'id_document_type' => IdDocumentType::class,
+            'subscription_tier' => SubscriptionTier::class,
+            'verified_at' => 'datetime',
             'subscription_expires_at' => 'datetime',
-            'max_listings'            => 'integer',
-            'active_listings'         => 'integer',
-            'total_listings'          => 'integer',
-            'total_leads'             => 'integer',
-            'avg_rating'              => 'decimal:2',
-            'total_reviews'           => 'integer',
-            'response_rate'           => 'decimal:2',
-            'avg_response_time'       => 'integer',
-            'specializations'         => 'array',
-            'years_experience'        => 'integer',
+            'max_listings' => 'integer',
+            'active_listings' => 'integer',
+            'total_listings' => 'integer',
+            'total_leads' => 'integer',
+            'avg_rating' => 'decimal:2',
+            'total_reviews' => 'integer',
+            'response_rate' => 'decimal:2',
+            'avg_response_time' => 'integer',
+            'specializations' => 'array',
+            'years_experience' => 'integer',
         ];
     }
 

@@ -186,15 +186,25 @@ class Property extends Model
 
     public function scopePriceBetween(Builder $query, ?int $minKobo, ?int $maxKobo): Builder
     {
-        if ($minKobo !== null) $query->where('price_kobo', '>=', $minKobo);
-        if ($maxKobo !== null) $query->where('price_kobo', '<=', $maxKobo);
+        if ($minKobo !== null) {
+            $query->where('price_kobo', '>=', $minKobo);
+        }
+        if ($maxKobo !== null) {
+            $query->where('price_kobo', '<=', $maxKobo);
+        }
+
         return $query;
     }
 
     public function scopeWithBedrooms(Builder $query, ?int $min, ?int $max): Builder
     {
-        if ($min !== null) $query->where('bedrooms', '>=', $min);
-        if ($max !== null) $query->where('bedrooms', '<=', $max);
+        if ($min !== null) {
+            $query->where('bedrooms', '>=', $min);
+        }
+        if ($max !== null) {
+            $query->where('bedrooms', '<=', $max);
+        }
+
         return $query;
     }
 
@@ -226,7 +236,7 @@ class Property extends Model
 
     public function getFormattedPriceAttribute(): string
     {
-        return '₦' . number_format($this->price_kobo / 100, 0, '.', ',');
+        return '₦'.number_format($this->price_kobo / 100, 0, '.', ',');
     }
 
     public function getIsNewAttribute(): bool

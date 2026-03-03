@@ -25,11 +25,11 @@ class Report extends Model
     protected function casts(): array
     {
         return [
-            'reason'        => ReportReason::class,
-            'status'        => ReportStatus::class,
+            'reason' => ReportReason::class,
+            'status' => ReportStatus::class,
             'evidence_urls' => 'array',
-            'resolved_at'   => 'datetime',
-            'created_at'    => 'datetime',
+            'resolved_at' => 'datetime',
+            'created_at' => 'datetime',
         ];
     }
 
@@ -67,10 +67,10 @@ class Report extends Model
     public function resolve(string $userId, ?string $note = null): void
     {
         $this->update([
-            'status'          => ReportStatus::Resolved,
-            'resolved_by'     => $userId,
+            'status' => ReportStatus::Resolved,
+            'resolved_by' => $userId,
             'resolution_note' => $note,
-            'resolved_at'     => now(),
+            'resolved_at' => now(),
         ]);
     }
 }

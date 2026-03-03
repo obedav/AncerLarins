@@ -19,9 +19,9 @@ class AreaFactory extends Factory
         $name = fake()->unique()->streetName();
 
         return [
-            'city_id'   => City::factory(),
-            'name'      => $name,
-            'slug'      => Str::slug($name),
+            'city_id' => City::factory(),
+            'name' => $name,
+            'slug' => Str::slug($name),
             'is_active' => true,
         ];
     }

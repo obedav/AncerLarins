@@ -24,10 +24,10 @@ class AgentSubscription extends Model
     {
         return [
             'amount_kobo' => 'integer',
-            'status'      => SubscriptionStatus::class,
-            'starts_at'   => 'datetime',
-            'ends_at'     => 'datetime',
-            'created_at'  => 'datetime',
+            'status' => SubscriptionStatus::class,
+            'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
+            'created_at' => 'datetime',
         ];
     }
 

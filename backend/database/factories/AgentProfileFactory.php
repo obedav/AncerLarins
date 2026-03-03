@@ -18,14 +18,14 @@ class AgentProfileFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id'             => User::factory()->agent(),
-            'company_name'        => fake()->company(),
+            'user_id' => User::factory()->agent(),
+            'company_name' => fake()->company(),
             'verification_status' => VerificationStatus::Unverified,
-            'subscription_tier'   => SubscriptionTier::Free,
-            'max_listings'        => 3,
-            'active_listings'     => 0,
-            'total_listings'      => 0,
-            'total_leads'         => 0,
+            'subscription_tier' => SubscriptionTier::Free,
+            'max_listings' => 3,
+            'active_listings' => 0,
+            'total_listings' => 0,
+            'total_leads' => 0,
         ];
     }
 
@@ -33,7 +33,7 @@ class AgentProfileFactory extends Factory
     {
         return $this->state(fn () => [
             'verification_status' => VerificationStatus::Verified,
-            'verified_at'         => now(),
+            'verified_at' => now(),
         ]);
     }
 }

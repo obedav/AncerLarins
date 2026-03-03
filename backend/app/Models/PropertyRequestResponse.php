@@ -19,7 +19,7 @@ class PropertyRequestResponse extends Model
     protected function casts(): array
     {
         return [
-            'status'              => RequestResponseStatus::class,
+            'status' => RequestResponseStatus::class,
             'proposed_price_kobo' => 'integer',
         ];
     }

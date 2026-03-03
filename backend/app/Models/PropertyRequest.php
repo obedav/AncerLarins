@@ -26,15 +26,15 @@ class PropertyRequest extends Model
     protected function casts(): array
     {
         return [
-            'listing_type'       => ListingType::class,
-            'status'             => PropertyRequestStatus::class,
+            'listing_type' => ListingType::class,
+            'status' => PropertyRequestStatus::class,
             'amenity_preferences' => 'array',
-            'move_in_date'       => 'date',
-            'expires_at'         => 'datetime',
-            'min_price_kobo'     => 'integer',
-            'max_price_kobo'     => 'integer',
-            'budget_kobo'        => 'integer',
-            'response_count'     => 'integer',
+            'move_in_date' => 'date',
+            'expires_at' => 'datetime',
+            'min_price_kobo' => 'integer',
+            'max_price_kobo' => 'integer',
+            'budget_kobo' => 'integer',
+            'response_count' => 'integer',
         ];
     }
 

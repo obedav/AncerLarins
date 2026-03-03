@@ -9,7 +9,6 @@ use App\Models\OtpCode;
 use App\Models\RefreshToken;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -25,14 +24,14 @@ class AuthService
             $phone = $this->normalizePhone($data['phone']);
 
             $user = new User([
-                'first_name'    => $data['first_name'],
-                'last_name'     => $data['last_name'],
-                'phone'         => $phone,
-                'email'         => $data['email'] ?? null,
+                'first_name' => $data['first_name'],
+                'last_name' => $data['last_name'],
+                'phone' => $phone,
+                'email' => $data['email'] ?? null,
                 'password_hash' => $data['password'] ?? null,
             ]);
             $user->forceFill([
-                'role'   => UserRole::from($data['role'] ?? 'user'),
+                'role' => UserRole::from($data['role'] ?? 'user'),
                 'status' => UserStatus::Active,
             ])->save();
 
@@ -95,15 +94,15 @@ class AuthService
         if ($purpose === OtpPurpose::Registration || $purpose === OtpPurpose::Login) {
             $user->forceFill([
                 'phone_verified' => true,
-                'last_login_at'  => now(),
-                'last_login_ip'  => request()->ip(),
+                'last_login_at' => now(),
+                'last_login_ip' => request()->ip(),
             ])->save();
 
             $tokens = $this->generateTokens($user);
 
             return [
-                'user'          => $user,
-                'access_token'  => $tokens['access_token'],
+                'user' => $user,
+                'access_token' => $tokens['access_token'],
                 'refresh_token' => $tokens['refresh_token'],
             ];
         }
@@ -127,7 +126,7 @@ class AuthService
         $tokens = $this->generateTokens($user);
 
         return [
-            'access_token'  => $tokens['access_token'],
+            'access_token' => $tokens['access_token'],
             'refresh_token' => $tokens['refresh_token'],
         ];
     }
@@ -163,9 +162,9 @@ class AuthService
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
         OtpCode::create([
-            'phone'      => $phone,
-            'code'       => $code,
-            'purpose'    => $purpose,
+            'phone' => $phone,
+            'code' => $code,
+            'purpose' => $purpose,
             'expires_at' => now()->addMinutes(10),
         ]);
 
@@ -173,8 +172,9 @@ class AuthService
         if (empty($termiiKey) || str_starts_with($termiiKey, 'your_')) {
             Log::warning('OTP delivery skipped — Termii not configured', [
                 'phone_suffix' => substr($phone, -4),
-                'purpose'      => $purpose->value,
+                'purpose' => $purpose->value,
             ]);
+
             return;
         }
 
@@ -182,13 +182,13 @@ class AuthService
             $this->termiiService->sendOtp($phone);
             Log::info('OTP sent successfully', [
                 'phone_suffix' => substr($phone, -4),
-                'purpose'      => $purpose->value,
+                'purpose' => $purpose->value,
             ]);
         } catch (\Throwable $e) {
             Log::error('OTP delivery failed', [
                 'phone_suffix' => substr($phone, -4),
-                'purpose'      => $purpose->value,
-                'error'        => $e->getMessage(),
+                'purpose' => $purpose->value,
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -199,13 +199,13 @@ class AuthService
 
         $rawRefreshToken = Str::random(64);
         RefreshToken::create([
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'token_hash' => hash('sha256', $rawRefreshToken),
             'expires_at' => now()->addDays(30),
         ]);
 
         return [
-            'access_token'  => $accessToken,
+            'access_token' => $accessToken,
             'refresh_token' => $rawRefreshToken,
         ];
     }
@@ -216,11 +216,11 @@ class AuthService
         $phone = preg_replace('/[\s\-\(\)]+/', '', $phone);
 
         if (str_starts_with($phone, '0')) {
-            return '+234' . substr($phone, 1);
+            return '+234'.substr($phone, 1);
         }
 
-        if (str_starts_with($phone, '234') && !str_starts_with($phone, '+')) {
-            return '+' . $phone;
+        if (str_starts_with($phone, '234') && ! str_starts_with($phone, '+')) {
+            return '+'.$phone;
         }
 
         return $phone;

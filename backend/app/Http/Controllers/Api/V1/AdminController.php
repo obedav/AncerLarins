@@ -12,7 +12,6 @@ use App\Http\Resources\ActivityLogResource;
 use App\Http\Resources\AdminPropertyResource;
 use App\Http\Resources\AgentListResource;
 use App\Http\Resources\DashboardStatsResource;
-use App\Http\Resources\PropertyListResource;
 use App\Models\ActivityLog;
 use App\Models\AgentProfile;
 use App\Models\Property;
@@ -28,6 +27,7 @@ use Illuminate\Http\Request;
 
 /**
  * @group Admin
+ *
  * @authenticated
  *
  * Admin dashboard, property/agent moderation, user management, and reports.
@@ -121,7 +121,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'property_id' => 'required|uuid|exists:properties,id',
-            'days'         => 'nullable|integer|min:1|max:365',
+            'days' => 'nullable|integer|min:1|max:365',
         ]);
 
         $property = Property::findOrFail($request->property_id);
@@ -172,11 +172,11 @@ class AdminController extends Controller
         $urls = $this->agentService->getVerificationDocumentUrls($agent);
 
         return $this->successResponse([
-            'agent_id'            => $agent->id,
-            'company_name'        => $agent->company_name,
-            'documents'           => $urls,
-            'id_document_type'    => $agent->id_document_type,
-            'id_document_number'  => $agent->id_document_number,
+            'agent_id' => $agent->id,
+            'company_name' => $agent->company_name,
+            'documents' => $urls,
+            'id_document_type' => $agent->id_document_type,
+            'id_document_number' => $agent->id_document_number,
             'verification_status' => $agent->verification_status,
         ]);
     }
@@ -241,15 +241,15 @@ class AdminController extends Controller
     public function activityLogs(Request $request): JsonResponse
     {
         $request->validate([
-            'user_id'   => ['nullable', 'uuid'],
-            'action'    => ['nullable', 'string', 'max:100'],
+            'user_id' => ['nullable', 'uuid'],
+            'action' => ['nullable', 'string', 'max:100'],
             'date_from' => ['nullable', 'date'],
-            'date_to'   => ['nullable', 'date', 'after_or_equal:date_from'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
         ]);
 
         $logs = ActivityLog::with('user')
             ->when($request->user_id, fn ($q, $v) => $q->where('user_id', $v))
-            ->when($request->action, fn ($q, $v) => $q->where('action', 'like', '%' . str_replace(['%', '_'], ['\\%', '\\_'], $v) . '%'))
+            ->when($request->action, fn ($q, $v) => $q->where('action', 'like', '%'.str_replace(['%', '_'], ['\\%', '\\_'], $v).'%'))
             ->when($request->date_from, fn ($q, $v) => $q->where('created_at', '>=', $v))
             ->when($request->date_to, fn ($q, $v) => $q->where('created_at', '<=', $v))
             ->latest('created_at')

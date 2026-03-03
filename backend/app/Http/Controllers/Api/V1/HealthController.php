@@ -19,7 +19,7 @@ class HealthController extends Controller
     public function liveness(): JsonResponse
     {
         return response()->json([
-            'status'    => 'ok',
+            'status' => 'ok',
             'timestamp' => now()->toIso8601String(),
         ]);
     }
@@ -53,7 +53,7 @@ class HealthController extends Controller
 
         // Storage
         try {
-            $testFile = 'health_check_' . uniqid() . '.tmp';
+            $testFile = 'health_check_'.uniqid().'.tmp';
             Storage::disk('local')->put($testFile, 'ok');
             Storage::disk('local')->delete($testFile);
             $components['storage'] = 'ok';
@@ -75,7 +75,9 @@ class HealthController extends Controller
         try {
             $pong = Redis::ping();
             $components['redis_direct'] = $pong ? 'ok' : 'failed';
-            if (!$pong) $healthy = false;
+            if (! $pong) {
+                $healthy = false;
+            }
         } catch (\Throwable) {
             $components['redis_direct'] = 'failed';
             $healthy = false;
@@ -87,7 +89,9 @@ class HealthController extends Controller
             try {
                 $response = Http::timeout(5)->get("https://res.cloudinary.com/{$cloudName}/image/upload/sample.jpg");
                 $components['cloudinary'] = $response->successful() ? 'ok' : 'degraded';
-                if (!$response->successful()) $healthy = false;
+                if (! $response->successful()) {
+                    $healthy = false;
+                }
             } catch (\Throwable) {
                 $components['cloudinary'] = 'failed';
                 $healthy = false;
@@ -98,9 +102,9 @@ class HealthController extends Controller
         $code = $healthy ? 200 : 503;
 
         return response()->json([
-            'status'     => $status,
+            'status' => $status,
             'components' => $components,
-            'timestamp'  => now()->toIso8601String(),
+            'timestamp' => now()->toIso8601String(),
         ], $code);
     }
 }

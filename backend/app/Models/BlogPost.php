@@ -24,11 +24,11 @@ class BlogPost extends Model
     protected function casts(): array
     {
         return [
-            'category'     => BlogPostCategory::class,
-            'status'       => BlogPostStatus::class,
-            'tags'         => 'array',
+            'category' => BlogPostCategory::class,
+            'status' => BlogPostStatus::class,
+            'tags' => 'array',
             'published_at' => 'datetime',
-            'view_count'   => 'integer',
+            'view_count' => 'integer',
         ];
     }
 

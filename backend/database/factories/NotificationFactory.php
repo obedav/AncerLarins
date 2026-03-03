@@ -15,9 +15,9 @@ class NotificationFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'type'    => 'general',
-            'title'   => fake()->sentence(4),
-            'body'    => fake()->sentence(10),
+            'type' => 'general',
+            'title' => fake()->sentence(4),
+            'body' => fake()->sentence(10),
         ];
     }
 

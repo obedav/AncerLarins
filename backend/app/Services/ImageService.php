@@ -19,9 +19,9 @@ class ImageService
 
             if ($result['url']) {
                 return [
-                    'url'           => $result['url'],
+                    'url' => $result['url'],
                     'thumbnail_url' => $this->generateThumbnailUrl($result['url']),
-                    'public_id'     => $result['public_id'],
+                    'public_id' => $result['public_id'],
                 ];
             }
         }
@@ -40,11 +40,11 @@ class ImageService
         }
 
         // Fallback: store in private local disk
-        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
         $path = $file->storeAs("private/{$folder}", $filename, 'local');
 
         return [
-            'url'       => url("storage/private/{$folder}/{$filename}"),
+            'url' => url("storage/private/{$folder}/{$filename}"),
             'public_id' => "local:{$path}",
         ];
     }
@@ -56,7 +56,7 @@ class ImageService
         }
 
         if (str_starts_with($publicId, 'local:')) {
-            return url('storage/' . str_replace('local:', '', $publicId));
+            return url('storage/'.str_replace('local:', '', $publicId));
         }
 
         return $this->cloudinaryService->getSignedUrl($publicId);
@@ -70,6 +70,7 @@ class ImageService
 
         if (str_starts_with($publicId, 'local:')) {
             $path = str_replace('local:', '', $publicId);
+
             return Storage::disk('public')->delete($path);
         }
 
@@ -78,14 +79,14 @@ class ImageService
 
     protected function uploadLocal($file, string $folder): array
     {
-        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
         $path = $file->storeAs($folder, $filename, 'public');
         $url = url("storage/{$path}");
 
         return [
-            'url'           => $url,
+            'url' => $url,
             'thumbnail_url' => $url, // same URL for local (no on-the-fly transforms)
-            'public_id'     => "local:{$path}",
+            'public_id' => "local:{$path}",
         ];
     }
 

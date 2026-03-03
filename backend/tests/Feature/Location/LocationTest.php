@@ -2,11 +2,9 @@
 
 namespace Tests\Feature\Location;
 
-use App\Models\Area;
 use App\Models\City;
 use App\Models\PropertyType;
 use App\Models\State;
-use App\Services\MarketTrendService;
 use App\Services\NeighborhoodService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -14,7 +12,7 @@ use Tests\Traits\CreatesTestData;
 
 class LocationTest extends TestCase
 {
-    use RefreshDatabase, CreatesTestData;
+    use CreatesTestData, RefreshDatabase;
 
     // ── States ───────────────────────────────────────────────
 

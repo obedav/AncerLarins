@@ -31,9 +31,9 @@ class ValuationService
 
         // Blend available signals: area-based (30%), comparables (50%), external data (20%)
         $signals = array_filter([
-            'area'       => $areaBased,
+            'area' => $areaBased,
             'comparable' => $compMedian,
-            'external'   => $externalEstimate,
+            'external' => $externalEstimate,
         ], fn ($v) => $v !== null);
 
         if (empty($signals)) {
@@ -60,11 +60,11 @@ class ValuationService
         $margin = (1 - $confidence) * 0.30;
 
         return [
-            'estimate_kobo'    => $estimate,
-            'confidence'       => round($confidence, 2),
+            'estimate_kobo' => $estimate,
+            'confidence' => round($confidence, 2),
             'comparable_count' => $compCount,
-            'price_range'      => [
-                'low'  => (int) ($estimate * (1 - $margin)),
+            'price_range' => [
+                'low' => (int) ($estimate * (1 - $margin)),
                 'high' => (int) ($estimate * (1 + $margin)),
             ],
         ];
@@ -82,7 +82,7 @@ class ValuationService
             $base = match (true) {
                 $bedrooms <= 1 => $area->avg_rent_1br,
                 $bedrooms == 2 => $area->avg_rent_2br,
-                default        => $area->avg_rent_3br,
+                default => $area->avg_rent_3br,
             };
             if (! $base) {
                 return null;
@@ -219,7 +219,7 @@ class ValuationService
                     if ($result) {
                         $property->update([
                             'estimated_value_kobo' => $result['estimate_kobo'],
-                            'last_valued_at'       => now(),
+                            'last_valued_at' => now(),
                         ]);
                         $count++;
                     }

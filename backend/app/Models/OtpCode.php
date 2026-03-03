@@ -21,11 +21,11 @@ class OtpCode extends Model
     protected function casts(): array
     {
         return [
-            'purpose'     => OtpPurpose::class,
-            'expires_at'  => 'datetime',
+            'purpose' => OtpPurpose::class,
+            'expires_at' => 'datetime',
             'verified_at' => 'datetime',
-            'attempts'    => 'integer',
-            'created_at'  => 'datetime',
+            'attempts' => 'integer',
+            'created_at' => 'datetime',
         ];
     }
 

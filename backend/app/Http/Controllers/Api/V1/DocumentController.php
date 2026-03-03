@@ -38,8 +38,8 @@ class DocumentController extends Controller
         $this->authorize('create', Document::class);
 
         $request->validate([
-            'file'  => ['required', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png,doc,docx,xlsx'], // 10MB max
-            'type'  => ['required', 'in:buyer_agreement,proof_of_funds,id_verification,offer_letter,other'],
+            'file' => ['required', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png,doc,docx,xlsx'], // 10MB max
+            'type' => ['required', 'in:buyer_agreement,proof_of_funds,id_verification,offer_letter,other'],
             'title' => ['required', 'string', 'max:200'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -48,15 +48,15 @@ class DocumentController extends Controller
         $path = $file->store("documents/{$lead->id}", 'private');
 
         $document = new Document([
-            'lead_id'     => $lead->id,
+            'lead_id' => $lead->id,
             'uploaded_by' => $request->user()->id,
-            'type'        => $request->input('type'),
-            'title'       => $request->input('title'),
-            'file_path'   => $path,
-            'file_name'   => $file->getClientOriginalName(),
-            'mime_type'   => $file->getMimeType(),
-            'file_size'   => $file->getSize(),
-            'notes'       => $request->input('notes'),
+            'type' => $request->input('type'),
+            'title' => $request->input('title'),
+            'file_path' => $path,
+            'file_name' => $file->getClientOriginalName(),
+            'mime_type' => $file->getMimeType(),
+            'file_size' => $file->getSize(),
+            'notes' => $request->input('notes'),
         ]);
         $document->forceFill(['status' => 'pending'])->save();
 
@@ -76,7 +76,7 @@ class DocumentController extends Controller
     {
         $this->authorize('view', $document);
 
-        if (!Storage::disk('private')->exists($document->file_path)) {
+        if (! Storage::disk('private')->exists($document->file_path)) {
             return $this->errorResponse('File not found.', 404);
         }
 
@@ -95,7 +95,7 @@ class DocumentController extends Controller
 
         $data = $request->validate([
             'status' => ['required', 'in:pending,approved,rejected'],
-            'notes'  => ['nullable', 'string', 'max:1000'],
+            'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
         $document->forceFill($data)->save();
@@ -119,16 +119,16 @@ class DocumentController extends Controller
     private function formatDocument(Document $doc): array
     {
         return [
-            'id'          => $doc->id,
-            'type'        => $doc->type,
-            'title'       => $doc->title,
-            'file_name'   => $doc->file_name,
-            'mime_type'   => $doc->mime_type,
-            'file_size'   => $doc->file_size,
-            'notes'       => $doc->notes,
-            'status'      => $doc->status,
+            'id' => $doc->id,
+            'type' => $doc->type,
+            'title' => $doc->title,
+            'file_name' => $doc->file_name,
+            'mime_type' => $doc->mime_type,
+            'file_size' => $doc->file_size,
+            'notes' => $doc->notes,
+            'status' => $doc->status,
             'uploaded_by' => $doc->uploader ? [
-                'id'        => $doc->uploader->id,
+                'id' => $doc->uploader->id,
                 'full_name' => $doc->uploader->full_name,
             ] : null,
             'created_at' => $doc->created_at?->toIso8601String(),

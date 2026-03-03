@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Enums\NotificationFrequency;
 use App\Models\Property;
-use App\Models\SavedSearch;
 use App\Services\NotificationService;
 use App\Services\SavedSearchService;
 use Illuminate\Bus\Queueable;
@@ -18,6 +17,7 @@ class MatchSavedSearchesJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $backoff = 60;
 
     public function __construct(
@@ -28,7 +28,7 @@ class MatchSavedSearchesJob implements ShouldQueue
     {
         $property = Property::with(['propertyType', 'city', 'area'])->find($this->propertyId);
 
-        if (!$property) {
+        if (! $property) {
             return;
         }
 
@@ -38,6 +38,7 @@ class MatchSavedSearchesJob implements ShouldQueue
             // Only send instant notifications here; daily/weekly are handled by digest commands
             if ($search->frequency !== NotificationFrequency::Instant) {
                 $search->increment('match_count');
+
                 continue;
             }
 
@@ -50,13 +51,13 @@ class MatchSavedSearchesJob implements ShouldQueue
 
             $notificationService->send(
                 $search->user,
-                'New Match: ' . $property->title,
+                'New Match: '.$property->title,
                 "A new property in {$location} matches your saved search \"{$search->name}\".",
                 'saved_search_match',
                 [
                     'action_type' => 'property',
-                    'action_id'   => $property->id,
-                    'action_url'  => "/properties/{$property->slug}",
+                    'action_id' => $property->id,
+                    'action_url' => "/properties/{$property->slug}",
                 ]
             );
         }

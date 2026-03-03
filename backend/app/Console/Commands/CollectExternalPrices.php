@@ -30,7 +30,8 @@ class CollectExternalPrices extends Command
 
         if (! Storage::disk('local')->exists($importDir)) {
             $this->info("No imports directory found at storage/app/{$importDir}/");
-            $this->info("Create CSV files with format: area_slug,property_type,bedrooms,price_naira,listing_type,data_date");
+            $this->info('Create CSV files with format: area_slug,property_type,bedrooms,price_naira,listing_type,data_date');
+
             return;
         }
 
@@ -39,6 +40,7 @@ class CollectExternalPrices extends Command
 
         if (empty($csvFiles)) {
             $this->info("No CSV files found in storage/app/{$importDir}/");
+
             return;
         }
 
@@ -66,6 +68,7 @@ class CollectExternalPrices extends Command
             $row = str_getcsv($line);
             if (count($row) < 5) {
                 $skipped++;
+
                 continue;
             }
 
@@ -77,6 +80,7 @@ class CollectExternalPrices extends Command
             if (! $area) {
                 $this->warn("  Area not found: {$areaSlug}");
                 $skipped++;
+
                 continue;
             }
 
@@ -85,19 +89,20 @@ class CollectExternalPrices extends Command
 
             if ($priceKobo <= 0) {
                 $skipped++;
+
                 continue;
             }
 
             ExternalPriceData::create([
-                'source'        => 'csv_import',
-                'area_id'       => $area->id,
+                'source' => 'csv_import',
+                'area_id' => $area->id,
                 'property_type' => $data['property_type'] ?? 'flat-apartment',
-                'bedrooms'      => isset($data['bedrooms']) ? (int) $data['bedrooms'] : null,
-                'price_kobo'    => $priceKobo,
-                'listing_type'  => $data['listing_type'] ?? 'rent',
-                'data_date'     => $data['data_date'] ?? now()->toDateString(),
-                'data_quality'  => 'medium',
-                'raw_data'      => $data,
+                'bedrooms' => isset($data['bedrooms']) ? (int) $data['bedrooms'] : null,
+                'price_kobo' => $priceKobo,
+                'listing_type' => $data['listing_type'] ?? 'rent',
+                'data_date' => $data['data_date'] ?? now()->toDateString(),
+                'data_quality' => 'medium',
+                'raw_data' => $data,
             ]);
 
             $imported++;

@@ -37,29 +37,29 @@ class ScrapedListingImportService
             $propertyTypeId = $this->resolvePropertyType($listing->title, $listing->property_type);
             $listingType = $this->resolveListingType($listing->listing_type);
 
-            $slug = Str::slug($listing->title . '-' . Str::random(6));
+            $slug = Str::slug($listing->title.'-'.Str::random(6));
 
             $property = Property::create([
-                'agent_id'        => $agentId,
-                'listing_type'    => $listingType,
+                'agent_id' => $agentId,
+                'listing_type' => $listingType,
                 'property_type_id' => $propertyTypeId,
-                'title'           => $listing->title,
-                'slug'            => $slug,
-                'description'     => $this->buildDescription($listing),
-                'price_kobo'      => $listing->price_kobo ?? 0,
-                'bedrooms'        => $listing->bedrooms ?? 0,
-                'bathrooms'       => 0,
-                'toilets'         => 0,
-                'state_id'        => $locationIds['state_id'],
-                'city_id'         => $locationIds['city_id'],
-                'area_id'         => $locationIds['area_id'],
-                'address'         => $listing->location ?? 'Lagos, Nigeria',
-                'status'          => PropertyStatus::Approved,
-                'approved_by'     => $approvedBy,
-                'approved_at'     => now(),
-                'published_at'    => now(),
-                'expires_at'      => now()->addDays(90),
-                'meta_title'      => Str::limit($listing->title, 60),
+                'title' => $listing->title,
+                'slug' => $slug,
+                'description' => $this->buildDescription($listing),
+                'price_kobo' => $listing->price_kobo ?? 0,
+                'bedrooms' => $listing->bedrooms ?? 0,
+                'bathrooms' => 0,
+                'toilets' => 0,
+                'state_id' => $locationIds['state_id'],
+                'city_id' => $locationIds['city_id'],
+                'area_id' => $locationIds['area_id'],
+                'address' => $listing->location ?? 'Lagos, Nigeria',
+                'status' => PropertyStatus::Approved,
+                'approved_by' => $approvedBy,
+                'approved_at' => now(),
+                'published_at' => now(),
+                'expires_at' => now()->addDays(90),
+                'meta_title' => Str::limit($listing->title, 60),
                 'meta_description' => Str::limit($this->buildDescription($listing), 155),
             ]);
 
@@ -73,23 +73,23 @@ class ScrapedListingImportService
                 }
 
                 PropertyImage::create([
-                    'property_id'  => $property->id,
-                    'image_url'    => $imageUrl,
-                    'sort_order'   => 0,
-                    'is_cover'     => true,
+                    'property_id' => $property->id,
+                    'image_url' => $imageUrl,
+                    'sort_order' => 0,
+                    'is_cover' => true,
                 ]);
             }
 
             // Link the scraped listing to the new property
             $listing->update([
-                'status'              => ScrapedListingStatus::Imported,
+                'status' => ScrapedListingStatus::Imported,
                 'matched_property_id' => $property->id,
             ]);
 
             Log::info('Scraped listing imported as property', [
                 'scraped_listing_id' => $listing->id,
-                'property_id'        => $property->id,
-                'source'             => $listing->source,
+                'property_id' => $property->id,
+                'source' => $listing->source,
             ]);
 
             return $property;
@@ -128,15 +128,15 @@ class ScrapedListingImportService
 
         // Create a platform agent profile under the admin user
         $agent = AgentProfile::create([
-            'user_id'             => $adminUser->id,
-            'company_name'        => 'AncerLarins Platform',
+            'user_id' => $adminUser->id,
+            'company_name' => 'AncerLarins Platform',
             'verification_status' => 'verified',
-            'verified_at'         => now(),
-            'subscription_tier'   => 'basic',
-            'max_listings'        => 99999,
-            'bio'                 => 'Listings sourced and verified by the AncerLarins platform.',
-            'specializations'     => ['residential', 'commercial', 'land'],
-            'years_experience'    => 1,
+            'verified_at' => now(),
+            'subscription_tier' => 'basic',
+            'max_listings' => 99999,
+            'bio' => 'Listings sourced and verified by the AncerLarins platform.',
+            'specializations' => ['residential', 'commercial', 'land'],
+            'years_experience' => 1,
         ]);
 
         return $agent->id;
@@ -160,8 +160,8 @@ class ScrapedListingImportService
         if (! $location) {
             return [
                 'state_id' => $state->id,
-                'city_id'  => $defaultCity->id,
-                'area_id'  => $defaultArea->id,
+                'city_id' => $defaultCity->id,
+                'area_id' => $defaultArea->id,
             ];
         }
 
@@ -183,31 +183,33 @@ class ScrapedListingImportService
 
         if ($area) {
             $city = City::find($area->city_id);
+
             return [
                 'state_id' => $city->state_id ?? $state->id,
-                'city_id'  => $city->id ?? $defaultCity->id,
-                'area_id'  => $area->id,
+                'city_id' => $city->id ?? $defaultCity->id,
+                'area_id' => $area->id,
             ];
         }
 
         // Try to match a city
         $city = City::where('state_id', $state->id)
-            ->whereRaw('LOWER(name) LIKE ?', ['%' . $locationLower . '%'])
+            ->whereRaw('LOWER(name) LIKE ?', ['%'.$locationLower.'%'])
             ->first();
 
         if ($city) {
             $firstArea = Area::where('city_id', $city->id)->first();
+
             return [
                 'state_id' => $state->id,
-                'city_id'  => $city->id,
-                'area_id'  => $firstArea->id ?? $defaultArea->id,
+                'city_id' => $city->id,
+                'area_id' => $firstArea->id ?? $defaultArea->id,
             ];
         }
 
         return [
             'state_id' => $state->id,
-            'city_id'  => $defaultCity->id,
-            'area_id'  => $defaultArea->id,
+            'city_id' => $defaultCity->id,
+            'area_id' => $defaultArea->id,
         ];
     }
 
@@ -216,31 +218,31 @@ class ScrapedListingImportService
      */
     private function resolvePropertyType(?string $title, ?string $scrapedType): string
     {
-        $searchText = Str::lower(($title ?? '') . ' ' . ($scrapedType ?? ''));
+        $searchText = Str::lower(($title ?? '').' '.($scrapedType ?? ''));
 
         // Keyword-to-slug mapping ordered by specificity
         $mappings = [
-            'penthouse'       => 'penthouse',
-            'semi-detached'   => 'semi-detached-duplex',
-            'semi detached'   => 'semi-detached-duplex',
-            'detached'        => 'detached-house',
-            'duplex'          => 'duplex',
-            'terrace'         => 'terrace',
-            'bungalow'        => 'bungalow',
-            'self contain'    => 'self-contain',
-            'self-contain'    => 'self-contain',
-            'selfcon'         => 'self-contain',
+            'penthouse' => 'penthouse',
+            'semi-detached' => 'semi-detached-duplex',
+            'semi detached' => 'semi-detached-duplex',
+            'detached' => 'detached-house',
+            'duplex' => 'duplex',
+            'terrace' => 'terrace',
+            'bungalow' => 'bungalow',
+            'self contain' => 'self-contain',
+            'self-contain' => 'self-contain',
+            'selfcon' => 'self-contain',
             'room and parlour' => 'room-parlour',
-            'room & parlour'  => 'room-parlour',
-            'mini flat'       => 'mini-flat',
-            'miniflat'        => 'mini-flat',
-            'warehouse'       => 'warehouse',
-            'shop'            => 'shop-office',
-            'office'          => 'shop-office',
-            'land'            => 'land',
-            'plot'            => 'land',
-            'apartment'       => 'flat-apartment',
-            'flat'            => 'flat-apartment',
+            'room & parlour' => 'room-parlour',
+            'mini flat' => 'mini-flat',
+            'miniflat' => 'mini-flat',
+            'warehouse' => 'warehouse',
+            'shop' => 'shop-office',
+            'office' => 'shop-office',
+            'land' => 'land',
+            'plot' => 'land',
+            'apartment' => 'flat-apartment',
+            'flat' => 'flat-apartment',
         ];
 
         foreach ($mappings as $keyword => $slug) {
@@ -254,6 +256,7 @@ class ScrapedListingImportService
 
         // Default to "Flat / Apartment"
         $default = PropertyType::where('slug', 'flat-apartment')->first();
+
         return $default ? $default->id : PropertyType::first()->id;
     }
 
@@ -263,9 +266,9 @@ class ScrapedListingImportService
     private function resolveListingType(?string $type): ListingType
     {
         return match ($type) {
-            'sale'      => ListingType::Sale,
+            'sale' => ListingType::Sale,
             'short_let' => ListingType::ShortLet,
-            default     => ListingType::Rent,
+            default => ListingType::Rent,
         };
     }
 
@@ -281,7 +284,7 @@ class ScrapedListingImportService
         }
 
         if ($listing->bedrooms) {
-            $parts[] = "{$listing->bedrooms} bedroom" . ($listing->bedrooms > 1 ? 's' : '') . '.';
+            $parts[] = "{$listing->bedrooms} bedroom".($listing->bedrooms > 1 ? 's' : '').'.';
         }
 
         if ($listing->price_kobo) {

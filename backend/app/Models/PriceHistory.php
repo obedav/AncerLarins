@@ -19,7 +19,7 @@ class PriceHistory extends Model
     protected function casts(): array
     {
         return [
-            'price_kobo'  => 'integer',
+            'price_kobo' => 'integer',
             'recorded_at' => 'datetime',
         ];
     }
@@ -35,6 +35,6 @@ class PriceHistory extends Model
 
     public function getFormattedPriceAttribute(): string
     {
-        return '₦' . number_format($this->price_kobo / 100, 0, '.', ',');
+        return '₦'.number_format($this->price_kobo / 100, 0, '.', ',');
     }
 }

@@ -15,14 +15,14 @@ class SavedSearchFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id'       => User::factory(),
-            'name'          => fake()->words(3, true),
-            'listing_type'  => 'sale',
-            'notify_push'   => true,
-            'notify_email'  => false,
-            'frequency'     => NotificationFrequency::Daily,
-            'is_active'     => true,
-            'match_count'   => 0,
+            'user_id' => User::factory(),
+            'name' => fake()->words(3, true),
+            'listing_type' => 'sale',
+            'notify_push' => true,
+            'notify_email' => false,
+            'frequency' => NotificationFrequency::Daily,
+            'is_active' => true,
+            'match_count' => 0,
         ];
     }
 }

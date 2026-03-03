@@ -20,10 +20,10 @@ class Commission extends Model
     protected function casts(): array
     {
         return [
-            'sale_price_kobo'        => 'integer',
-            'commission_rate'        => 'decimal:2',
+            'sale_price_kobo' => 'integer',
+            'commission_rate' => 'decimal:2',
             'commission_amount_kobo' => 'integer',
-            'paid_at'                => 'datetime',
+            'paid_at' => 'datetime',
         ];
     }
 
@@ -53,11 +53,11 @@ class Commission extends Model
 
     public function getFormattedSalePrice(): string
     {
-        return '₦' . number_format($this->sale_price_kobo / 100, 0, '.', ',');
+        return '₦'.number_format($this->sale_price_kobo / 100, 0, '.', ',');
     }
 
     public function getFormattedCommission(): string
     {
-        return '₦' . number_format($this->commission_amount_kobo / 100, 0, '.', ',');
+        return '₦'.number_format($this->commission_amount_kobo / 100, 0, '.', ',');
     }
 }

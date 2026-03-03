@@ -3,7 +3,6 @@
 namespace Tests\Feature\User;
 
 use App\Models\Notification;
-use App\Models\Property;
 use App\Models\SavedSearch;
 use App\Models\User;
 use App\Services\FraudDetectionService;
@@ -16,7 +15,7 @@ use Tests\Traits\CreatesTestData;
 
 class UserProfileTest extends TestCase
 {
-    use RefreshDatabase, CreatesTestData;
+    use CreatesTestData, RefreshDatabase;
 
     private User $user;
 
@@ -49,7 +48,7 @@ class UserProfileTest extends TestCase
     {
         $response = $this->actingAs($this->user)->putJson('/api/v1/me', [
             'first_name' => 'Updated',
-            'last_name'  => 'Name',
+            'last_name' => 'Name',
         ]);
 
         $response->assertOk()
@@ -66,7 +65,7 @@ class UserProfileTest extends TestCase
         $property = $this->createApprovedProperty($agent['profile']);
 
         $this->mock(NotificationService::class, function ($mock) {
-            $mock->shouldReceive('send')->andReturn(new Notification());
+            $mock->shouldReceive('send')->andReturn(new Notification);
         });
 
         $response = $this->actingAs($this->user)->postJson("/api/v1/properties/{$property->id}/save");
@@ -81,7 +80,7 @@ class UserProfileTest extends TestCase
         $property = $this->createApprovedProperty($agent['profile']);
 
         $this->mock(NotificationService::class, function ($mock) {
-            $mock->shouldReceive('send')->andReturn(new Notification());
+            $mock->shouldReceive('send')->andReturn(new Notification);
         });
 
         // Save first
@@ -108,7 +107,7 @@ class UserProfileTest extends TestCase
         Notification::factory()->count(3)->create(['user_id' => $this->user->id]);
 
         $this->mock(NotificationService::class, function ($mock) {
-            $mock->shouldReceive('send')->andReturn(new Notification());
+            $mock->shouldReceive('send')->andReturn(new Notification);
         });
 
         $response = $this->actingAs($this->user)->getJson('/api/v1/me/notifications');
@@ -155,7 +154,7 @@ class UserProfileTest extends TestCase
         });
 
         $response = $this->actingAs($this->user)->postJson('/api/v1/me/saved-searches', [
-            'name'         => '3 bed in Lagos',
+            'name' => '3 bed in Lagos',
             'listing_type' => 'sale',
             'min_bedrooms' => 3,
         ]);

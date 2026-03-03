@@ -125,9 +125,9 @@ return new class extends Migration
             $fk = $t->foreign($column)->references('id')->on($referencedTable);
 
             match ($onDelete) {
-                'restrict'     => $fk->restrictOnDelete(),
+                'restrict' => $fk->restrictOnDelete(),
                 'nullOnDelete' => $fk->nullOnDelete(),
-                default        => $fk->cascadeOnDelete(),
+                default => $fk->cascadeOnDelete(),
             };
         });
     }

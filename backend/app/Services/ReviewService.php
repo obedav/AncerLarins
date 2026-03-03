@@ -14,9 +14,9 @@ class ReviewService
         $verifiedInteraction = ! empty($data['lead_id']);
 
         $review = AgentReview::create(array_merge($data, [
-            'user_id'              => $user->id,
-            'agent_id'             => $data['agent_profile_id'],
-            'status'               => ReviewStatus::Pending,
+            'user_id' => $user->id,
+            'agent_id' => $data['agent_profile_id'],
+            'status' => ReviewStatus::Pending,
             'verified_interaction' => $verifiedInteraction,
         ]));
 
@@ -43,7 +43,7 @@ class ReviewService
             ->first();
 
         AgentProfile::where('id', $agentProfileId)->update([
-            'avg_rating'    => round($stats->avg_rating, 2),
+            'avg_rating' => round($stats->avg_rating, 2),
             'total_reviews' => $stats->total,
         ]);
     }

@@ -14,7 +14,7 @@ class BanUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id'    => ['required', 'uuid', 'exists:users,id'],
+            'user_id' => ['required', 'uuid', 'exists:users,id'],
             'ban_reason' => ['required', 'string', 'max:1000'],
         ];
     }

@@ -19,8 +19,8 @@ class WhatsAppConversation extends Model
     protected function casts(): array
     {
         return [
-            'session_state'   => WhatsAppSessionState::class,
-            'session_data'    => 'array',
+            'session_state' => WhatsAppSessionState::class,
+            'session_data' => 'array',
             'last_message_at' => 'datetime',
         ];
     }

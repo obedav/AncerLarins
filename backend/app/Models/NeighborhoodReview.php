@@ -23,13 +23,13 @@ class NeighborhoodReview extends Model
     protected function casts(): array
     {
         return [
-            'overall'   => 'decimal:1',
-            'safety'    => 'decimal:1',
+            'overall' => 'decimal:1',
+            'safety' => 'decimal:1',
             'transport' => 'decimal:1',
             'amenities' => 'decimal:1',
-            'noise'     => 'decimal:1',
-            'status'    => ReviewStatus::class,
-            'created_at'=> 'datetime',
+            'noise' => 'decimal:1',
+            'status' => ReviewStatus::class,
+            'created_at' => 'datetime',
         ];
     }
 

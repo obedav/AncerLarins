@@ -33,6 +33,7 @@ class SubscriptionController extends Controller
      * Start a Paystack payment for a subscription tier upgrade.
      *
      * @authenticated
+     *
      * @bodyParam tier string required The subscription tier. Allowed: basic, pro, enterprise. Example: basic
      *
      * @response 200 {"success": true, "message": "Payment initialized.", "data": {"authorization_url": "https://paystack.com/pay/...", "access_code": "access_...", "reference": "ref_..."}}
@@ -58,8 +59,8 @@ class SubscriptionController extends Controller
 
         return $this->successResponse([
             'authorization_url' => $result['authorization_url'],
-            'access_code'       => $result['access_code'],
-            'reference'         => $result['reference'],
+            'access_code' => $result['access_code'],
+            'reference' => $result['reference'],
         ], 'Payment initialized.');
     }
 
@@ -69,6 +70,7 @@ class SubscriptionController extends Controller
      * Verify a Paystack payment and activate the subscription.
      *
      * @authenticated
+     *
      * @bodyParam reference string required The Paystack payment reference. Example: ref_abc123
      *
      * @response 200 {"success": true, "message": "Subscription activated.", "data": {}}
@@ -104,12 +106,12 @@ class SubscriptionController extends Controller
         $activeSubscription = $agent->subscriptions()->active()->latest('created_at')->first();
 
         return $this->successResponse([
-            'tier'               => $agent->subscription_tier,
-            'expires_at'         => $agent->subscription_expires_at,
-            'max_listings'       => $agent->max_listings,
-            'active_listings'    => $agent->active_listings,
-            'has_active'         => $agent->hasActiveSubscription(),
-            'subscription'       => $activeSubscription ? new SubscriptionResource($activeSubscription) : null,
+            'tier' => $agent->subscription_tier,
+            'expires_at' => $agent->subscription_expires_at,
+            'max_listings' => $agent->max_listings,
+            'active_listings' => $agent->active_listings,
+            'has_active' => $agent->hasActiveSubscription(),
+            'subscription' => $activeSubscription ? new SubscriptionResource($activeSubscription) : null,
         ]);
     }
 }

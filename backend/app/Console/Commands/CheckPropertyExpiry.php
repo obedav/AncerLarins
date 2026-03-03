@@ -10,6 +10,7 @@ use Illuminate\Console\Command;
 class CheckPropertyExpiry extends Command
 {
     protected $signature = 'properties:check-expiry';
+
     protected $description = 'Expire properties past their expiry date and notify agents of upcoming expirations';
 
     public function handle(NotificationService $notificationService): int

@@ -2,8 +2,6 @@
 
 namespace Tests\Feature\Search;
 
-use App\Enums\ListingType;
-use App\Enums\PropertyStatus;
 use App\Models\Area;
 use App\Models\City;
 use App\Models\Property;
@@ -18,7 +16,7 @@ use Tests\Traits\CreatesTestData;
 
 class SearchTest extends TestCase
 {
-    use RefreshDatabase, CreatesTestData;
+    use CreatesTestData, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -29,7 +27,7 @@ class SearchTest extends TestCase
         });
 
         $this->mock(NotificationService::class, function ($mock) {
-            $mock->shouldReceive('send')->andReturn(new \App\Models\Notification());
+            $mock->shouldReceive('send')->andReturn(new \App\Models\Notification);
         });
 
         $this->mock(ValuationService::class, function ($mock) {
@@ -46,30 +44,29 @@ class SearchTest extends TestCase
 
         for ($i = 0; $i < $approvedCount; $i++) {
             $properties[] = Property::factory()->approved()->create([
-                'agent_id'         => $agent['profile']->id,
+                'agent_id' => $agent['profile']->id,
                 'property_type_id' => $propertyType->id,
-                'state_id'         => $location['state']->id,
-                'city_id'          => $location['city']->id,
-                'area_id'          => $location['area']->id,
+                'state_id' => $location['state']->id,
+                'city_id' => $location['city']->id,
+                'area_id' => $location['area']->id,
             ]);
         }
 
         for ($i = 0; $i < $pendingCount; $i++) {
             Property::factory()->create([
-                'agent_id'         => $agent['profile']->id,
+                'agent_id' => $agent['profile']->id,
                 'property_type_id' => $propertyType->id,
-                'state_id'         => $location['state']->id,
-                'city_id'          => $location['city']->id,
-                'area_id'          => $location['area']->id,
-                'status'           => PropertyStatus::Pending,
+                'state_id' => $location['state']->id,
+                'city_id' => $location['city']->id,
+                'area_id' => $location['area']->id,
             ]);
         }
 
         return [
-            'agent'        => $agent,
-            'location'     => $location,
+            'agent' => $agent,
+            'location' => $location,
             'propertyType' => $propertyType,
-            'properties'   => $properties,
+            'properties' => $properties,
         ];
     }
 
@@ -92,19 +89,19 @@ class SearchTest extends TestCase
         $propertyType = \App\Models\PropertyType::factory()->create();
 
         Property::factory()->approved()->forRent()->create([
-            'agent_id'         => $agent['profile']->id,
+            'agent_id' => $agent['profile']->id,
             'property_type_id' => $propertyType->id,
-            'state_id'         => $location['state']->id,
-            'city_id'          => $location['city']->id,
-            'area_id'          => $location['area']->id,
+            'state_id' => $location['state']->id,
+            'city_id' => $location['city']->id,
+            'area_id' => $location['area']->id,
         ]);
 
         Property::factory()->approved()->forSale()->create([
-            'agent_id'         => $agent['profile']->id,
+            'agent_id' => $agent['profile']->id,
             'property_type_id' => $propertyType->id,
-            'state_id'         => $location['state']->id,
-            'city_id'          => $location['city']->id,
-            'area_id'          => $location['area']->id,
+            'state_id' => $location['state']->id,
+            'city_id' => $location['city']->id,
+            'area_id' => $location['area']->id,
         ]);
 
         $response = $this->getJson('/api/v1/search?listing_type=rent');
@@ -120,11 +117,11 @@ class SearchTest extends TestCase
         $propertyType = \App\Models\PropertyType::factory()->create();
 
         $common = [
-            'agent_id'         => $agent['profile']->id,
+            'agent_id' => $agent['profile']->id,
             'property_type_id' => $propertyType->id,
-            'state_id'         => $location['state']->id,
-            'city_id'          => $location['city']->id,
-            'area_id'          => $location['area']->id,
+            'state_id' => $location['state']->id,
+            'city_id' => $location['city']->id,
+            'area_id' => $location['area']->id,
         ];
 
         Property::factory()->approved()->create(array_merge($common, ['price_kobo' => 5_000_000]));
@@ -145,19 +142,19 @@ class SearchTest extends TestCase
         $propertyType = \App\Models\PropertyType::factory()->create();
 
         Property::factory()->approved()->create([
-            'agent_id'         => $agent['profile']->id,
+            'agent_id' => $agent['profile']->id,
             'property_type_id' => $propertyType->id,
-            'state_id'         => $location1['state']->id,
-            'city_id'          => $location1['city']->id,
-            'area_id'          => $location1['area']->id,
+            'state_id' => $location1['state']->id,
+            'city_id' => $location1['city']->id,
+            'area_id' => $location1['area']->id,
         ]);
 
         Property::factory()->approved()->create([
-            'agent_id'         => $agent['profile']->id,
+            'agent_id' => $agent['profile']->id,
             'property_type_id' => $propertyType->id,
-            'state_id'         => $location2['state']->id,
-            'city_id'          => $location2['city']->id,
-            'area_id'          => $location2['area']->id,
+            'state_id' => $location2['state']->id,
+            'city_id' => $location2['city']->id,
+            'area_id' => $location2['area']->id,
         ]);
 
         $response = $this->getJson("/api/v1/search?city_id={$location1['city']->id}");
@@ -173,11 +170,11 @@ class SearchTest extends TestCase
         $propertyType = \App\Models\PropertyType::factory()->create();
 
         $common = [
-            'agent_id'         => $agent['profile']->id,
+            'agent_id' => $agent['profile']->id,
             'property_type_id' => $propertyType->id,
-            'state_id'         => $location['state']->id,
-            'city_id'          => $location['city']->id,
-            'area_id'          => $location['area']->id,
+            'state_id' => $location['state']->id,
+            'city_id' => $location['city']->id,
+            'area_id' => $location['area']->id,
         ];
 
         Property::factory()->approved()->create(array_merge($common, ['bedrooms' => 1]));
@@ -197,11 +194,11 @@ class SearchTest extends TestCase
         $propertyType = \App\Models\PropertyType::factory()->create();
 
         $common = [
-            'agent_id'         => $agent['profile']->id,
+            'agent_id' => $agent['profile']->id,
             'property_type_id' => $propertyType->id,
-            'state_id'         => $location['state']->id,
-            'city_id'          => $location['city']->id,
-            'area_id'          => $location['area']->id,
+            'state_id' => $location['state']->id,
+            'city_id' => $location['city']->id,
+            'area_id' => $location['area']->id,
         ];
 
         Property::factory()->approved()->create(array_merge($common, ['price_kobo' => 30_000_000]));
@@ -223,11 +220,11 @@ class SearchTest extends TestCase
         $propertyType = \App\Models\PropertyType::factory()->create();
 
         $common = [
-            'agent_id'         => $agent['profile']->id,
+            'agent_id' => $agent['profile']->id,
             'property_type_id' => $propertyType->id,
-            'state_id'         => $location['state']->id,
-            'city_id'          => $location['city']->id,
-            'area_id'          => $location['area']->id,
+            'state_id' => $location['state']->id,
+            'city_id' => $location['city']->id,
+            'area_id' => $location['area']->id,
         ];
 
         for ($i = 0; $i < 25; $i++) {
@@ -252,13 +249,13 @@ class SearchTest extends TestCase
         $state = State::factory()->create();
         $city = City::factory()->create([
             'state_id' => $state->id,
-            'name'     => 'Lagos',
-            'slug'     => 'lagos',
+            'name' => 'Lagos',
+            'slug' => 'lagos',
         ]);
         Area::factory()->create([
             'city_id' => $city->id,
-            'name'    => 'Lekki Phase 1',
-            'slug'    => 'lekki-phase-1',
+            'name' => 'Lekki Phase 1',
+            'slug' => 'lekki-phase-1',
         ]);
 
         $response = $this->getJson('/api/v1/search/suggestions?q=lek');

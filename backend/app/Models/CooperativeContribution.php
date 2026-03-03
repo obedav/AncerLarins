@@ -20,10 +20,10 @@ class CooperativeContribution extends Model
     protected function casts(): array
     {
         return [
-            'status'         => ContributionStatus::class,
-            'amount_kobo'    => 'integer',
+            'status' => ContributionStatus::class,
+            'amount_kobo' => 'integer',
             'contributed_at' => 'datetime',
-            'verified_at'    => 'datetime',
+            'verified_at' => 'datetime',
         ];
     }
 

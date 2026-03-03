@@ -11,7 +11,7 @@ use Tests\Traits\CreatesTestData;
 
 class EstateTest extends TestCase
 {
-    use RefreshDatabase, CreatesTestData;
+    use CreatesTestData, RefreshDatabase;
 
     // ── Public: Browse ───────────────────────────────────────
 
@@ -54,11 +54,11 @@ class EstateTest extends TestCase
         $location = $this->createLocationHierarchy();
 
         $response = $this->actingAs($admin)->postJson('/api/v1/admin/estates', [
-            'name'        => 'Lekki Gardens Phase 2',
-            'area_id'     => $location['area']->id,
+            'name' => 'Lekki Gardens Phase 2',
+            'area_id' => $location['area']->id,
             'estate_type' => EstateType::GatedEstate->value,
             'description' => 'A premium gated estate in Lekki.',
-            'developer'   => 'Lekki Gardens Ltd',
+            'developer' => 'Lekki Gardens Ltd',
             'total_units' => 200,
         ]);
 

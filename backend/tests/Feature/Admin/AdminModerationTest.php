@@ -3,8 +3,6 @@
 namespace Tests\Feature\Admin;
 
 use App\Enums\PropertyStatus;
-use App\Enums\ReportStatus;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Enums\VerificationStatus;
 use App\Models\AgentProfile;
@@ -20,7 +18,7 @@ use Tests\Traits\CreatesTestData;
 
 class AdminModerationTest extends TestCase
 {
-    use RefreshDatabase, CreatesTestData;
+    use CreatesTestData, RefreshDatabase;
 
     private User $admin;
 
@@ -31,7 +29,7 @@ class AdminModerationTest extends TestCase
         $this->admin = User::factory()->admin()->create(['phone_verified' => true]);
 
         $this->mock(NotificationService::class, function ($mock) {
-            $mock->shouldReceive('send')->andReturn(new \App\Models\Notification());
+            $mock->shouldReceive('send')->andReturn(new \App\Models\Notification);
         });
     }
 
@@ -68,12 +66,12 @@ class AdminModerationTest extends TestCase
         $propertyType = \App\Models\PropertyType::factory()->create();
 
         Property::factory()->create([
-            'agent_id'         => $agent['profile']->id,
-            'status'           => PropertyStatus::Pending,
+            'agent_id' => $agent['profile']->id,
+
             'property_type_id' => $propertyType->id,
-            'state_id'         => $location['state']->id,
-            'city_id'          => $location['city']->id,
-            'area_id'          => $location['area']->id,
+            'state_id' => $location['state']->id,
+            'city_id' => $location['city']->id,
+            'area_id' => $location['area']->id,
         ]);
 
         $response = $this->actingAs($this->admin)->getJson('/api/v1/admin/properties/pending');
@@ -88,12 +86,12 @@ class AdminModerationTest extends TestCase
         $propertyType = \App\Models\PropertyType::factory()->create();
 
         $property = Property::factory()->create([
-            'agent_id'         => $agent['profile']->id,
-            'status'           => PropertyStatus::Pending,
+            'agent_id' => $agent['profile']->id,
+
             'property_type_id' => $propertyType->id,
-            'state_id'         => $location['state']->id,
-            'city_id'          => $location['city']->id,
-            'area_id'          => $location['area']->id,
+            'state_id' => $location['state']->id,
+            'city_id' => $location['city']->id,
+            'area_id' => $location['area']->id,
         ]);
 
         $response = $this->actingAs($this->admin)->postJson('/api/v1/admin/properties/approve', [
@@ -113,16 +111,16 @@ class AdminModerationTest extends TestCase
         $propertyType = \App\Models\PropertyType::factory()->create();
 
         $property = Property::factory()->create([
-            'agent_id'         => $agent['profile']->id,
-            'status'           => PropertyStatus::Pending,
+            'agent_id' => $agent['profile']->id,
+
             'property_type_id' => $propertyType->id,
-            'state_id'         => $location['state']->id,
-            'city_id'          => $location['city']->id,
-            'area_id'          => $location['area']->id,
+            'state_id' => $location['state']->id,
+            'city_id' => $location['city']->id,
+            'area_id' => $location['area']->id,
         ]);
 
         $response = $this->actingAs($this->admin)->postJson('/api/v1/admin/properties/reject', [
-            'property_id'      => $property->id,
+            'property_id' => $property->id,
             'rejection_reason' => 'Incomplete listing info.',
         ]);
 
@@ -139,7 +137,7 @@ class AdminModerationTest extends TestCase
 
         $response = $this->actingAs($this->admin)->postJson('/api/v1/admin/properties/feature', [
             'property_id' => $property->id,
-            'days'         => 14,
+            'days' => 14,
         ]);
 
         $response->assertOk()
@@ -152,7 +150,7 @@ class AdminModerationTest extends TestCase
     {
         $user = User::factory()->agent()->create(['phone_verified' => true]);
         AgentProfile::factory()->create([
-            'user_id'             => $user->id,
+            'user_id' => $user->id,
             'verification_status' => VerificationStatus::Pending,
         ]);
 
@@ -165,7 +163,7 @@ class AdminModerationTest extends TestCase
     {
         $user = User::factory()->agent()->create(['phone_verified' => true]);
         $agent = AgentProfile::factory()->create([
-            'user_id'             => $user->id,
+            'user_id' => $user->id,
             'verification_status' => VerificationStatus::Pending,
         ]);
 
@@ -183,13 +181,13 @@ class AdminModerationTest extends TestCase
     {
         $user = User::factory()->agent()->create(['phone_verified' => true]);
         $agent = AgentProfile::factory()->create([
-            'user_id'             => $user->id,
+            'user_id' => $user->id,
             'verification_status' => VerificationStatus::Pending,
         ]);
 
         $response = $this->actingAs($this->admin)->postJson('/api/v1/admin/agents/reject', [
-            'agent_profile_id'  => $agent->id,
-            'rejection_reason'  => 'Invalid documents.',
+            'agent_profile_id' => $agent->id,
+            'rejection_reason' => 'Invalid documents.',
         ]);
 
         $response->assertOk()
@@ -205,7 +203,7 @@ class AdminModerationTest extends TestCase
         $user = $this->createVerifiedUser();
 
         $response = $this->actingAs($this->admin)->postJson('/api/v1/admin/users/ban', [
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'ban_reason' => 'Spamming the platform.',
         ]);
 
@@ -223,9 +221,9 @@ class AdminModerationTest extends TestCase
         $property = $this->createApprovedProperty($agent['profile']);
 
         Report::factory()->create([
-            'reporter_id'     => $this->admin->id,
+            'reporter_id' => $this->admin->id,
             'reportable_type' => Property::class,
-            'reportable_id'   => $property->id,
+            'reportable_id' => $property->id,
         ]);
 
         $response = $this->actingAs($this->admin)->getJson('/api/v1/admin/reports');
@@ -239,9 +237,9 @@ class AdminModerationTest extends TestCase
         $property = $this->createApprovedProperty($agent['profile']);
 
         $report = Report::factory()->create([
-            'reporter_id'     => $this->admin->id,
+            'reporter_id' => $this->admin->id,
             'reportable_type' => Property::class,
-            'reportable_id'   => $property->id,
+            'reportable_id' => $property->id,
         ]);
 
         $this->mock(ReportService::class, function ($mock) {

@@ -20,7 +20,7 @@ class BackupDatabase extends Command
     {
         $dir = $this->option('path') ?: storage_path('backups');
 
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             mkdir($dir, 0750, true);
         }
 
@@ -40,8 +40,9 @@ class BackupDatabase extends Command
             ->timeout(300)
             ->run("pg_dump -h {$host} -p {$port} -U {$username} -d {$database} --no-owner --no-privileges | gzip > {$filepath}");
 
-        if (!$result->successful()) {
-            $this->error('Backup failed: ' . $result->errorOutput());
+        if (! $result->successful()) {
+            $this->error('Backup failed: '.$result->errorOutput());
+
             return self::FAILURE;
         }
 

@@ -15,7 +15,7 @@ class ContactAgentRequest extends FormRequest
     {
         return [
             'contact_type' => ['required', 'in:whatsapp,call,form'],
-            'source'       => ['nullable', 'string', 'max:100'],
+            'source' => ['nullable', 'string', 'max:100'],
             'utm_campaign' => ['nullable', 'string', 'max:100'],
         ];
     }

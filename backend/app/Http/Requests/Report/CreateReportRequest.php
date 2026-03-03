@@ -17,10 +17,10 @@ class CreateReportRequest extends FormRequest
     {
         return [
             'reportable_type' => ['required', Rule::in(['property', 'agent', 'review'])],
-            'reportable_id'   => ['required', 'uuid'],
-            'reason'          => ['required', Rule::in(array_column(ReportReason::cases(), 'value'))],
-            'description'     => ['nullable', 'string', 'max:2000'],
-            'evidence_urls'   => ['nullable', 'array', 'max:5'],
+            'reportable_id' => ['required', 'uuid'],
+            'reason' => ['required', Rule::in(array_column(ReportReason::cases(), 'value'))],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'evidence_urls' => ['nullable', 'array', 'max:5'],
             'evidence_urls.*' => ['url'],
         ];
     }
@@ -30,8 +30,8 @@ class CreateReportRequest extends FormRequest
         $validator->after(function ($validator) {
             $typeMap = [
                 'property' => \App\Models\Property::class,
-                'agent'    => \App\Models\AgentProfile::class,
-                'review'   => \App\Models\AgentReview::class,
+                'agent' => \App\Models\AgentProfile::class,
+                'review' => \App\Models\AgentReview::class,
             ];
 
             $type = $this->reportable_type;

@@ -15,17 +15,18 @@ class BlogPostSeeder extends Seeder
 
         if (! $admin) {
             $this->command->warn('No admin user found — skipping blog seeder.');
+
             return;
         }
 
         $posts = [
             // ── Guides ──────────────────────────────────────
             [
-                'title'      => 'The Complete Guide to Renting Your First Apartment in Lagos',
-                'category'   => 'guide',
-                'tags'       => ['renting', 'first-timer', 'lagos'],
-                'excerpt'    => 'Moving to Lagos? Here\'s everything you need to know about finding and securing your first rental — from agent fees to inspection tips.',
-                'content'    => <<<'MD'
+                'title' => 'The Complete Guide to Renting Your First Apartment in Lagos',
+                'category' => 'guide',
+                'tags' => ['renting', 'first-timer', 'lagos'],
+                'excerpt' => 'Moving to Lagos? Here\'s everything you need to know about finding and securing your first rental — from agent fees to inspection tips.',
+                'content' => <<<'MD'
 ## Introduction
 
 Lagos is one of Africa's fastest-growing cities, and finding the right apartment can feel overwhelming — especially if you're new. This guide walks you through every step, from budgeting to signing the tenancy agreement.
@@ -90,11 +91,11 @@ MD,
             ],
 
             [
-                'title'      => 'How to Verify Property Ownership in Lagos: A Step-by-Step Guide',
-                'category'   => 'guide',
-                'tags'       => ['buying', 'verification', 'legal', 'c-of-o'],
-                'excerpt'    => 'Before you buy any property in Lagos, learn how to verify ownership documents and avoid falling victim to land scams.',
-                'content'    => <<<'MD'
+                'title' => 'How to Verify Property Ownership in Lagos: A Step-by-Step Guide',
+                'category' => 'guide',
+                'tags' => ['buying', 'verification', 'legal', 'c-of-o'],
+                'excerpt' => 'Before you buy any property in Lagos, learn how to verify ownership documents and avoid falling victim to land scams.',
+                'content' => <<<'MD'
 ## Why Verification Matters
 
 Lagos has a well-documented history of land fraud. The phrase "Omo Onile" (children of the land) strikes fear into property buyers. This guide helps you verify any property before you part with your money.
@@ -152,11 +153,11 @@ MD,
 
             // ── Market Reports ──────────────────────────────
             [
-                'title'      => 'Lagos Property Market Report: Q1 2026',
-                'category'   => 'market_report',
-                'tags'       => ['market-report', 'q1-2026', 'prices', 'trends'],
-                'excerpt'    => 'Rental prices in Lekki rose 18% year-over-year while the Mainland saw more moderate growth. Here\'s the full Q1 2026 breakdown.',
-                'content'    => <<<'MD'
+                'title' => 'Lagos Property Market Report: Q1 2026',
+                'category' => 'market_report',
+                'tags' => ['market-report', 'q1-2026', 'prices', 'trends'],
+                'excerpt' => 'Rental prices in Lekki rose 18% year-over-year while the Mainland saw more moderate growth. Here\'s the full Q1 2026 breakdown.',
+                'content' => <<<'MD'
 ## Executive Summary
 
 The Lagos property market continued its upward trend in Q1 2026, driven by inflation, population growth, and limited new supply in premium areas. Key highlights:
@@ -209,11 +210,11 @@ MD,
 
             // ── Area Spotlights ─────────────────────────────
             [
-                'title'      => 'Area Spotlight: Why Lekki Phase 1 Remains Lagos\' Most Popular Neighbourhood',
-                'category'   => 'area_spotlight',
-                'tags'       => ['lekki', 'area-guide', 'neighbourhood'],
-                'excerpt'    => 'From world-class restaurants to the best gyms in Lagos, discover why Lekki Phase 1 continues to attract young professionals and families alike.',
-                'content'    => <<<'MD'
+                'title' => 'Area Spotlight: Why Lekki Phase 1 Remains Lagos\' Most Popular Neighbourhood',
+                'category' => 'area_spotlight',
+                'tags' => ['lekki', 'area-guide', 'neighbourhood'],
+                'excerpt' => 'From world-class restaurants to the best gyms in Lagos, discover why Lekki Phase 1 continues to attract young professionals and families alike.',
+                'content' => <<<'MD'
 ## Overview
 
 Lekki Phase 1 is arguably Lagos' most balanced neighbourhood — offering a mix of residential comfort, entertainment, and convenience that few areas can match. Bounded by the Lekki-Epe Expressway and the Lagos Lagoon, it's home to over 50,000 residents.
@@ -269,11 +270,11 @@ MD,
             ],
 
             [
-                'title'      => 'Area Spotlight: Ikeja GRA — The Mainland\'s Hidden Gem',
-                'category'   => 'area_spotlight',
-                'tags'       => ['ikeja', 'mainland', 'area-guide', 'family-friendly'],
-                'excerpt'    => 'Quiet streets, old-money charm, and proximity to the airport make Ikeja GRA one of Lagos\' most underrated residential areas.',
-                'content'    => <<<'MD'
+                'title' => 'Area Spotlight: Ikeja GRA — The Mainland\'s Hidden Gem',
+                'category' => 'area_spotlight',
+                'tags' => ['ikeja', 'mainland', 'area-guide', 'family-friendly'],
+                'excerpt' => 'Quiet streets, old-money charm, and proximity to the airport make Ikeja GRA one of Lagos\' most underrated residential areas.',
+                'content' => <<<'MD'
 ## Overview
 
 While the Island gets most of the attention, Ikeja GRA (Government Reserved Area) quietly offers one of the best living experiences in Lagos. Tree-lined streets, spacious plots, and a community feel that's increasingly rare in the city.
@@ -329,11 +330,11 @@ MD,
 
             // ── Tips ────────────────────────────────────────
             [
-                'title'      => '7 Red Flags That Scream "Property Scam" in Lagos',
-                'category'   => 'tips',
-                'tags'       => ['scam', 'fraud', 'tips', 'safety'],
-                'excerpt'    => 'Thousands of Nigerians lose money to property scams every year. Learn to spot the warning signs before it\'s too late.',
-                'content'    => <<<'MD'
+                'title' => '7 Red Flags That Scream "Property Scam" in Lagos',
+                'category' => 'tips',
+                'tags' => ['scam', 'fraud', 'tips', 'safety'],
+                'excerpt' => 'Thousands of Nigerians lose money to property scams every year. Learn to spot the warning signs before it\'s too late.',
+                'content' => <<<'MD'
 ## The Problem
 
 Property fraud costs Nigerians an estimated ₦200 billion annually. Lagos, with its booming real estate market, is ground zero. Here are the red flags every buyer and renter must know.
@@ -391,11 +392,11 @@ MD,
             ],
 
             [
-                'title'      => 'Short-Let vs Long-Term Rental: Which Is More Profitable for Lagos Landlords?',
-                'category'   => 'tips',
-                'tags'       => ['short-let', 'investment', 'landlord', 'returns'],
-                'excerpt'    => 'The short-let market is booming in Lagos, but is it actually more profitable than traditional long-term rentals? We crunch the numbers.',
-                'content'    => <<<'MD'
+                'title' => 'Short-Let vs Long-Term Rental: Which Is More Profitable for Lagos Landlords?',
+                'category' => 'tips',
+                'tags' => ['short-let', 'investment', 'landlord', 'returns'],
+                'excerpt' => 'The short-let market is booming in Lagos, but is it actually more profitable than traditional long-term rentals? We crunch the numbers.',
+                'content' => <<<'MD'
 ## The Short-Let Revolution
 
 Lagos has seen an explosion of short-let apartments, driven by business travellers, diaspora visits, and the rise of remote work. But does the hype match the returns?
@@ -451,11 +452,11 @@ MD,
 
             // ── News ────────────────────────────────────────
             [
-                'title'      => 'Lagos Blue Line Rail: How It\'s Reshaping Property Values Along the Corridor',
-                'category'   => 'news',
-                'tags'       => ['blue-line', 'rail', 'infrastructure', 'property-values'],
-                'excerpt'    => 'The Lagos Blue Line rail is transforming previously overlooked areas into real estate hotspots. Here\'s where to invest before prices peak.',
-                'content'    => <<<'MD'
+                'title' => 'Lagos Blue Line Rail: How It\'s Reshaping Property Values Along the Corridor',
+                'category' => 'news',
+                'tags' => ['blue-line', 'rail', 'infrastructure', 'property-values'],
+                'excerpt' => 'The Lagos Blue Line rail is transforming previously overlooked areas into real estate hotspots. Here\'s where to invest before prices peak.',
+                'content' => <<<'MD'
 ## The Blue Line Effect
 
 The Lagos Rail Mass Transit Blue Line, running from Marina to Okokomaiko, has begun transforming property markets along its 27km corridor. Areas within 1km of stations are seeing price increases of 25-40%.
@@ -495,11 +496,11 @@ MD,
             ],
 
             [
-                'title'      => 'Eko Atlantic: The City Rising From the Sea — 2026 Progress Update',
-                'category'   => 'news',
-                'tags'       => ['eko-atlantic', 'development', 'victoria-island', 'luxury'],
-                'excerpt'    => 'Eko Atlantic City continues to take shape with new residential towers and commercial spaces. Here\'s what\'s changed in 2026.',
-                'content'    => <<<'MD'
+                'title' => 'Eko Atlantic: The City Rising From the Sea — 2026 Progress Update',
+                'category' => 'news',
+                'tags' => ['eko-atlantic', 'development', 'victoria-island', 'luxury'],
+                'excerpt' => 'Eko Atlantic City continues to take shape with new residential towers and commercial spaces. Here\'s what\'s changed in 2026.',
+                'content' => <<<'MD'
 ## What Is Eko Atlantic?
 
 Eko Atlantic City is a planned city being built on reclaimed land from the Atlantic Ocean, adjacent to Victoria Island. When completed, it will house 250,000 residents and 150,000 daily commuters across 10 million square metres.
@@ -542,11 +543,11 @@ MD,
 
             // ── More Tips ───────────────────────────────────
             [
-                'title'      => 'Understanding Service Charges in Lagos Estates: What You\'re Actually Paying For',
-                'category'   => 'tips',
-                'tags'       => ['service-charge', 'estates', 'cost', 'breakdown'],
-                'excerpt'    => 'Service charges can add millions to your annual housing cost. Here\'s a breakdown of what they cover and whether you\'re getting value.',
-                'content'    => <<<'MD'
+                'title' => 'Understanding Service Charges in Lagos Estates: What You\'re Actually Paying For',
+                'category' => 'tips',
+                'tags' => ['service-charge', 'estates', 'cost', 'breakdown'],
+                'excerpt' => 'Service charges can add millions to your annual housing cost. Here\'s a breakdown of what they cover and whether you\'re getting value.',
+                'content' => <<<'MD'
 ## What Are Service Charges?
 
 Service charges are annual fees paid by residents of estates and serviced apartments in Lagos. They cover shared services and maintenance. In some estates, they're as much as the rent itself.
@@ -613,22 +614,22 @@ MD,
             BlogPost::firstOrCreate(
                 ['slug' => $slug],
                 [
-                    'author_id'        => $admin->id,
-                    'title'            => $post['title'],
-                    'slug'             => $slug,
-                    'excerpt'          => $post['excerpt'],
-                    'content'          => $post['content'],
-                    'category'         => $post['category'],
-                    'tags'             => $post['tags'],
-                    'status'           => 'published',
-                    'published_at'     => now()->subDays(count($posts) - $i),
-                    'view_count'       => rand(50, 2000),
-                    'meta_title'       => $post['title'],
+                    'author_id' => $admin->id,
+                    'title' => $post['title'],
+                    'slug' => $slug,
+                    'excerpt' => $post['excerpt'],
+                    'content' => $post['content'],
+                    'category' => $post['category'],
+                    'tags' => $post['tags'],
+                    'status' => 'published',
+                    'published_at' => now()->subDays(count($posts) - $i),
+                    'view_count' => rand(50, 2000),
+                    'meta_title' => $post['title'],
                     'meta_description' => $post['excerpt'],
                 ]
             );
         }
 
-        $this->command->info('Seeded ' . count($posts) . ' blog posts.');
+        $this->command->info('Seeded '.count($posts).' blog posts.');
     }
 }

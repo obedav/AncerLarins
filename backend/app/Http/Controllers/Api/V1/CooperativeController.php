@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 
 /**
  * @group Cooperatives
+ *
  * @authenticated
  *
  * Housing cooperatives — create, join, contribute, and track progress.
@@ -129,8 +130,8 @@ class CooperativeController extends Controller
         }
 
         return $this->successResponse([
-            'authorization_url'  => $paystackUrl,
-            'payment_reference'  => $result['contribution']->payment_reference,
+            'authorization_url' => $paystackUrl,
+            'payment_reference' => $result['contribution']->payment_reference,
         ], 'Payment initialized.');
     }
 
@@ -148,7 +149,7 @@ class CooperativeController extends Controller
         }
 
         return $this->successResponse([
-            'status'      => $contribution->status->value,
+            'status' => $contribution->status->value,
             'amount_kobo' => $contribution->amount_kobo,
         ], 'Contribution verified.');
     }
@@ -160,7 +161,7 @@ class CooperativeController extends Controller
     {
         $cooperatives = Cooperative::whereHas('members', function ($q) use ($request) {
             $q->where('user_id', $request->user()->id)
-              ->where('status', CooperativeMemberStatus::Active);
+                ->where('status', CooperativeMemberStatus::Active);
         })
             ->with('area')
             ->latest()
@@ -206,7 +207,7 @@ class CooperativeController extends Controller
 
         if ($request->filled('q')) {
             $q = str_replace(['%', '_'], ['\\%', '\\_'], $request->input('q'));
-            $query->where('name', 'ilike', '%' . $q . '%');
+            $query->where('name', 'ilike', '%'.$q.'%');
         }
 
         $cooperatives = $query->paginate($request->perPage(20));

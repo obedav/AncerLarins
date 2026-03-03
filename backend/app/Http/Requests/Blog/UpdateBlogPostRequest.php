@@ -18,15 +18,15 @@ class UpdateBlogPostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title'            => ['sometimes', 'string', 'max:255'],
-            'content'          => ['sometimes', 'string'],
-            'excerpt'          => ['nullable', 'string', 'max:500'],
-            'cover_image_url'  => ['nullable', 'url', 'max:2048'],
-            'category'         => ['sometimes', Rule::in(array_column(BlogPostCategory::cases(), 'value'))],
-            'tags'             => ['nullable', 'array'],
-            'tags.*'           => ['string', 'max:50'],
-            'status'           => ['sometimes', Rule::in(array_column(BlogPostStatus::cases(), 'value'))],
-            'meta_title'       => ['nullable', 'string', 'max:70'],
+            'title' => ['sometimes', 'string', 'max:255'],
+            'content' => ['sometimes', 'string'],
+            'excerpt' => ['nullable', 'string', 'max:500'],
+            'cover_image_url' => ['nullable', 'url', 'max:2048'],
+            'category' => ['sometimes', Rule::in(array_column(BlogPostCategory::cases(), 'value'))],
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['string', 'max:50'],
+            'status' => ['sometimes', Rule::in(array_column(BlogPostStatus::cases(), 'value'))],
+            'meta_title' => ['nullable', 'string', 'max:70'],
             'meta_description' => ['nullable', 'string', 'max:160'],
         ];
     }

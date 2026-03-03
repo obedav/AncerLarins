@@ -16,8 +16,8 @@ class VerifyOtpRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone'   => ['required', 'string', 'regex:/^(\+234|0)[789]\d{9}$/'],
-            'code'    => ['required', 'string', 'size:6'],
+            'phone' => ['required', 'string', 'regex:/^(\+234|0)[789]\d{9}$/'],
+            'code' => ['required', 'string', 'size:6'],
             'purpose' => ['required', Rule::in(array_column(OtpPurpose::cases(), 'value'))],
         ];
     }
@@ -26,7 +26,7 @@ class VerifyOtpRequest extends FormRequest
     {
         return [
             'phone.regex' => 'Phone must be a valid Nigerian number.',
-            'code.size'   => 'OTP must be exactly 6 digits.',
+            'code.size' => 'OTP must be exactly 6 digits.',
         ];
     }
 }

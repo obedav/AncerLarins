@@ -76,7 +76,7 @@ class EstateSeeder extends Seeder
                 ['slug' => $slug],
                 array_merge($data, [
                     'area_id' => $area->id,
-                    'slug'    => $slug,
+                    'slug' => $slug,
                 ])
             );
         }

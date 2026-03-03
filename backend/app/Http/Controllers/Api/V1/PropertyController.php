@@ -70,10 +70,10 @@ class PropertyController extends Controller
 
         // Sorting
         match ($request->input('sort_by')) {
-            'price_asc'  => $query->orderBy('price_kobo', 'asc'),
+            'price_asc' => $query->orderBy('price_kobo', 'asc'),
             'price_desc' => $query->orderBy('price_kobo', 'desc'),
-            'popular'    => $query->orderBy('view_count', 'desc'),
-            default      => $query->latest('published_at'),
+            'popular' => $query->orderBy('view_count', 'desc'),
+            default => $query->latest('published_at'),
         };
 
         $properties = $query->paginate($request->perPage(20));
@@ -94,9 +94,9 @@ class PropertyController extends Controller
         }
 
         $this->propertyService->incrementViewCount($property, [
-            'user_id'     => request()->user()?->id,
-            'session_id'  => request()->header('X-Session-Id'),
-            'source'      => request()->header('Referer'),
+            'user_id' => request()->user()?->id,
+            'session_id' => request()->header('X-Session-Id'),
+            'source' => request()->header('Referer'),
             'device_type' => request()->header('X-Device-Type'),
         ]);
 
@@ -200,6 +200,7 @@ class PropertyController extends Controller
      * Upload images for a property listing. Maximum 20 images, 5MB each.
      *
      * @authenticated
+     *
      * @bodyParam images file[] required Array of image files. Max 5MB each.
      * @bodyParam captions string[] Optional captions for each image.
      *
@@ -212,7 +213,7 @@ class PropertyController extends Controller
         set_time_limit(180); // Allow up to 3 minutes for multiple image uploads
 
         $request->validate([
-            'images'   => 'required|array|max:20',
+            'images' => 'required|array|max:20',
             'images.*' => 'image|max:5120',
             'captions' => 'nullable|array',
         ]);
@@ -245,6 +246,7 @@ class PropertyController extends Controller
 
         if ($existing) {
             $existing->delete();
+
             return $this->successResponse(['saved' => false], 'Property unsaved.');
         }
 

@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 class SendWeeklyDigest extends Command
 {
     protected $signature = 'notifications:send-weekly-digest';
+
     protected $description = 'Send weekly digest notifications for saved searches with new matches';
 
     public function handle(SavedSearchService $savedSearchService, NotificationService $notificationService): int
@@ -27,7 +28,7 @@ class SendWeeklyDigest extends Command
             );
 
             $search->update([
-                'match_count'      => 0,
+                'match_count' => 0,
                 'last_notified_at' => now(),
             ]);
 

@@ -23,10 +23,10 @@ class ScrapedListing extends Model
     protected function casts(): array
     {
         return [
-            'raw_data'   => 'array',
+            'raw_data' => 'array',
             'price_kobo' => 'integer',
-            'bedrooms'   => 'integer',
-            'status'     => ScrapedListingStatus::class,
+            'bedrooms' => 'integer',
+            'status' => ScrapedListingStatus::class,
             'dedup_score' => 'decimal:4',
         ];
     }

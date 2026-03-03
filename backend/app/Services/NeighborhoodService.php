@@ -29,32 +29,32 @@ class NeighborhoodService
             ->limit(3)
             ->get()
             ->map(fn ($r) => [
-                'id'             => $r->id,
-                'overall'        => $r->overall,
-                'safety'         => $r->safety,
-                'transport'      => $r->transport,
-                'amenities'      => $r->amenities,
-                'noise'          => $r->noise,
-                'comment'        => $r->comment,
+                'id' => $r->id,
+                'overall' => $r->overall,
+                'safety' => $r->safety,
+                'transport' => $r->transport,
+                'amenities' => $r->amenities,
+                'noise' => $r->noise,
+                'comment' => $r->comment,
                 'lived_duration' => $r->lived_duration,
-                'user_name'      => $r->user ? $r->user->first_name . ' ' . substr($r->user->last_name, 0, 1) . '.' : 'Anonymous',
-                'created_at'     => $r->created_at?->toISOString(),
+                'user_name' => $r->user ? $r->user->first_name.' '.substr($r->user->last_name, 0, 1).'.' : 'Anonymous',
+                'created_at' => $r->created_at?->toISOString(),
             ]);
 
         return [
             'area' => [
-                'id'   => $area->id,
+                'id' => $area->id,
                 'name' => $area->name,
                 'slug' => $area->slug,
             ],
             'scores' => [
-                'overall'   => (float) ($avgScores->avg_overall ?? min(($area->safety_score ?? 0) / 2, 5)),
-                'safety'    => (float) ($avgScores->avg_safety ?? min(($area->safety_score ?? 0) / 2, 5)),
+                'overall' => (float) ($avgScores->avg_overall ?? min(($area->safety_score ?? 0) / 2, 5)),
+                'safety' => (float) ($avgScores->avg_safety ?? min(($area->safety_score ?? 0) / 2, 5)),
                 'transport' => (float) ($avgScores->avg_transport ?? min(($area->traffic_score ?? 0) / 2, 5)),
                 'amenities' => (float) ($avgScores->avg_amenities ?? min(($area->amenity_score ?? 0) / 2, 5)),
-                'noise'     => (float) ($avgScores->avg_noise ?? 0),
+                'noise' => (float) ($avgScores->avg_noise ?? 0),
             ],
-            'review_count'  => (int) ($avgScores->review_count ?? 0),
+            'review_count' => (int) ($avgScores->review_count ?? 0),
             'rent_averages' => [
                 '1br' => $area->avg_rent_1br,
                 '2br' => $area->avg_rent_2br,
@@ -67,16 +67,16 @@ class NeighborhoodService
     public function submitReview(User $user, Area $area, array $data): NeighborhoodReview
     {
         return NeighborhoodReview::create([
-            'area_id'        => $area->id,
-            'user_id'        => $user->id,
-            'overall'        => $data['overall'],
-            'safety'         => $data['safety'],
-            'transport'      => $data['transport'],
-            'amenities'      => $data['amenities'],
-            'noise'          => $data['noise'],
-            'comment'        => $data['comment'] ?? null,
+            'area_id' => $area->id,
+            'user_id' => $user->id,
+            'overall' => $data['overall'],
+            'safety' => $data['safety'],
+            'transport' => $data['transport'],
+            'amenities' => $data['amenities'],
+            'noise' => $data['noise'],
+            'comment' => $data['comment'] ?? null,
             'lived_duration' => $data['lived_duration'] ?? null,
-            'status'         => ReviewStatus::Pending,
+            'status' => ReviewStatus::Pending,
         ]);
     }
 
@@ -93,7 +93,7 @@ class NeighborhoodService
 
         if ($avg && ($avg->safety || $avg->transport || $avg->amenities)) {
             $area->update([
-                'safety_score'  => $avg->safety,
+                'safety_score' => $avg->safety,
                 'traffic_score' => $avg->transport,
                 'amenity_score' => $avg->amenities,
             ]);

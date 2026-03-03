@@ -20,6 +20,7 @@ class Turnstile implements ValidationRule
 
         if (empty($value)) {
             $fail('Please complete the security check.');
+
             return;
         }
 

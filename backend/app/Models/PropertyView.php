@@ -22,10 +22,10 @@ class PropertyView extends Model
     {
         return [
             'duration_seconds' => 'integer',
-            'viewed_images'    => 'boolean',
-            'contacted_agent'  => 'boolean',
-            'saved'            => 'boolean',
-            'created_at'       => 'datetime',
+            'viewed_images' => 'boolean',
+            'contacted_agent' => 'boolean',
+            'saved' => 'boolean',
+            'created_at' => 'datetime',
         ];
     }
 

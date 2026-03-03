@@ -22,14 +22,14 @@ class Area extends Model
     protected function casts(): array
     {
         return [
-            'avg_rent_1br'     => 'integer',
-            'avg_rent_2br'     => 'integer',
-            'avg_rent_3br'     => 'integer',
-            'avg_buy_price_sqm'=> 'integer',
-            'safety_score'     => 'decimal:1',
-            'traffic_score'    => 'decimal:1',
-            'amenity_score'    => 'decimal:1',
-            'is_active'        => 'boolean',
+            'avg_rent_1br' => 'integer',
+            'avg_rent_2br' => 'integer',
+            'avg_rent_3br' => 'integer',
+            'avg_buy_price_sqm' => 'integer',
+            'safety_score' => 'decimal:1',
+            'traffic_score' => 'decimal:1',
+            'amenity_score' => 'decimal:1',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -93,13 +93,19 @@ class Area extends Model
 
     public function getLatitudeAttribute(): ?float
     {
-        if (! $this->attributes['location']) return null;
+        if (! $this->attributes['location']) {
+            return null;
+        }
+
         return DB::selectOne('SELECT ST_Y(location::geometry) AS lat FROM areas WHERE id = ?', [$this->id])?->lat;
     }
 
     public function getLongitudeAttribute(): ?float
     {
-        if (! $this->attributes['location']) return null;
+        if (! $this->attributes['location']) {
+            return null;
+        }
+
         return DB::selectOne('SELECT ST_X(location::geometry) AS lng FROM areas WHERE id = ?', [$this->id])?->lng;
     }
 }

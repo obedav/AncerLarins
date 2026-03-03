@@ -6,7 +6,6 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class PropertySeeder extends Seeder
 {
@@ -17,8 +16,9 @@ class PropertySeeder extends Seeder
 
         // Fetch existing seeded data
         $agentProfile = DB::table('agent_profiles')->first();
-        if (!$agentProfile) {
+        if (! $agentProfile) {
             $this->command->error('No agent profile found. Run DatabaseSeeder first.');
+
             return;
         }
 
@@ -337,15 +337,17 @@ class PropertySeeder extends Seeder
 
         foreach ($properties as $index => $p) {
             $area = $areas->get($p['area']);
-            if (!$area) {
+            if (! $area) {
                 $this->command->warn("Area '{$p['area']}' not found, skipping.");
+
                 continue;
             }
 
             $city = $cities->get($area->city_id);
             $propType = $propertyTypes->get($p['type']);
-            if (!$propType) {
+            if (! $propType) {
                 $this->command->warn("Property type '{$p['type']}' not found, skipping.");
+
                 continue;
             }
 
@@ -459,6 +461,6 @@ class PropertySeeder extends Seeder
             }
         }
 
-        $this->command->info('Seeded ' . count($properties) . ' properties with images, amenities, and price history.');
+        $this->command->info('Seeded '.count($properties).' properties with images, amenities, and price history.');
     }
 }

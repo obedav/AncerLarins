@@ -19,9 +19,9 @@ class CityFactory extends Factory
         $name = fake()->unique()->city();
 
         return [
-            'state_id'  => State::factory(),
-            'name'      => $name,
-            'slug'      => Str::slug($name),
+            'state_id' => State::factory(),
+            'name' => $name,
+            'slug' => Str::slug($name),
             'is_active' => true,
         ];
     }

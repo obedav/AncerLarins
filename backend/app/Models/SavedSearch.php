@@ -24,19 +24,19 @@ class SavedSearch extends Model
     protected function casts(): array
     {
         return [
-            'area_ids'           => 'array',
+            'area_ids' => 'array',
             'additional_filters' => 'array',
-            'min_price_kobo'     => 'integer',
-            'max_price_kobo'     => 'integer',
-            'min_bedrooms'       => 'integer',
-            'max_bedrooms'       => 'integer',
-            'notify_push'        => 'boolean',
-            'notify_whatsapp'    => 'boolean',
-            'notify_email'       => 'boolean',
-            'frequency'          => NotificationFrequency::class,
-            'last_notified_at'   => 'datetime',
-            'match_count'        => 'integer',
-            'is_active'          => 'boolean',
+            'min_price_kobo' => 'integer',
+            'max_price_kobo' => 'integer',
+            'min_bedrooms' => 'integer',
+            'max_bedrooms' => 'integer',
+            'notify_push' => 'boolean',
+            'notify_whatsapp' => 'boolean',
+            'notify_email' => 'boolean',
+            'frequency' => NotificationFrequency::class,
+            'last_notified_at' => 'datetime',
+            'match_count' => 'integer',
+            'is_active' => 'boolean',
         ];
     }
 

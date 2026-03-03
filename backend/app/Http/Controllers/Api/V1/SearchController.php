@@ -36,14 +36,14 @@ class SearchController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Success',
-            'data'    => $results->getCollection()->map(fn ($p) => new PropertyListResource($p)),
-            'meta'    => [
+            'data' => $results->getCollection()->map(fn ($p) => new PropertyListResource($p)),
+            'meta' => [
                 'current_page' => $results->currentPage(),
-                'last_page'    => $results->lastPage(),
-                'per_page'     => $results->perPage(),
-                'total'        => $results->total(),
+                'last_page' => $results->lastPage(),
+                'per_page' => $results->perPage(),
+                'total' => $results->total(),
             ],
-            'facets'  => $data['facets'],
+            'facets' => $data['facets'],
         ]);
     }
 
@@ -63,8 +63,8 @@ class SearchController extends Controller
         $request->validate([
             'north' => 'required|numeric|between:-90,90',
             'south' => 'required|numeric|between:-90,90',
-            'east'  => 'required|numeric|between:-180,180',
-            'west'  => 'required|numeric|between:-180,180',
+            'east' => 'required|numeric|between:-180,180',
+            'west' => 'required|numeric|between:-180,180',
         ]);
 
         $properties = $this->searchService->mapSearch(

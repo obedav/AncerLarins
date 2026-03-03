@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 
 /**
  * @group Admin - Scraped Listings
+ *
  * @authenticated
  *
  * Review and approve/reject scraped property listings from external sources.
@@ -54,6 +55,7 @@ class ScrapedListingController extends Controller
             );
         } catch (\Exception $e) {
             report($e);
+
             return $this->errorResponse('Failed to import listing. Please try again.', 500);
         }
 
@@ -61,7 +63,7 @@ class ScrapedListingController extends Controller
 
         return $this->successResponse(
             new ScrapedListingResource($scrapedListing),
-            'Scraped listing approved and imported as property #' . $property->id . '.'
+            'Scraped listing approved and imported as property #'.$property->id.'.'
         );
     }
 
@@ -70,7 +72,7 @@ class ScrapedListingController extends Controller
         $request->validate(['reason' => 'nullable|string|max:500']);
 
         $scrapedListing->update([
-            'status'           => ScrapedListingStatus::Rejected,
+            'status' => ScrapedListingStatus::Rejected,
             'rejection_reason' => $request->reason,
         ]);
 

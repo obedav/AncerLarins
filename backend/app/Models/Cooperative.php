@@ -23,12 +23,12 @@ class Cooperative extends Model
     protected function casts(): array
     {
         return [
-            'status'                    => CooperativeStatus::class,
-            'target_amount_kobo'        => 'integer',
+            'status' => CooperativeStatus::class,
+            'target_amount_kobo' => 'integer',
             'monthly_contribution_kobo' => 'integer',
-            'member_count'              => 'integer',
-            'start_date'                => 'date',
-            'target_date'               => 'date',
+            'member_count' => 'integer',
+            'start_date' => 'date',
+            'target_date' => 'date',
         ];
     }
 
@@ -75,7 +75,10 @@ class Cooperative extends Model
 
     public function getProgressPercentageAttribute(): float
     {
-        if (! $this->target_amount_kobo) return 0;
+        if (! $this->target_amount_kobo) {
+            return 0;
+        }
+
         return min(100, round(($this->total_contributed_kobo / $this->target_amount_kobo) * 100, 1));
     }
 }

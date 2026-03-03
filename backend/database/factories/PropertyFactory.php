@@ -25,29 +25,39 @@ class PropertyFactory extends Factory
         $title = fake()->sentence(4);
 
         return [
-            'agent_id'         => AgentProfile::factory(),
-            'listing_type'     => ListingType::Sale,
+            'agent_id' => AgentProfile::factory(),
+            'listing_type' => ListingType::Sale,
             'property_type_id' => PropertyType::factory(),
-            'title'            => $title,
-            'slug'             => Str::slug($title) . '-' . fake()->unique()->randomNumber(5),
-            'description'      => fake()->paragraph(),
-            'price_kobo'       => fake()->numberBetween(5_000_000, 500_000_000),
-            'state_id'         => State::factory(),
-            'city_id'          => City::factory(),
-            'area_id'          => Area::factory(),
-            'address'          => fake()->address(),
-            'bedrooms'         => fake()->numberBetween(1, 5),
-            'bathrooms'        => fake()->numberBetween(1, 4),
-            'status'           => PropertyStatus::Pending,
+            'title' => $title,
+            'slug' => Str::slug($title).'-'.fake()->unique()->randomNumber(5),
+            'description' => fake()->paragraph(),
+            'price_kobo' => fake()->numberBetween(5_000_000, 500_000_000),
+            'state_id' => State::factory(),
+            'city_id' => City::factory(),
+            'area_id' => Area::factory(),
+            'address' => fake()->address(),
+            'bedrooms' => fake()->numberBetween(1, 5),
+            'bathrooms' => fake()->numberBetween(1, 4),
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Property $property) {
+            if ($property->status === null) {
+                $property->forceFill(['status' => PropertyStatus::Pending])->save();
+            }
+        });
     }
 
     public function approved(): static
     {
-        return $this->state(fn () => [
-            'status'       => PropertyStatus::Approved,
-            'published_at' => now(),
-        ]);
+        return $this->afterCreating(function (Property $property) {
+            $property->forceFill([
+                'status' => PropertyStatus::Approved,
+                'published_at' => now(),
+            ])->save();
+        });
     }
 
     public function forRent(): static

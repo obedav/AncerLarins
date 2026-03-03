@@ -38,18 +38,18 @@ class AdminService
                 ->toArray();
 
             return [
-                'total_users'              => User::count(),
-                'total_agents'             => array_sum($agentsByVerification),
-                'total_properties'         => array_sum($propertiesByStatus),
-                'pending_approvals'        => $propertiesByStatus[PropertyStatus::Pending->value] ?? 0,
-                'pending_agents'           => $agentsByVerification[VerificationStatus::Pending->value] ?? 0,
-                'total_leads'              => Lead::count(),
-                'leads_this_week'          => Lead::where('created_at', '>=', $weekStart)->count(),
-                'open_reports'             => Report::open()->count(),
-                'properties_by_status'     => $propertiesByStatus,
-                'agents_by_verification'   => $agentsByVerification,
-                'new_listings_this_week'   => Property::where('created_at', '>=', $weekStart)->count(),
-                'new_users_this_week'      => User::where('created_at', '>=', $weekStart)->count(),
+                'total_users' => User::count(),
+                'total_agents' => array_sum($agentsByVerification),
+                'total_properties' => array_sum($propertiesByStatus),
+                'pending_approvals' => $propertiesByStatus[PropertyStatus::Pending->value] ?? 0,
+                'pending_agents' => $agentsByVerification[VerificationStatus::Pending->value] ?? 0,
+                'total_leads' => Lead::count(),
+                'leads_this_week' => Lead::where('created_at', '>=', $weekStart)->count(),
+                'open_reports' => Report::open()->count(),
+                'properties_by_status' => $propertiesByStatus,
+                'agents_by_verification' => $agentsByVerification,
+                'new_listings_this_week' => Property::where('created_at', '>=', $weekStart)->count(),
+                'new_users_this_week' => User::where('created_at', '>=', $weekStart)->count(),
             ];
         });
     }
@@ -59,11 +59,11 @@ class AdminService
         $previousStatus = $property->status?->value;
 
         $property->forceFill([
-            'status'       => PropertyStatus::Approved,
-            'approved_by'  => $admin->id,
-            'approved_at'  => now(),
+            'status' => PropertyStatus::Approved,
+            'approved_by' => $admin->id,
+            'approved_at' => now(),
             'published_at' => now(),
-            'expires_at'   => now()->addDays(config('ancerlarins.property_expiry_days', 90)),
+            'expires_at' => now()->addDays(config('ancerlarins.property_expiry_days', 90)),
         ])->save();
 
         $agentUser = $property->agent?->user;
@@ -90,9 +90,9 @@ class AdminService
         $previousStatus = $property->status?->value;
 
         $property->forceFill([
-            'status'           => PropertyStatus::Rejected,
+            'status' => PropertyStatus::Rejected,
             'rejection_reason' => $reason,
-            'approved_by'      => $admin->id,
+            'approved_by' => $admin->id,
         ])->save();
 
         $agentUser = $property->agent?->user;
@@ -116,7 +116,7 @@ class AdminService
         $effectiveDays = $days ?? config('ancerlarins.featured_default_days', 30);
 
         $property->forceFill([
-            'featured'       => true,
+            'featured' => true,
             'featured_until' => now()->addDays($effectiveDays),
         ])->save();
 
@@ -131,8 +131,8 @@ class AdminService
 
         $agent->forceFill([
             'verification_status' => VerificationStatus::Verified,
-            'verified_at'         => now(),
-            'verified_by'         => $admin->id,
+            'verified_at' => now(),
+            'verified_by' => $admin->id,
         ])->save();
 
         if ($agent->user) {
@@ -152,7 +152,7 @@ class AdminService
         $previousStatus = $agent->verification_status?->value;
 
         $agent->forceFill([
-            'verification_status'    => VerificationStatus::Rejected,
+            'verification_status' => VerificationStatus::Rejected,
             'verification_rejection' => $reason,
         ])->save();
 
@@ -173,10 +173,10 @@ class AdminService
         $previousStatus = $user->status?->value;
 
         $user->forceFill([
-            'status'     => UserStatus::Banned,
+            'status' => UserStatus::Banned,
             'ban_reason' => $reason,
-            'banned_at'  => now(),
-            'banned_by'  => $admin->id,
+            'banned_at' => now(),
+            'banned_by' => $admin->id,
         ])->save();
 
         $user->tokens()->delete();
@@ -189,10 +189,10 @@ class AdminService
         $previousStatus = $user->status?->value;
 
         $user->forceFill([
-            'status'     => UserStatus::Active,
+            'status' => UserStatus::Active,
             'ban_reason' => null,
-            'banned_at'  => null,
-            'banned_by'  => null,
+            'banned_at' => null,
+            'banned_by' => null,
         ])->save();
 
         $this->log($admin ?? request()->user(), 'user_unbanned', $user, ['previous_status' => $previousStatus]);
@@ -201,12 +201,12 @@ class AdminService
     private function log(?User $admin, string $action, $target, array $metadata = []): void
     {
         ActivityLog::create([
-            'user_id'     => $admin?->id,
-            'action'      => $action,
+            'user_id' => $admin?->id,
+            'action' => $action,
             'target_type' => $target->getMorphClass(),
-            'target_id'   => $target->getKey(),
-            'metadata'    => $metadata,
-            'ip_address'  => request()->ip(),
+            'target_id' => $target->getKey(),
+            'metadata' => $metadata,
+            'ip_address' => request()->ip(),
         ]);
     }
 }

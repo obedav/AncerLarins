@@ -22,14 +22,15 @@ class RunScraper extends Command
         $maxPages = (int) $this->option('pages');
 
         $scraper = match ($source) {
-            'propertypro'           => $propertyProScraper,
+            'propertypro' => $propertyProScraper,
             'nigeriapropertycentre' => $nigeriaPropertyCentreScraper,
-            'jiji'                  => $jijiScraper,
-            default                 => null,
+            'jiji' => $jijiScraper,
+            default => null,
         };
 
         if (! $scraper) {
             $this->error("Unknown source: {$source}. Use: propertypro, nigeriapropertycentre, or jiji");
+
             return self::FAILURE;
         }
 
@@ -38,6 +39,7 @@ class RunScraper extends Command
         $count = $scraper->scrape($maxPages);
 
         $this->info("Done. Scraped {$count} new listings from {$source}.");
+
         return self::SUCCESS;
     }
 }

@@ -15,11 +15,11 @@ class StateFactory extends Factory
 
     public function definition(): array
     {
-        $name = fake()->unique()->city() . ' State';
+        $name = fake()->unique()->city().' State';
 
         return [
-            'name'      => $name,
-            'slug'      => Str::slug($name),
+            'name' => $name,
+            'slug' => Str::slug($name),
             'is_active' => true,
         ];
     }

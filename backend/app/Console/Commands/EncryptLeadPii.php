@@ -26,8 +26,9 @@ class EncryptLeadPii extends Command
         $dryRun = $this->option('dry-run');
         $appKey = config('app.key');
 
-        if (!$appKey) {
+        if (! $appKey) {
             $this->error('APP_KEY is not set. Cannot proceed.');
+
             return self::FAILURE;
         }
 
@@ -46,12 +47,12 @@ class EncryptLeadPii extends Command
 
                     if ($emailAlreadyEncrypted) {
                         // Already encrypted — just backfill email_hash if missing
-                        if (!$lead->email_hash) {
+                        if (! $lead->email_hash) {
                             try {
                                 $decryptedEmail = Crypt::decryptString($lead->email);
                                 $hash = hash_hmac('sha256', strtolower(trim($decryptedEmail)), $appKey);
 
-                                if (!$dryRun) {
+                                if (! $dryRun) {
                                     DB::table('leads')->where('id', $lead->id)->update(['email_hash' => $hash]);
                                 }
                                 $encrypted++;
@@ -62,6 +63,7 @@ class EncryptLeadPii extends Command
                         } else {
                             $skipped++;
                         }
+
                         continue;
                     }
 
@@ -81,7 +83,7 @@ class EncryptLeadPii extends Command
                         $updates['full_name'] = Crypt::encryptString($lead->full_name);
                     }
 
-                    if (!empty($updates) && !$dryRun) {
+                    if (! empty($updates) && ! $dryRun) {
                         DB::table('leads')->where('id', $lead->id)->update($updates);
                     }
 

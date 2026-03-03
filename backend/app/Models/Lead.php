@@ -26,18 +26,18 @@ class Lead extends Model
     protected function casts(): array
     {
         return [
-            'contact_type'      => ContactType::class,
-            'responded_at'      => 'datetime',
+            'contact_type' => ContactType::class,
+            'responded_at' => 'datetime',
             'response_time_min' => 'integer',
-            'created_at'        => 'datetime',
-            'qualified_at'          => 'datetime',
-            'inspection_at'         => 'datetime',
-            'closed_at'             => 'datetime',
-            'inspection_date'       => 'date',
+            'created_at' => 'datetime',
+            'qualified_at' => 'datetime',
+            'inspection_at' => 'datetime',
+            'closed_at' => 'datetime',
+            'inspection_date' => 'date',
             'agreement_accepted_at' => 'datetime',
             // PII encryption at rest — Laravel auto-encrypts on write, decrypts on read
-            'phone'     => 'encrypted',
-            'email'     => 'encrypted',
+            'phone' => 'encrypted',
+            'email' => 'encrypted',
             'full_name' => 'encrypted',
         ];
     }
@@ -45,11 +45,11 @@ class Lead extends Model
     protected static function booted(): void
     {
         static::creating(function (Lead $lead) {
-            if (!$lead->tracking_ref) {
-                $lead->tracking_ref = strtoupper('AL' . substr(md5(uniqid((string) mt_rand(), true)), 0, 8));
+            if (! $lead->tracking_ref) {
+                $lead->tracking_ref = strtoupper('AL'.substr(md5(uniqid((string) mt_rand(), true)), 0, 8));
             }
             // Auto-compute blind index for email lookups
-            if ($lead->email && !$lead->email_hash) {
+            if ($lead->email && ! $lead->email_hash) {
                 $lead->email_hash = static::hashEmail($lead->email);
             }
         });
@@ -144,7 +144,7 @@ class Lead extends Model
     public function markResponded(): void
     {
         $this->forceFill([
-            'responded_at'      => now(),
+            'responded_at' => now(),
             'response_time_min' => (int) $this->created_at->diffInMinutes(now()),
         ])->save();
     }

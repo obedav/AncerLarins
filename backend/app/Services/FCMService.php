@@ -29,7 +29,7 @@ class FCMService
         try {
             $payload = array_merge($target, [
                 'notification' => ['title' => $title, 'body' => $body, 'sound' => 'default'],
-                'data'         => $data ?: null,
+                'data' => $data ?: null,
             ]);
 
             $response = Http::withHeaders([
@@ -39,6 +39,7 @@ class FCMService
             return $response->json();
         } catch (\Exception $e) {
             Log::error('FCM send failed', ['error' => $e->getMessage()]);
+
             return ['success' => 0, 'failure' => 1];
         }
     }

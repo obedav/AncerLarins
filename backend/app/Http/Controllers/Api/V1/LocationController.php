@@ -121,12 +121,12 @@ class LocationController extends Controller
     public function areaTrends(Area $area, Request $request): JsonResponse
     {
         $listingType = $request->query('listing_type');
-        $cacheKey = "area_trends:{$area->id}:" . ($listingType ?: 'all');
+        $cacheKey = "area_trends:{$area->id}:".($listingType ?: 'all');
 
         $data = Cache::remember($cacheKey, 1800, function () use ($area, $listingType) {
             return [
                 'trends' => $this->marketTrendService->getAreaTrends($area->id, $listingType),
-                'stats'  => $this->marketTrendService->getAreaStats($area->id, $listingType),
+                'stats' => $this->marketTrendService->getAreaStats($area->id, $listingType),
             ];
         });
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Agent\SubmitVerificationRequest;
 use App\Http\Requests\Agent\UpdateProfileRequest;
+use App\Http\Requests\Review\CreateReviewRequest;
 use App\Http\Resources\AgentDetailResource;
 use App\Http\Resources\AgentListResource;
 use App\Http\Resources\LeadResource;
@@ -12,7 +13,6 @@ use App\Http\Resources\PropertyListResource;
 use App\Http\Resources\ReviewResource;
 use App\Models\AgentProfile;
 use App\Models\Lead;
-use App\Http\Requests\Review\CreateReviewRequest;
 use App\Services\AgentService;
 use App\Services\LeadService;
 use App\Services\ReviewService;
@@ -146,9 +146,9 @@ class AgentController extends Controller
         $urls = $this->agentService->getVerificationDocumentUrls($agent);
 
         return $this->successResponse([
-            'documents'           => $urls,
-            'id_document_type'    => $agent->id_document_type,
-            'id_document_number'  => $agent->id_document_number,
+            'documents' => $urls,
+            'id_document_type' => $agent->id_document_type,
+            'id_document_number' => $agent->id_document_number,
             'verification_status' => $agent->verification_status,
         ]);
     }

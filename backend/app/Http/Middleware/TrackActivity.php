@@ -31,15 +31,15 @@ class TrackActivity
             }
 
             ActivityLog::create([
-                'user_id'     => $request->user()->id,
-                'action'      => $request->method() . ' ' . $request->path(),
+                'user_id' => $request->user()->id,
+                'action' => $request->method().' '.$request->path(),
                 'target_type' => $targetType,
-                'target_id'   => $targetId,
-                'metadata'    => [
+                'target_id' => $targetId,
+                'metadata' => [
                     'status_code' => $response->getStatusCode(),
-                    'user_agent'  => $request->userAgent(),
+                    'user_agent' => $request->userAgent(),
                 ],
-                'ip_address'  => $request->ip(),
+                'ip_address' => $request->ip(),
             ]);
         }
 

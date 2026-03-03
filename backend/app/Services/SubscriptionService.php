@@ -21,24 +21,24 @@ class SubscriptionService
     {
         return [
             [
-                'tier'               => SubscriptionTier::Free->value,
-                'name'               => 'Free',
-                'price_kobo'         => 0,
-                'max_listings'       => 3,
+                'tier' => SubscriptionTier::Free->value,
+                'name' => 'Free',
+                'price_kobo' => 0,
+                'max_listings' => 3,
                 'featured_per_month' => 0,
-                'features'           => [
+                'features' => [
                     'Up to 3 active listings',
                     'Basic agent profile',
                     'WhatsApp lead notifications',
                 ],
             ],
             [
-                'tier'               => SubscriptionTier::Basic->value,
-                'name'               => 'Basic',
-                'price_kobo'         => 1500000, // ₦15,000/month
-                'max_listings'       => 10,
+                'tier' => SubscriptionTier::Basic->value,
+                'name' => 'Basic',
+                'price_kobo' => 1500000, // ₦15,000/month
+                'max_listings' => 10,
                 'featured_per_month' => 1,
-                'features'           => [
+                'features' => [
                     'Up to 10 active listings',
                     '1 featured listing per month',
                     'Verified agent badge',
@@ -47,12 +47,12 @@ class SubscriptionService
                 ],
             ],
             [
-                'tier'               => SubscriptionTier::Pro->value,
-                'name'               => 'Pro',
-                'price_kobo'         => 3500000, // ₦35,000/month
-                'max_listings'       => 30,
+                'tier' => SubscriptionTier::Pro->value,
+                'name' => 'Pro',
+                'price_kobo' => 3500000, // ₦35,000/month
+                'max_listings' => 30,
                 'featured_per_month' => 5,
-                'features'           => [
+                'features' => [
                     'Up to 30 active listings',
                     '5 featured listings per month',
                     'Verified agent badge',
@@ -62,12 +62,12 @@ class SubscriptionService
                 ],
             ],
             [
-                'tier'               => SubscriptionTier::Enterprise->value,
-                'name'               => 'Enterprise',
-                'price_kobo'         => 8000000, // ₦80,000/month
-                'max_listings'       => 9999,
+                'tier' => SubscriptionTier::Enterprise->value,
+                'name' => 'Enterprise',
+                'price_kobo' => 8000000, // ₦80,000/month
+                'max_listings' => 9999,
                 'featured_per_month' => 9999,
-                'features'           => [
+                'features' => [
                     'Unlimited listings',
                     'Unlimited featured listings',
                     'Verified agent badge',
@@ -88,8 +88,8 @@ class SubscriptionService
             return ['status' => false, 'message' => 'Invalid tier or free tier selected.'];
         }
 
-        $reference = 'sub_' . Str::uuid()->toString();
-        $email = $agent->user->email ?? $agent->user->phone . '@ancerlarins.ng';
+        $reference = 'sub_'.Str::uuid()->toString();
+        $email = $agent->user->email ?? $agent->user->phone.'@ancerlarins.ng';
 
         $result = $this->paystackService->initializeTransaction(
             email: $email,
@@ -97,8 +97,8 @@ class SubscriptionService
             reference: $reference,
             metadata: [
                 'agent_profile_id' => $agent->id,
-                'tier'             => $tier,
-                'custom_fields'    => [
+                'tier' => $tier,
+                'custom_fields' => [
                     ['display_name' => 'Tier', 'variable_name' => 'tier', 'value' => $plan['name']],
                     ['display_name' => 'Agent', 'variable_name' => 'agent', 'value' => $agent->company_name ?? $agent->user->full_name],
                 ],
@@ -108,17 +108,18 @@ class SubscriptionService
         if (! ($result['status'] ?? false)) {
             Log::error('Paystack initializeTransaction failed for subscription', [
                 'agent_id' => $agent->id,
-                'tier'     => $tier,
-                'result'   => $result,
+                'tier' => $tier,
+                'result' => $result,
             ]);
+
             return ['status' => false, 'message' => $result['message'] ?? 'Payment initialization failed.'];
         }
 
         return [
-            'status'            => true,
+            'status' => true,
             'authorization_url' => $result['data']['authorization_url'],
-            'access_code'       => $result['data']['access_code'],
-            'reference'         => $result['data']['reference'],
+            'access_code' => $result['data']['access_code'],
+            'reference' => $result['data']['reference'],
         ];
     }
 
@@ -129,8 +130,9 @@ class SubscriptionService
         if (! ($result['status'] ?? false) || ($result['data']['status'] ?? '') !== 'success') {
             Log::warning('Paystack payment verification failed', [
                 'reference' => $reference,
-                'result'    => $result,
+                'result' => $result,
             ]);
+
             return null;
         }
 
@@ -143,14 +145,16 @@ class SubscriptionService
         if (! $agentProfileId || ! $tier) {
             Log::error('Missing metadata in Paystack verification', [
                 'reference' => $reference,
-                'metadata'  => $metadata,
+                'metadata' => $metadata,
             ]);
+
             return null;
         }
 
         $agent = AgentProfile::find($agentProfileId);
         if (! $agent) {
             Log::error('Agent not found for subscription', ['agent_profile_id' => $agentProfileId]);
+
             return null;
         }
 
@@ -168,6 +172,7 @@ class SubscriptionService
         $reference = $data['reference'] ?? null;
         if (! $reference) {
             Log::warning('Paystack charge.success: missing reference');
+
             return;
         }
 
@@ -175,6 +180,7 @@ class SubscriptionService
         $existing = AgentSubscription::where('payment_reference', $reference)->first();
         if ($existing) {
             Log::info('Paystack charge.success: already processed', ['reference' => $reference]);
+
             return;
         }
 
@@ -194,6 +200,7 @@ class SubscriptionService
 
         if (! $customerEmail) {
             Log::warning('Paystack subscription.disable: missing customer email');
+
             return;
         }
 
@@ -203,6 +210,7 @@ class SubscriptionService
 
         if (! $agent) {
             Log::warning('Paystack subscription.disable: agent not found', ['email' => $customerEmail]);
+
             return;
         }
 
@@ -214,9 +222,9 @@ class SubscriptionService
 
             // Downgrade agent to free tier
             $agent->forceFill([
-                'subscription_tier'       => SubscriptionTier::Free,
+                'subscription_tier' => SubscriptionTier::Free,
                 'subscription_expires_at' => null,
-                'max_listings'            => 3,
+                'max_listings' => 3,
             ])->save();
         });
 
@@ -247,21 +255,21 @@ class SubscriptionService
 
             // Create new subscription (30 days)
             $subscription = AgentSubscription::create([
-                'agent_profile_id'  => $agent->id,
-                'tier'              => $tierEnum->value,
-                'amount_kobo'       => $amountKobo,
+                'agent_profile_id' => $agent->id,
+                'tier' => $tierEnum->value,
+                'amount_kobo' => $amountKobo,
                 'payment_reference' => $reference,
-                'payment_provider'  => $provider,
-                'starts_at'         => now(),
-                'ends_at'           => now()->addDays(30),
-                'status'            => SubscriptionStatus::Active,
+                'payment_provider' => $provider,
+                'starts_at' => now(),
+                'ends_at' => now()->addDays(30),
+                'status' => SubscriptionStatus::Active,
             ]);
 
             // Update agent profile
             $agent->forceFill([
-                'subscription_tier'       => $tierEnum,
+                'subscription_tier' => $tierEnum,
                 'subscription_expires_at' => $subscription->ends_at,
-                'max_listings'            => $limits['max_listings'],
+                'max_listings' => $limits['max_listings'],
             ])->save();
 
             // Notify agent
@@ -271,9 +279,9 @@ class SubscriptionService
                 "Your {$tierEnum->value} plan is now active. You can list up to {$limits['max_listings']} properties.",
                 'subscription_activated',
                 [
-                    'action_url'  => '/dashboard/subscription',
+                    'action_url' => '/dashboard/subscription',
                     'action_type' => 'subscription',
-                    'action_id'   => $subscription->id,
+                    'action_id' => $subscription->id,
                 ],
             );
 
@@ -284,9 +292,9 @@ class SubscriptionService
     protected function tierLimits(SubscriptionTier $tier): array
     {
         return match ($tier) {
-            SubscriptionTier::Free       => ['max_listings' => 3, 'featured_per_month' => 0],
-            SubscriptionTier::Basic      => ['max_listings' => 10, 'featured_per_month' => 1],
-            SubscriptionTier::Pro        => ['max_listings' => 30, 'featured_per_month' => 5],
+            SubscriptionTier::Free => ['max_listings' => 3, 'featured_per_month' => 0],
+            SubscriptionTier::Basic => ['max_listings' => 10, 'featured_per_month' => 1],
+            SubscriptionTier::Pro => ['max_listings' => 30, 'featured_per_month' => 5],
             SubscriptionTier::Enterprise => ['max_listings' => 9999, 'featured_per_month' => 9999],
         };
     }

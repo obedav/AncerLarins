@@ -55,7 +55,7 @@ class MetricsController extends Controller
             // Skip if Redis is unreachable
         }
 
-        return response(implode("\n", $lines) . "\n", 200)
+        return response(implode("\n", $lines)."\n", 200)
             ->header('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
     }
 }

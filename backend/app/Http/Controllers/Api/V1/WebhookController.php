@@ -38,6 +38,7 @@ class WebhookController extends Controller
 
         if ($secret && $request->header('x-paystack-signature') !== hash_hmac('sha512', $request->getContent(), $secret)) {
             Log::warning('Paystack webhook: invalid signature');
+
             return response()->json(['status' => 'invalid signature'], 403);
         }
 
@@ -54,10 +55,11 @@ class WebhookController extends Controller
 
                 if ($age > self::MAX_EVENT_AGE_SECONDS) {
                     Log::warning('Paystack webhook: stale event rejected', [
-                        'event'  => $event,
-                        'age_s'  => $age,
-                        'max_s'  => self::MAX_EVENT_AGE_SECONDS,
+                        'event' => $event,
+                        'age_s' => $age,
+                        'max_s' => self::MAX_EVENT_AGE_SECONDS,
                     ]);
+
                     return response()->json(['status' => 'stale event'], 200);
                 }
             } catch (\Exception $e) {
@@ -71,6 +73,7 @@ class WebhookController extends Controller
 
         if ($eventId && $this->isAlreadyProcessed('paystack', $eventId)) {
             Log::info('Paystack webhook: duplicate event ignored', ['event' => $event, 'id' => $eventId]);
+
             return response()->json(['status' => 'already processed'], 200);
         }
 
@@ -78,10 +81,10 @@ class WebhookController extends Controller
 
         // ── Handle event ────────────────────────────────────
         match ($event) {
-            'charge.success'       => $this->handlePaystackChargeSuccess($data),
-            'subscription.create'  => $this->handlePaystackSubscriptionCreate($data),
+            'charge.success' => $this->handlePaystackChargeSuccess($data),
+            'subscription.create' => $this->handlePaystackSubscriptionCreate($data),
             'subscription.disable' => $this->handlePaystackSubscriptionDisable($data),
-            default                => Log::info('Unhandled Paystack event', ['event' => $event]),
+            default => Log::info('Unhandled Paystack event', ['event' => $event]),
         };
 
         // ── Mark as processed ───────────────────────────────
@@ -107,6 +110,7 @@ class WebhookController extends Controller
                 Log::warning('Termii webhook: invalid signature', [
                     'ip' => $request->ip(),
                 ]);
+
                 return response()->json(['status' => 'invalid signature'], 403);
             }
         } else {
@@ -115,13 +119,14 @@ class WebhookController extends Controller
 
             if (! empty($allowedIps) && ! in_array($request->ip(), $allowedIps, true)) {
                 Log::warning('Termii webhook: untrusted IP', ['ip' => $request->ip()]);
+
                 return response()->json(['status' => 'forbidden'], 403);
             }
         }
 
         Log::info('Termii webhook received', [
             'type' => $request->input('type', 'unknown'),
-            'ip'   => $request->ip(),
+            'ip' => $request->ip(),
         ]);
 
         // Handle inbound SMS for WhatsApp bot
@@ -146,6 +151,7 @@ class WebhookController extends Controller
 
         if ($metadataType === 'cooperative_contribution' && $reference) {
             $this->cooperativeService->verifyContribution($reference);
+
             return;
         }
 
@@ -180,9 +186,9 @@ class WebhookController extends Controller
     private function markProcessed(string $provider, string $eventId, ?string $eventType): void
     {
         DB::table('processed_webhooks')->insertOrIgnore([
-            'provider'     => $provider,
-            'event_id'     => $eventId,
-            'event_type'   => $eventType,
+            'provider' => $provider,
+            'event_id' => $eventId,
+            'event_type' => $eventType,
             'processed_at' => now(),
         ]);
     }

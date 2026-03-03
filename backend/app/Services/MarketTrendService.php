@@ -29,9 +29,9 @@ class MarketTrendService
             ->orderBy('month')
             ->get()
             ->map(fn ($row) => [
-                'month'          => $row->month_label,
+                'month' => $row->month_label,
                 'avg_price_kobo' => (int) $row->avg_price_kobo,
-                'listing_count'  => (int) $row->listing_count,
+                'listing_count' => (int) $row->listing_count,
             ]);
 
         return $monthly->toArray();
@@ -68,8 +68,8 @@ class MarketTrendService
                 $diff = (($areaStats->avg_price_kobo - $cityAvg) / $cityAvg) * 100;
                 $comparison = [
                     'percentage' => round($diff, 1),
-                    'direction'  => $diff >= 0 ? 'above' : 'below',
-                    'label'      => abs(round($diff, 1)) . '% ' . ($diff >= 0 ? 'above' : 'below') . ' city average',
+                    'direction' => $diff >= 0 ? 'above' : 'below',
+                    'label' => abs(round($diff, 1)).'% '.($diff >= 0 ? 'above' : 'below').' city average',
                 ];
             }
         }
@@ -80,11 +80,11 @@ class MarketTrendService
             ->value('avg_days');
 
         return [
-            'total_listings'    => (int) ($areaStats->total_listings ?? 0),
-            'avg_price_kobo'    => (int) ($areaStats->avg_price_kobo ?? 0),
+            'total_listings' => (int) ($areaStats->total_listings ?? 0),
+            'avg_price_kobo' => (int) ($areaStats->avg_price_kobo ?? 0),
             'median_price_kobo' => (int) ($areaStats->median_price_kobo ?? 0),
             'avg_days_on_market' => (int) ($avgDom ?? 0),
-            'city_comparison'   => $comparison,
+            'city_comparison' => $comparison,
         ];
     }
 }

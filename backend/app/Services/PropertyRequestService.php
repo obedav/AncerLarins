@@ -18,8 +18,8 @@ class PropertyRequestService
     public function create(array $data, User $user): PropertyRequest
     {
         return PropertyRequest::create(array_merge($data, [
-            'user_id'    => $user->id,
-            'status'     => PropertyRequestStatus::Active,
+            'user_id' => $user->id,
+            'status' => PropertyRequestStatus::Active,
             'expires_at' => now()->addDays(30),
         ]));
     }
@@ -28,7 +28,7 @@ class PropertyRequestService
     {
         $response = $request->responses()->create(array_merge($data, [
             'agent_id' => $agent->id,
-            'status'   => RequestResponseStatus::Pending,
+            'status' => RequestResponseStatus::Pending,
         ]));
 
         $request->increment('response_count');
@@ -40,7 +40,7 @@ class PropertyRequestService
             'request_response',
             [
                 'action_type' => 'property_request',
-                'action_id'   => $request->id,
+                'action_id' => $request->id,
             ]
         );
 
@@ -60,7 +60,7 @@ class PropertyRequestService
                 'request_accepted',
                 [
                     'action_type' => 'property_request',
-                    'action_id'   => $request->id,
+                    'action_id' => $request->id,
                 ]
             );
         }

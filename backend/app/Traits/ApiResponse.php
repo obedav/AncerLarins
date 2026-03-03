@@ -11,7 +11,7 @@ trait ApiResponse
         return response()->json([
             'success' => true,
             'message' => $message,
-            'data'    => $data,
+            'data' => $data,
         ], $code);
     }
 
@@ -21,6 +21,7 @@ trait ApiResponse
         if ($errors !== null) {
             $payload['errors'] = $errors;
         }
+
         return response()->json($payload, $code);
     }
 
@@ -29,12 +30,12 @@ trait ApiResponse
         return response()->json([
             'success' => true,
             'message' => $message,
-            'data'    => $paginator->items(),
-            'meta'    => [
+            'data' => $paginator->items(),
+            'meta' => [
                 'current_page' => $paginator->currentPage(),
-                'last_page'    => $paginator->lastPage(),
-                'per_page'     => $paginator->perPage(),
-                'total'        => $paginator->total(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
             ],
         ]);
     }

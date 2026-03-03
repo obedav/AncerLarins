@@ -18,14 +18,14 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'first_name'     => fake()->firstName(),
-            'last_name'      => fake()->lastName(),
-            'email'          => fake()->unique()->safeEmail(),
-            'phone'          => '+234' . fake()->numerify('80########'),
-            'password_hash'  => static::$password ??= Hash::make('password'),
+            'first_name' => fake()->firstName(),
+            'last_name' => fake()->lastName(),
+            'email' => fake()->unique()->safeEmail(),
+            'phone' => '+234'.fake()->numerify('80########'),
+            'password_hash' => static::$password ??= Hash::make('password'),
             'phone_verified' => true,
-            'role'           => UserRole::User,
-            'status'         => UserStatus::Active,
+            'role' => UserRole::User,
+            'status' => UserStatus::Active,
         ];
     }
 
@@ -47,9 +47,9 @@ class UserFactory extends Factory
     public function banned(): static
     {
         return $this->state(fn () => [
-            'status'   => UserStatus::Banned,
+            'status' => UserStatus::Banned,
             'ban_reason' => 'Violated terms of service',
-            'banned_at'  => now(),
+            'banned_at' => now(),
         ]);
     }
 }

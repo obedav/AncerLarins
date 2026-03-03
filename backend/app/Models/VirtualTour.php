@@ -21,10 +21,10 @@ class VirtualTour extends Model
     protected function casts(): array
     {
         return [
-            'tour_type'        => TourType::class,
+            'tour_type' => TourType::class,
             'duration_seconds' => 'integer',
-            'view_count'       => 'integer',
-            'created_at'       => 'datetime',
+            'view_count' => 'integer',
+            'created_at' => 'datetime',
         ];
     }
 

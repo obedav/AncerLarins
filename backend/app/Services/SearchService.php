@@ -30,10 +30,10 @@ class SearchService
 
         $sortBy = $filters['sort_by'] ?? 'newest';
         match ($sortBy) {
-            'price_asc'  => $query->orderBy('price_kobo', 'asc'),
+            'price_asc' => $query->orderBy('price_kobo', 'asc'),
             'price_desc' => $query->orderBy('price_kobo', 'desc'),
-            'popular'    => $query->withCount('views')->orderByDesc('views_count'),
-            default      => $query->latest('published_at'),
+            'popular' => $query->withCount('views')->orderByDesc('views_count'),
+            default => $query->latest('published_at'),
         };
 
         $results = $query->paginate($filters['per_page'] ?? 20);
@@ -44,13 +44,13 @@ class SearchService
 
         return [
             'results' => $results,
-            'facets'  => $facets,
+            'facets' => $facets,
         ];
     }
 
     public function suggestions(string $query): array
     {
-        $cacheKey = 'search_suggestions:' . mb_strtolower(trim($query));
+        $cacheKey = 'search_suggestions:'.mb_strtolower(trim($query));
 
         return Cache::remember($cacheKey, 3600, function () use ($query) {
             $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $query);
@@ -61,10 +61,10 @@ class SearchService
                 ->limit(4)
                 ->get()
                 ->map(fn ($a) => [
-                    'type'        => 'area',
-                    'id'          => $a->id,
-                    'label'       => $a->name,
-                    'slug'        => $a->slug,
+                    'type' => 'area',
+                    'id' => $a->id,
+                    'label' => $a->name,
+                    'slug' => $a->slug,
                     'parent_name' => $a->city?->name,
                 ]);
 
@@ -74,10 +74,10 @@ class SearchService
                 ->limit(3)
                 ->get()
                 ->map(fn ($c) => [
-                    'type'        => 'city',
-                    'id'          => $c->id,
-                    'label'       => $c->name,
-                    'slug'        => $c->slug,
+                    'type' => 'city',
+                    'id' => $c->id,
+                    'label' => $c->name,
+                    'slug' => $c->slug,
                     'parent_name' => $c->state?->name,
                 ]);
 
@@ -86,10 +86,10 @@ class SearchService
                 ->limit(3)
                 ->get()
                 ->map(fn ($pt) => [
-                    'type'        => 'property_type',
-                    'id'          => $pt->id,
-                    'label'       => $pt->name,
-                    'slug'        => $pt->slug,
+                    'type' => 'property_type',
+                    'id' => $pt->id,
+                    'label' => $pt->name,
+                    'slug' => $pt->slug,
                     'parent_name' => null,
                 ]);
 
@@ -207,23 +207,23 @@ class SearchService
 
         return [
             'by_property_type' => $byType,
-            'by_area'          => $byArea,
+            'by_area' => $byArea,
         ];
     }
 
     protected function logSearch(array $filters, ?string $userId, int $resultsCount = 0): void
     {
         SearchLog::create([
-            'user_id'          => $userId,
-            'query_text'       => $filters['q'] ?? null,
-            'listing_type'     => $filters['listing_type'] ?? null,
+            'user_id' => $userId,
+            'query_text' => $filters['q'] ?? null,
+            'listing_type' => $filters['listing_type'] ?? null,
             'property_type_id' => $filters['property_type_id'] ?? null,
-            'city_id'          => $filters['city_id'] ?? null,
-            'area_id'          => $filters['area_id'] ?? null,
-            'min_price'        => $filters['min_price'] ?? null,
-            'max_price'        => $filters['max_price'] ?? null,
-            'min_bedrooms'     => $filters['min_bedrooms'] ?? null,
-            'results_count'    => $resultsCount,
+            'city_id' => $filters['city_id'] ?? null,
+            'area_id' => $filters['area_id'] ?? null,
+            'min_price' => $filters['min_price'] ?? null,
+            'max_price' => $filters['max_price'] ?? null,
+            'min_bedrooms' => $filters['min_bedrooms'] ?? null,
+            'results_count' => $resultsCount,
         ]);
     }
 }

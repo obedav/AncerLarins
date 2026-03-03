@@ -2,9 +2,7 @@
 
 namespace Tests\Feature\Webhook;
 
-use App\Models\AgentProfile;
 use App\Models\AgentSubscription;
-use App\Models\User;
 use App\Services\CooperativeService;
 use App\Services\NotificationService;
 use App\Services\PaystackService;
@@ -14,9 +12,10 @@ use Tests\Traits\CreatesTestData;
 
 class PaystackWebhookTest extends TestCase
 {
-    use RefreshDatabase, CreatesTestData;
+    use CreatesTestData, RefreshDatabase;
 
     protected string $webhookUrl = '/api/v1/webhooks/paystack';
+
     protected string $testSecret = 'test_paystack_secret';
 
     protected function setUp(): void
@@ -26,7 +25,7 @@ class PaystackWebhookTest extends TestCase
         config(['services.paystack.secret_key' => $this->testSecret]);
 
         $this->mock(NotificationService::class, function ($mock) {
-            $mock->shouldReceive('send')->andReturn(new \App\Models\Notification());
+            $mock->shouldReceive('send')->andReturn(new \App\Models\Notification);
         });
     }
 
@@ -48,7 +47,7 @@ class PaystackWebhookTest extends TestCase
             [],
             [
                 'HTTP_X_PAYSTACK_SIGNATURE' => $signature,
-                'CONTENT_TYPE'              => 'application/json',
+                'CONTENT_TYPE' => 'application/json',
             ],
             $payload
         );
@@ -70,7 +69,7 @@ class PaystackWebhookTest extends TestCase
     {
         $response = $this->postWebhook([
             'event' => 'some.unknown.event',
-            'data'  => [],
+            'data' => [],
         ]);
 
         $response->assertOk()
@@ -83,20 +82,20 @@ class PaystackWebhookTest extends TestCase
     {
         $agent = $this->createVerifiedAgent();
         $profile = $agent['profile'];
-        $reference = 'sub_test_' . uniqid();
+        $reference = 'sub_test_'.uniqid();
 
         $this->mock(PaystackService::class, function ($mock) use ($profile, $reference) {
             $mock->shouldReceive('verifyTransaction')
                 ->with($reference)
                 ->andReturn([
                     'status' => true,
-                    'data'   => [
-                        'status'    => 'success',
-                        'amount'    => 1500000,
+                    'data' => [
+                        'status' => 'success',
+                        'amount' => 1500000,
                         'reference' => $reference,
-                        'metadata'  => [
+                        'metadata' => [
                             'agent_profile_id' => $profile->id,
-                            'tier'             => 'basic',
+                            'tier' => 'basic',
                         ],
                     ],
                 ]);
@@ -104,16 +103,16 @@ class PaystackWebhookTest extends TestCase
 
         $response = $this->postWebhook([
             'event' => 'charge.success',
-            'data'  => [
+            'data' => [
                 'reference' => $reference,
-                'metadata'  => ['type' => 'subscription'],
+                'metadata' => ['type' => 'subscription'],
             ],
         ]);
 
         $response->assertOk();
 
         $this->assertDatabaseHas('agent_subscriptions', [
-            'agent_profile_id'  => $profile->id,
+            'agent_profile_id' => $profile->id,
             'payment_reference' => $reference,
         ]);
     }
@@ -121,22 +120,22 @@ class PaystackWebhookTest extends TestCase
     public function test_charge_success_skips_duplicate(): void
     {
         $agent = $this->createVerifiedAgent();
-        $reference = 'sub_dup_' . uniqid();
+        $reference = 'sub_dup_'.uniqid();
 
         AgentSubscription::create([
-            'agent_profile_id'  => $agent['profile']->id,
-            'tier'              => 'basic',
-            'amount_kobo'       => 1500000,
+            'agent_profile_id' => $agent['profile']->id,
+            'tier' => 'basic',
+            'amount_kobo' => 1500000,
             'payment_reference' => $reference,
-            'payment_provider'  => 'paystack',
-            'starts_at'         => now(),
-            'ends_at'           => now()->addDays(30),
-            'status'            => 'active',
+            'payment_provider' => 'paystack',
+            'starts_at' => now(),
+            'ends_at' => now()->addDays(30),
+            'status' => 'active',
         ]);
 
         $response = $this->postWebhook([
             'event' => 'charge.success',
-            'data'  => ['reference' => $reference],
+            'data' => ['reference' => $reference],
         ]);
 
         $response->assertOk();
@@ -146,7 +145,7 @@ class PaystackWebhookTest extends TestCase
 
     public function test_charge_success_routes_cooperative(): void
     {
-        $reference = 'coop_test_' . uniqid();
+        $reference = 'coop_test_'.uniqid();
 
         $this->mock(CooperativeService::class, function ($mock) use ($reference) {
             $mock->shouldReceive('verifyContribution')
@@ -156,9 +155,9 @@ class PaystackWebhookTest extends TestCase
 
         $response = $this->postWebhook([
             'event' => 'charge.success',
-            'data'  => [
+            'data' => [
                 'reference' => $reference,
-                'metadata'  => ['type' => 'cooperative_contribution'],
+                'metadata' => ['type' => 'cooperative_contribution'],
             ],
         ]);
 
@@ -170,16 +169,16 @@ class PaystackWebhookTest extends TestCase
     public function test_subscription_disable_downgrades(): void
     {
         $agent = $this->createVerifiedAgent([], [
-            'subscription_tier'       => \App\Enums\SubscriptionTier::Basic,
-            'max_listings'            => 10,
+            'subscription_tier' => \App\Enums\SubscriptionTier::Basic,
+            'max_listings' => 10,
             'subscription_expires_at' => now()->addDays(15),
         ]);
 
         $response = $this->postWebhook([
             'event' => 'subscription.disable',
-            'data'  => [
+            'data' => [
                 'subscription_code' => 'SUB_test123',
-                'customer'          => ['email' => $agent['user']->email],
+                'customer' => ['email' => $agent['user']->email],
             ],
         ]);
 
@@ -194,9 +193,9 @@ class PaystackWebhookTest extends TestCase
     {
         $response = $this->postWebhook([
             'event' => 'subscription.disable',
-            'data'  => [
+            'data' => [
                 'subscription_code' => 'SUB_unknown',
-                'customer'          => ['email' => 'nonexistent@example.com'],
+                'customer' => ['email' => 'nonexistent@example.com'],
             ],
         ]);
 
@@ -209,7 +208,7 @@ class PaystackWebhookTest extends TestCase
     {
         $response = $this->postWebhook([
             'event' => 'transfer.success',
-            'data'  => ['id' => 123],
+            'data' => ['id' => 123],
         ]);
 
         $response->assertOk()

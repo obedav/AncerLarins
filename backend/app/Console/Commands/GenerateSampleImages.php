@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 class GenerateSampleImages extends Command
 {
     protected $signature = 'samples:generate-images {--count=16 : Number of properties} {--per=4 : Images per property}';
+
     protected $description = 'Download real sample property images for development';
 
     // Curated Unsplash property photos — exteriors, interiors, kitchens, bedrooms, etc.
@@ -61,7 +62,7 @@ class GenerateSampleImages extends Command
         $downloaded = 0;
         $failed = 0;
 
-        $this->info("Downloading real property images from Unsplash...");
+        $this->info('Downloading real property images from Unsplash...');
         $bar = $this->output->createProgressBar($count * $perProperty);
         $bar->start();
 
@@ -73,7 +74,7 @@ class GenerateSampleImages extends Command
                 $fullPath = "properties/samples/property-{$p}-{$i}.jpg";
                 $thumbPath = "properties/samples/property-{$p}-{$i}-thumb.jpg";
 
-                if (!Storage::disk('public')->exists($fullPath)) {
+                if (! Storage::disk('public')->exists($fullPath)) {
                     $fullUrl = "https://images.unsplash.com/{$photoId}?w=800&h=600&fit=crop&q=80";
                     if ($this->downloadImage($fullUrl, $fullPath)) {
                         $downloaded++;
@@ -84,9 +85,9 @@ class GenerateSampleImages extends Command
                     }
                 }
 
-                if (!Storage::disk('public')->exists($thumbPath)) {
+                if (! Storage::disk('public')->exists($thumbPath)) {
                     $thumbUrl = "https://images.unsplash.com/{$photoId}?w=400&h=300&fit=crop&q=70";
-                    if (!$this->downloadImage($thumbUrl, $thumbPath)) {
+                    if (! $this->downloadImage($thumbUrl, $thumbPath)) {
                         $this->generateFallback($thumbPath, 400, 300, $p, $i);
                     }
                 }
@@ -122,6 +123,7 @@ class GenerateSampleImages extends Command
 
             if ($data && strlen($data) > 1000) {
                 Storage::disk('public')->put($storagePath, $data);
+
                 return true;
             }
         } catch (\Throwable $e) {
@@ -141,8 +143,8 @@ class GenerateSampleImages extends Command
         imagefilledrectangle($img, 0, 0, $w, $h, $bg);
 
         // Simple house icon
-        $cx = (int)($w / 2);
-        $cy = (int)($h / 2) - 20;
+        $cx = (int) ($w / 2);
+        $cy = (int) ($h / 2) - 20;
         $size = min($w, $h) / 4;
 
         // Roof triangle
@@ -154,13 +156,13 @@ class GenerateSampleImages extends Command
         imagefilledpolygon($img, $points, $accent);
 
         // Body rectangle
-        $bodyW = (int)($size * 1.4);
-        $bodyH = (int)($size * 1.0);
+        $bodyW = (int) ($size * 1.4);
+        $bodyH = (int) ($size * 1.0);
         imagefilledrectangle($img, $cx - $bodyW / 2, $cy, $cx + $bodyW / 2, $cy + $bodyH, $accent);
 
         // Door
-        $doorW = (int)($size * 0.35);
-        $doorH = (int)($size * 0.6);
+        $doorW = (int) ($size * 0.35);
+        $doorH = (int) ($size * 0.6);
         imagefilledrectangle($img, $cx - $doorW / 2, $cy + $bodyH - $doorH, $cx + $doorW / 2, $cy + $bodyH, $bg);
 
         // Label

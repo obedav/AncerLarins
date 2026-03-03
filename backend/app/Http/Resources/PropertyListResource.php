@@ -10,26 +10,26 @@ class PropertyListResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'            => $this->id,
-            'title'         => $this->title,
-            'slug'          => $this->slug,
-            'listing_type'  => $this->listing_type,
-            'price_kobo'    => $this->price_kobo,
+            'id' => $this->id,
+            'title' => $this->title,
+            'slug' => $this->slug,
+            'listing_type' => $this->listing_type,
+            'price_kobo' => $this->price_kobo,
             'formatted_price' => $this->formatted_price,
             'price_negotiable' => $this->price_negotiable,
-            'rent_period'   => $this->when(in_array($this->listing_type?->value, ['rent', 'short_let']), $this->rent_period),
-            'bedrooms'      => $this->bedrooms,
-            'bathrooms'     => $this->bathrooms,
-            'toilets'       => $this->toilets,
+            'rent_period' => $this->when(in_array($this->listing_type?->value, ['rent', 'short_let']), $this->rent_period),
+            'bedrooms' => $this->bedrooms,
+            'bathrooms' => $this->bathrooms,
+            'toilets' => $this->toilets,
             'floor_area_sqm' => $this->floor_area_sqm,
-            'address'       => $this->address,
-            'featured'      => $this->featured,
-            'is_new'        => $this->is_new,
-            'status'        => $this->status,
+            'address' => $this->address,
+            'featured' => $this->featured,
+            'is_new' => $this->is_new,
+            'status' => $this->status,
             'property_type' => $this->when(
                 $this->relationLoaded('propertyType'),
                 fn () => [
-                    'id'   => $this->propertyType->id,
+                    'id' => $this->propertyType->id,
                     'name' => $this->propertyType->name,
                     'slug' => $this->propertyType->slug,
                 ]
@@ -37,7 +37,7 @@ class PropertyListResource extends JsonResource
             'city' => $this->when(
                 $this->relationLoaded('city'),
                 fn () => [
-                    'id'   => $this->city->id,
+                    'id' => $this->city->id,
                     'name' => $this->city->name,
                     'slug' => $this->city->slug,
                 ]
@@ -45,31 +45,31 @@ class PropertyListResource extends JsonResource
             'area' => $this->when(
                 $this->relationLoaded('area') && $this->area,
                 fn () => [
-                    'id'   => $this->area->id,
+                    'id' => $this->area->id,
                     'name' => $this->area->name,
                 ]
             ),
             'cover_image' => $this->when(
                 $this->relationLoaded('images'),
                 fn () => $this->coverImage ? [
-                    'url'           => $this->coverImage->url,
+                    'url' => $this->coverImage->url,
                     'thumbnail_url' => $this->coverImage->thumbnail_url,
                 ] : null
             ),
             'agent' => $this->when(
                 $this->relationLoaded('agent'),
                 fn () => $this->agent ? [
-                    'id'           => $this->agent->id,
+                    'id' => $this->agent->id,
                     'company_name' => $this->agent->company_name,
-                    'user_name'    => $this->agent->user?->full_name,
-                    'is_verified'  => $this->agent->isVerified(),
+                    'user_name' => $this->agent->user?->full_name,
+                    'is_verified' => $this->agent->isVerified(),
                 ] : null
             ),
             'images_count' => $this->when(
                 $this->relationLoaded('images'),
                 fn () => $this->images->count()
             ),
-            'views_count'  => $this->when(isset($this->views_count), $this->views_count),
+            'views_count' => $this->when(isset($this->views_count), $this->views_count),
             'published_at' => $this->published_at?->toISOString(),
         ];
     }

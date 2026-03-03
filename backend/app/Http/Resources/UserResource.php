@@ -12,15 +12,15 @@ class UserResource extends JsonResource
         $isSelf = $request->user()?->id === $this->id;
 
         return [
-            'id'         => $this->id,
+            'id' => $this->id,
             'first_name' => $this->first_name,
-            'last_name'  => $this->last_name,
-            'full_name'  => $this->full_name,
-            'phone'      => $isSelf ? $this->phone : $this->maskedPhone(),
-            'email'      => $isSelf ? $this->email : null,
+            'last_name' => $this->last_name,
+            'full_name' => $this->full_name,
+            'phone' => $isSelf ? $this->phone : $this->maskedPhone(),
+            'email' => $isSelf ? $this->email : null,
             'avatar_url' => $this->avatar_url,
-            'role'       => $this->role->value,
-            'status'     => $this->when($isSelf, $this->status),
+            'role' => $this->role->value,
+            'status' => $this->when($isSelf, $this->status),
             'phone_verified' => $this->when($isSelf, $this->phone_verified),
             'preferred_city_id' => $this->when($isSelf, $this->preferred_city_id),
             'agent_profile' => $this->when(
@@ -37,6 +37,6 @@ class UserResource extends JsonResource
             return null;
         }
 
-        return substr($this->phone, 0, 7) . '****' . substr($this->phone, -2);
+        return substr($this->phone, 0, 7).'****'.substr($this->phone, -2);
     }
 }

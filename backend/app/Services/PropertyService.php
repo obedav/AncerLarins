@@ -74,7 +74,7 @@ class PropertyService
 
             $property = new Property(array_merge($data, [
                 'agent_id' => $agent->id,
-                'slug'     => $slug,
+                'slug' => $slug,
             ]));
             $property->status = PropertyStatus::Pending;
             $property->save();
@@ -89,7 +89,7 @@ class PropertyService
 
             PriceHistory::create([
                 'property_id' => $property->id,
-                'price_kobo'  => $property->price_kobo,
+                'price_kobo' => $property->price_kobo,
                 'recorded_at' => now(),
             ]);
 
@@ -114,8 +114,8 @@ class PropertyService
                     'property_pending',
                     [
                         'action_type' => 'property',
-                        'action_id'   => $property->id,
-                        'action_url'  => "/admin/properties/pending",
+                        'action_id' => $property->id,
+                        'action_url' => '/admin/properties/pending',
                     ]
                 );
             }
@@ -146,7 +146,7 @@ class PropertyService
             if (isset($data['price_kobo']) && $data['price_kobo'] !== $oldPrice) {
                 PriceHistory::create([
                     'property_id' => $property->id,
-                    'price_kobo'  => $data['price_kobo'],
+                    'price_kobo' => $data['price_kobo'],
                     'recorded_at' => now(),
                 ]);
             }
@@ -180,12 +180,12 @@ class PropertyService
 
             if ($result['url']) {
                 $images[] = $property->images()->create([
-                    'image_url'             => $result['url'],
-                    'thumbnail_url'         => $result['thumbnail_url'] ?? $result['url'],
-                    'cloudinary_public_id'  => $result['public_id'],
-                    'caption'               => $captions[$index] ?? null,
-                    'is_cover'              => $isFirst && $index === 0,
-                    'sort_order'            => $currentCount + $index,
+                    'image_url' => $result['url'],
+                    'thumbnail_url' => $result['thumbnail_url'] ?? $result['url'],
+                    'cloudinary_public_id' => $result['public_id'],
+                    'caption' => $captions[$index] ?? null,
+                    'is_cover' => $isFirst && $index === 0,
+                    'sort_order' => $currentCount + $index,
                 ]);
             }
         }
@@ -220,9 +220,9 @@ class PropertyService
     {
         PropertyView::create([
             'property_id' => $property->id,
-            'user_id'     => $meta['user_id'] ?? null,
-            'session_id'  => $meta['session_id'] ?? null,
-            'source'      => $meta['source'] ?? null,
+            'user_id' => $meta['user_id'] ?? null,
+            'session_id' => $meta['session_id'] ?? null,
+            'source' => $meta['source'] ?? null,
             'device_type' => $meta['device_type'] ?? null,
         ]);
     }

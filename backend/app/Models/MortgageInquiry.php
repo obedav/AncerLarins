@@ -21,9 +21,9 @@ class MortgageInquiry extends Model
     protected function casts(): array
     {
         return [
-            'annual_income_kobo'  => 'integer',
+            'annual_income_kobo' => 'integer',
             'desired_amount_kobo' => 'integer',
-            'created_at'          => 'datetime',
+            'created_at' => 'datetime',
         ];
     }
 

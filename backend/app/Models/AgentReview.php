@@ -21,12 +21,12 @@ class AgentReview extends Model
     protected function casts(): array
     {
         return [
-            'overall_rating'      => 'decimal:1',
-            'responsiveness'      => 'decimal:1',
-            'honesty'             => 'decimal:1',
-            'professionalism'     => 'decimal:1',
-            'status'              => ReviewStatus::class,
-            'verified_interaction'=> 'boolean',
+            'overall_rating' => 'decimal:1',
+            'responsiveness' => 'decimal:1',
+            'honesty' => 'decimal:1',
+            'professionalism' => 'decimal:1',
+            'status' => ReviewStatus::class,
+            'verified_interaction' => 'boolean',
         ];
     }
 

@@ -2,8 +2,6 @@
 
 namespace Tests\Feature\Subscription;
 
-use App\Models\AgentProfile;
-use App\Models\User;
 use App\Services\NotificationService;
 use App\Services\SubscriptionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -12,14 +10,14 @@ use Tests\Traits\CreatesTestData;
 
 class SubscriptionTest extends TestCase
 {
-    use RefreshDatabase, CreatesTestData;
+    use CreatesTestData, RefreshDatabase;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->mock(NotificationService::class, function ($mock) {
-            $mock->shouldReceive('send')->andReturn(new \App\Models\Notification());
+            $mock->shouldReceive('send')->andReturn(new \App\Models\Notification);
         });
     }
 
@@ -46,10 +44,10 @@ class SubscriptionTest extends TestCase
                 ['tier' => 'free'], ['tier' => 'basic'], ['tier' => 'pro'], ['tier' => 'enterprise'],
             ]);
             $mock->shouldReceive('initializePayment')->once()->andReturn([
-                'status'            => true,
+                'status' => true,
                 'authorization_url' => 'https://paystack.com/pay/test',
-                'access_code'       => 'access_test',
-                'reference'         => 'ref_test_123',
+                'access_code' => 'access_test',
+                'reference' => 'ref_test_123',
             ]);
         });
 
@@ -85,12 +83,12 @@ class SubscriptionTest extends TestCase
             ]);
             $mock->shouldReceive('verifyAndActivate')->once()->andReturn(
                 new \App\Models\AgentSubscription([
-                    'tier'              => 'basic',
-                    'amount_kobo'       => 15000,
+                    'tier' => 'basic',
+                    'amount_kobo' => 15000,
                     'payment_reference' => 'ref_123',
-                    'status'            => 'active',
-                    'starts_at'         => now(),
-                    'ends_at'           => now()->addDays(30),
+                    'status' => 'active',
+                    'starts_at' => now(),
+                    'ends_at' => now()->addDays(30),
                 ])
             );
         });

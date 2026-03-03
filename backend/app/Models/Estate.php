@@ -24,11 +24,11 @@ class Estate extends Model
     protected function casts(): array
     {
         return [
-            'estate_type'         => EstateType::class,
-            'amenities'           => 'array',
+            'estate_type' => EstateType::class,
+            'amenities' => 'array',
             'service_charge_kobo' => 'integer',
-            'total_units'         => 'integer',
-            'year_built'          => 'integer',
+            'total_units' => 'integer',
+            'year_built' => 'integer',
         ];
     }
 

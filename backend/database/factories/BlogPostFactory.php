@@ -19,14 +19,14 @@ class BlogPostFactory extends Factory
         $title = fake()->sentence(5);
 
         return [
-            'author_id'  => User::factory(),
-            'title'      => $title,
-            'slug'       => Str::slug($title) . '-' . fake()->unique()->numberBetween(100, 99999),
-            'excerpt'    => fake()->sentence(15),
-            'content'    => fake()->paragraphs(3, true),
-            'category'   => fake()->randomElement(BlogPostCategory::cases()),
-            'tags'       => ['real-estate', 'nigeria'],
-            'status'     => BlogPostStatus::Draft,
+            'author_id' => User::factory(),
+            'title' => $title,
+            'slug' => Str::slug($title).'-'.fake()->unique()->numberBetween(100, 99999),
+            'excerpt' => fake()->sentence(15),
+            'content' => fake()->paragraphs(3, true),
+            'category' => fake()->randomElement(BlogPostCategory::cases()),
+            'tags' => ['real-estate', 'nigeria'],
+            'status' => BlogPostStatus::Draft,
             'view_count' => 0,
         ];
     }
@@ -34,7 +34,7 @@ class BlogPostFactory extends Factory
     public function published(): static
     {
         return $this->state(fn () => [
-            'status'       => BlogPostStatus::Published,
+            'status' => BlogPostStatus::Published,
             'published_at' => now()->subDay(),
         ]);
     }

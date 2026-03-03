@@ -24,12 +24,12 @@ class Notification extends Model
     protected function casts(): array
     {
         return [
-            'channels'       => 'array',
-            'sent_push'      => 'boolean',
-            'sent_email'     => 'boolean',
-            'sent_whatsapp'  => 'boolean',
-            'read_at'        => 'datetime',
-            'created_at'     => 'datetime',
+            'channels' => 'array',
+            'sent_push' => 'boolean',
+            'sent_email' => 'boolean',
+            'sent_whatsapp' => 'boolean',
+            'read_at' => 'datetime',
+            'created_at' => 'datetime',
         ];
     }
 

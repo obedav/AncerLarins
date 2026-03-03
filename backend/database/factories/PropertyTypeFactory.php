@@ -21,8 +21,8 @@ class PropertyTypeFactory extends Factory
         ]);
 
         return [
-            'name'      => $name,
-            'slug'      => Str::slug($name),
+            'name' => $name,
+            'slug' => Str::slug($name),
             'is_active' => true,
         ];
     }

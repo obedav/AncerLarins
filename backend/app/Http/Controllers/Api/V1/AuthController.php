@@ -52,7 +52,7 @@ class AuthController extends Controller
         $response = ['user' => new UserResource($result['user'])];
 
         if (isset($result['access_token'])) {
-            $response['access_token']  = $result['access_token'];
+            $response['access_token'] = $result['access_token'];
             $response['refresh_token'] = $result['refresh_token'];
         }
 
@@ -121,7 +121,7 @@ class AuthController extends Controller
         }
 
         $jsonResponse = $this->successResponse([
-            'access_token'  => $result['access_token'],
+            'access_token' => $result['access_token'],
             'refresh_token' => $result['refresh_token'],
         ], 'Token refreshed.');
 
@@ -149,36 +149,36 @@ class AuthController extends Controller
 
         // httpOnly access token — 24 hours
         $response->withCookie(new Cookie(
-            name:     'access_token',
-            value:    $accessToken,
-            expire:   now()->addDay(),
-            path:     '/',
-            domain:   $domain,
-            secure:   $secure,
+            name: 'access_token',
+            value: $accessToken,
+            expire: now()->addDay(),
+            path: '/',
+            domain: $domain,
+            secure: $secure,
             httpOnly: true,
             sameSite: 'lax',
         ));
 
         // httpOnly refresh token — 30 days
         $response->withCookie(new Cookie(
-            name:     'refresh_token',
-            value:    $refreshToken,
-            expire:   now()->addDays(30),
-            path:     '/',
-            domain:   $domain,
-            secure:   $secure,
+            name: 'refresh_token',
+            value: $refreshToken,
+            expire: now()->addDays(30),
+            path: '/',
+            domain: $domain,
+            secure: $secure,
             httpOnly: true,
             sameSite: 'lax',
         ));
 
         // Non-httpOnly indicator so the frontend knows auth state
         $response->withCookie(new Cookie(
-            name:     'is_logged_in',
-            value:    '1',
-            expire:   now()->addDays(30),
-            path:     '/',
-            domain:   $domain,
-            secure:   $secure,
+            name: 'is_logged_in',
+            value: '1',
+            expire: now()->addDays(30),
+            path: '/',
+            domain: $domain,
+            secure: $secure,
             httpOnly: false,
             sameSite: 'lax',
         ));

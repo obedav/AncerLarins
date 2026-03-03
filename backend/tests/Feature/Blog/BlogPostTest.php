@@ -6,7 +6,6 @@ use App\Enums\BlogPostCategory;
 use App\Enums\BlogPostStatus;
 use App\Models\BlogPost;
 use App\Models\User;
-use App\Services\BlogService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -56,10 +55,10 @@ class BlogPostTest extends TestCase
         $admin = User::factory()->admin()->create(['phone_verified' => true]);
 
         $response = $this->actingAs($admin)->postJson('/api/v1/admin/blog-posts', [
-            'title'    => 'Top 10 Lagos Neighborhoods for Investment',
-            'content'  => 'Here are the best areas to invest in Lagos real estate...',
+            'title' => 'Top 10 Lagos Neighborhoods for Investment',
+            'content' => 'Here are the best areas to invest in Lagos real estate...',
             'category' => BlogPostCategory::Guide->value,
-            'status'   => BlogPostStatus::Published->value,
+            'status' => BlogPostStatus::Published->value,
         ]);
 
         $response->assertStatus(201)

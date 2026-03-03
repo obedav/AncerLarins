@@ -43,35 +43,41 @@ class WhatsAppBotService
             if (in_array($lower, ['hi', 'hello', 'hey', 'start'])) {
                 $this->sendWelcome($phone);
                 $conv->update(['session_state' => WhatsAppSessionState::Idle, 'session_data' => []]);
+
                 return;
             }
 
             if (in_array($lower, ['help', '?'])) {
                 $this->sendHelp($phone);
+
                 return;
             }
 
             if (in_array($lower, ['stop', 'reset', 'cancel'])) {
                 $conv->update(['session_state' => WhatsAppSessionState::Idle, 'session_data' => []]);
                 $this->sendMessage($phone, "Session reset. Send 'hi' to start again.");
+
                 return;
             }
 
             // Searching: "search 2 bed lekki" or "find apartment yaba"
             if (preg_match('/^(search|find|looking for)\s+/i', $lower)) {
                 $this->handleSearch($conv, $message);
+
                 return;
             }
 
             // Pagination: "next" or "more"
             if (in_array($lower, ['next', 'more', 'n']) && $conv->session_state === WhatsAppSessionState::Browsing) {
                 $this->handleBrowse($conv, ($conv->session_data['page'] ?? 1) + 1);
+
                 return;
             }
 
             // Number selection: viewing from results
             if (is_numeric($lower) && $conv->session_state === WhatsAppSessionState::Browsing) {
                 $this->handleView($conv, (int) $lower);
+
                 return;
             }
 
@@ -142,7 +148,7 @@ class WhatsAppBotService
             $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $areaName);
             $propertyQuery->whereHas('area', function ($q) use ($escaped) {
                 $q->where('name', 'ilike', "%{$escaped}%")
-                  ->orWhere('slug', 'ilike', "%{$escaped}%");
+                    ->orWhere('slug', 'ilike', "%{$escaped}%");
             });
         }
 
@@ -150,6 +156,7 @@ class WhatsAppBotService
 
         if ($results->isEmpty()) {
             $this->sendMessage($conv->phone, "No properties found matching your search. Try different criteria.\n\nExamples:\n- \"search 3 bed lekki\"\n- \"search under 2m yaba\"");
+
             return;
         }
 
@@ -178,6 +185,7 @@ class WhatsAppBotService
 
         if ($offset >= $total) {
             $this->sendMessage($conv->phone, "No more results. Send 'search ...' for a new search.");
+
             return;
         }
 
@@ -185,7 +193,7 @@ class WhatsAppBotService
         $properties = Property::whereIn('id', $pageIds)->with(['area', 'agent'])->get();
 
         $text = $this->formatPropertyList($properties, $offset);
-        $text .= "\n\n📊 Showing " . ($offset + 1) . "-" . ($offset + $properties->count()) . " of {$total}";
+        $text .= "\n\n📊 Showing ".($offset + 1).'-'.($offset + $properties->count())." of {$total}";
 
         if ($offset + self::PER_PAGE < $total) {
             $text .= "\n\nReply 'next' for more results.";
@@ -213,14 +221,16 @@ class WhatsAppBotService
         $index = $offset + $number - 1;
 
         if ($index < 0 || $index >= count($ids)) {
-            $this->sendMessage($conv->phone, "Invalid number. Pick a number from the list shown above.");
+            $this->sendMessage($conv->phone, 'Invalid number. Pick a number from the list shown above.');
+
             return;
         }
 
         $property = Property::with(['area', 'agent.user'])->find($ids[$index]);
 
         if (! $property) {
-            $this->sendMessage($conv->phone, "Property not found. Try searching again.");
+            $this->sendMessage($conv->phone, 'Property not found. Try searching again.');
+
             return;
         }
 
@@ -265,12 +275,18 @@ class WhatsAppBotService
             "🏠 *{$property->title}*\n",
             "💰 *Price:* {$price}",
             "📍 *Location:* {$area}",
-            "🏷 *Type:* " . ucfirst($property->listing_type?->value ?? 'N/A'),
+            '🏷 *Type:* '.ucfirst($property->listing_type?->value ?? 'N/A'),
         ];
 
-        if ($property->bedrooms) $lines[] = "🛏 *Bedrooms:* {$property->bedrooms}";
-        if ($property->bathrooms) $lines[] = "🚿 *Bathrooms:* {$property->bathrooms}";
-        if ($property->floor_area_sqm) $lines[] = "📐 *Area:* {$property->floor_area_sqm} sqm";
+        if ($property->bedrooms) {
+            $lines[] = "🛏 *Bedrooms:* {$property->bedrooms}";
+        }
+        if ($property->bathrooms) {
+            $lines[] = "🚿 *Bathrooms:* {$property->bathrooms}";
+        }
+        if ($property->floor_area_sqm) {
+            $lines[] = "📐 *Area:* {$property->floor_area_sqm} sqm";
+        }
 
         if ($property->description) {
             $desc = mb_substr(strip_tags($property->description), 0, 200);
@@ -295,12 +311,12 @@ class WhatsAppBotService
     protected function sendWelcome(string $phone): void
     {
         $text = "👋 *Welcome to AncerLarins!*\n\n"
-            . "I can help you find properties in Lagos.\n\n"
-            . "Try these commands:\n"
-            . "🔍 *search 2 bed lekki* — Find properties\n"
-            . "🔍 *search under 2m yaba* — Budget search\n"
-            . "❓ *help* — See all commands\n\n"
-            . "What are you looking for?";
+            ."I can help you find properties in Lagos.\n\n"
+            ."Try these commands:\n"
+            ."🔍 *search 2 bed lekki* — Find properties\n"
+            ."🔍 *search under 2m yaba* — Budget search\n"
+            ."❓ *help* — See all commands\n\n"
+            .'What are you looking for?';
 
         $this->sendMessage($phone, $text);
     }
@@ -308,15 +324,15 @@ class WhatsAppBotService
     protected function sendHelp(string $phone): void
     {
         $text = "📋 *AncerLarins Bot Commands*\n\n"
-            . "🔍 *search [query]* — Search properties\n"
-            . "   Examples:\n"
-            . "   - search 3 bed lekki\n"
-            . "   - search under 1m ajah\n"
-            . "   - search apartment ikoyi\n\n"
-            . "📄 *next* — See more results\n"
-            . "🔢 *[number]* — View property details\n"
-            . "🔄 *reset* — Start over\n"
-            . "❓ *help* — Show this message";
+            ."🔍 *search [query]* — Search properties\n"
+            ."   Examples:\n"
+            ."   - search 3 bed lekki\n"
+            ."   - search under 1m ajah\n"
+            ."   - search apartment ikoyi\n\n"
+            ."📄 *next* — See more results\n"
+            ."🔢 *[number]* — View property details\n"
+            ."🔄 *reset* — Start over\n"
+            .'❓ *help* — Show this message';
 
         $this->sendMessage($phone, $text);
     }
@@ -329,16 +345,19 @@ class WhatsAppBotService
         $this->termiiService->sendSms($phone, $text);
     }
 
-    protected function formatPrice(int|null $kobo): string
+    protected function formatPrice(?int $kobo): string
     {
-        if (! $kobo) return 'N/A';
+        if (! $kobo) {
+            return 'N/A';
+        }
         $naira = $kobo / 100;
         if ($naira >= 1_000_000) {
-            return '₦' . number_format($naira / 1_000_000, 1) . 'M';
+            return '₦'.number_format($naira / 1_000_000, 1).'M';
         }
         if ($naira >= 1_000) {
-            return '₦' . number_format($naira / 1_000, 0) . 'K';
+            return '₦'.number_format($naira / 1_000, 0).'K';
         }
-        return '₦' . number_format($naira, 0);
+
+        return '₦'.number_format($naira, 0);
     }
 }

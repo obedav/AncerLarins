@@ -9,7 +9,7 @@ use Tests\Traits\CreatesTestData;
 
 class MiddlewareTest extends TestCase
 {
-    use RefreshDatabase, CreatesTestData;
+    use CreatesTestData, RefreshDatabase;
 
     public function test_unverified_phone_returns_403(): void
     {

@@ -30,18 +30,18 @@ class CooperativeService
         }
 
         $cooperative = Cooperative::create(array_merge($data, [
-            'slug'          => $slug,
+            'slug' => $slug,
             'admin_user_id' => $user->id,
-            'status'        => CooperativeStatus::Forming,
-            'member_count'  => 1,
+            'status' => CooperativeStatus::Forming,
+            'member_count' => 1,
         ]));
 
         // Add creator as admin member
         $cooperative->members()->create([
-            'user_id'   => $user->id,
-            'role'      => CooperativeMemberRole::Admin,
+            'user_id' => $user->id,
+            'role' => CooperativeMemberRole::Admin,
             'joined_at' => now(),
-            'status'    => CooperativeMemberStatus::Active,
+            'status' => CooperativeMemberStatus::Active,
         ]);
 
         return $cooperative;
@@ -50,10 +50,10 @@ class CooperativeService
     public function join(Cooperative $cooperative, User $user): CooperativeMember
     {
         $member = $cooperative->members()->create([
-            'user_id'   => $user->id,
-            'role'      => CooperativeMemberRole::Member,
+            'user_id' => $user->id,
+            'role' => CooperativeMemberRole::Member,
             'joined_at' => now(),
-            'status'    => CooperativeMemberStatus::Active,
+            'status' => CooperativeMemberStatus::Active,
         ]);
 
         $cooperative->increment('member_count');
@@ -66,7 +66,7 @@ class CooperativeService
             'cooperative_member_joined',
             [
                 'action_type' => 'cooperative',
-                'action_id'   => $cooperative->id,
+                'action_id' => $cooperative->id,
             ]
         );
 
@@ -75,15 +75,15 @@ class CooperativeService
 
     public function initializeContribution(Cooperative $cooperative, CooperativeMember $member, int $amountKobo): array
     {
-        $reference = 'coop_' . Str::uuid();
+        $reference = 'coop_'.Str::uuid();
 
         $contribution = $cooperative->contributions()->create([
-            'member_id'         => $member->id,
-            'amount_kobo'       => $amountKobo,
+            'member_id' => $member->id,
+            'amount_kobo' => $amountKobo,
             'payment_reference' => $reference,
-            'payment_method'    => 'paystack',
-            'status'            => ContributionStatus::Pending,
-            'contributed_at'    => now(),
+            'payment_method' => 'paystack',
+            'status' => ContributionStatus::Pending,
+            'contributed_at' => now(),
         ]);
 
         $result = $this->paystackService->initializeTransaction(
@@ -91,16 +91,16 @@ class CooperativeService
             $amountKobo,
             $reference,
             [
-                'type'            => 'cooperative_contribution',
-                'cooperative_id'  => $cooperative->id,
+                'type' => 'cooperative_contribution',
+                'cooperative_id' => $cooperative->id,
                 'contribution_id' => $contribution->id,
-                'member_id'       => $member->id,
+                'member_id' => $member->id,
             ]
         );
 
         return [
             'contribution' => $contribution,
-            'paystack'     => $result,
+            'paystack' => $result,
         ];
     }
 
@@ -116,7 +116,7 @@ class CooperativeService
 
         if (($result['data']['status'] ?? null) === 'success') {
             $contribution->update([
-                'status'      => ContributionStatus::Verified,
+                'status' => ContributionStatus::Verified,
                 'verified_at' => now(),
             ]);
 
@@ -135,7 +135,7 @@ class CooperativeService
                     'cooperative_target_reached',
                     [
                         'action_type' => 'cooperative',
-                        'action_id'   => $cooperative->id,
+                        'action_id' => $cooperative->id,
                     ]
                 );
             }
@@ -151,10 +151,10 @@ class CooperativeService
     public function getProgress(Cooperative $cooperative): array
     {
         return [
-            'target_amount_kobo'      => $cooperative->target_amount_kobo,
-            'total_contributed_kobo'  => $cooperative->total_contributed_kobo,
-            'progress_percentage'     => $cooperative->progress_percentage,
-            'member_count'            => $cooperative->member_count,
+            'target_amount_kobo' => $cooperative->target_amount_kobo,
+            'total_contributed_kobo' => $cooperative->total_contributed_kobo,
+            'progress_percentage' => $cooperative->progress_percentage,
+            'member_count' => $cooperative->member_count,
         ];
     }
 }

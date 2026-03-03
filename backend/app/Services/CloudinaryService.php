@@ -18,17 +18,18 @@ class CloudinaryService
     {
         try {
             $result = $this->cloudinary->uploadApi()->upload($file->getRealPath(), [
-                'folder'        => "ancerlarins/{$folder}",
+                'folder' => "ancerlarins/{$folder}",
                 'resource_type' => 'image',
                 'transformation' => ['quality' => 'auto', 'fetch_format' => 'auto'],
             ]);
 
             return [
-                'url'       => $result['secure_url'],
+                'url' => $result['secure_url'],
                 'public_id' => $result['public_id'],
             ];
         } catch (\Exception $e) {
             Log::error('Cloudinary upload failed', ['error' => $e->getMessage()]);
+
             return ['url' => null, 'public_id' => null];
         }
     }
@@ -37,17 +38,18 @@ class CloudinaryService
     {
         try {
             $result = $this->cloudinary->uploadApi()->upload($file->getRealPath(), [
-                'folder'         => "ancerlarins/{$folder}",
-                'resource_type'  => 'auto',
-                'type'           => 'authenticated',
+                'folder' => "ancerlarins/{$folder}",
+                'resource_type' => 'auto',
+                'type' => 'authenticated',
             ]);
 
             return [
-                'url'       => $result['secure_url'],
+                'url' => $result['secure_url'],
                 'public_id' => $result['public_id'],
             ];
         } catch (\Exception $e) {
             Log::error('Cloudinary private upload failed', ['error' => $e->getMessage()]);
+
             return ['url' => null, 'public_id' => null];
         }
     }
@@ -63,8 +65,9 @@ class CloudinaryService
         } catch (\Exception $e) {
             Log::error('Cloudinary signed URL generation failed', [
                 'public_id' => $publicId,
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -73,17 +76,18 @@ class CloudinaryService
     {
         try {
             $result = $this->cloudinary->uploadApi()->upload($url, [
-                'folder'        => "ancerlarins/{$folder}",
+                'folder' => "ancerlarins/{$folder}",
                 'resource_type' => 'image',
                 'transformation' => ['quality' => 'auto', 'fetch_format' => 'auto'],
             ]);
 
             return [
-                'url'       => $result['secure_url'],
+                'url' => $result['secure_url'],
                 'public_id' => $result['public_id'],
             ];
         } catch (\Exception $e) {
             Log::error('Cloudinary upload from URL failed', ['url' => $url, 'error' => $e->getMessage()]);
+
             return ['url' => null, 'public_id' => null];
         }
     }
@@ -92,9 +96,11 @@ class CloudinaryService
     {
         try {
             $this->cloudinary->uploadApi()->destroy($publicId);
+
             return true;
         } catch (\Exception $e) {
             Log::error('Cloudinary delete failed', ['error' => $e->getMessage()]);
+
             return false;
         }
     }

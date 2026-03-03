@@ -16,11 +16,11 @@ class LeadService
     public function create(Property $property, User $user, string $contactType, ?string $source = null, ?string $utmCampaign = null): Lead
     {
         $lead = Lead::create([
-            'property_id'  => $property->id,
-            'agent_id'     => $property->agent_id,
-            'user_id'      => $user->id,
+            'property_id' => $property->id,
+            'agent_id' => $property->agent_id,
+            'user_id' => $user->id,
             'contact_type' => $contactType,
-            'source'       => $source,
+            'source' => $source,
             'utm_campaign' => $utmCampaign,
         ]);
 
@@ -34,8 +34,8 @@ class LeadService
             // Send push notification to agent
             $contactLabel = match ($contactType) {
                 'whatsapp' => 'WhatsApp message',
-                'call'     => 'phone call',
-                default    => 'inquiry',
+                'call' => 'phone call',
+                default => 'inquiry',
             };
 
             $this->notificationService->send(
@@ -64,7 +64,7 @@ class LeadService
             $propertyUrl .= "?utm_source=whatsapp&utm_campaign={$leadId}";
         }
 
-        $price = '₦' . number_format($property->price_kobo / 100, 0, '.', ',');
+        $price = '₦'.number_format($property->price_kobo / 100, 0, '.', ',');
 
         $message = str_replace(
             [':title', ':area', ':city', ':price', ':url'],
@@ -78,7 +78,7 @@ class LeadService
             config('ancerlarins.whatsapp_template'),
         );
 
-        return "https://wa.me/{$phone}?text=" . urlencode($message);
+        return "https://wa.me/{$phone}?text=".urlencode($message);
     }
 
     /**
@@ -98,7 +98,7 @@ class LeadService
 
         if ($user) {
             $existingQuery->where('user_id', $user->id);
-        } elseif (!empty($data['email'])) {
+        } elseif (! empty($data['email'])) {
             $existingQuery->where('email_hash', Lead::hashEmail($data['email']));
         }
 
@@ -108,18 +108,18 @@ class LeadService
         }
 
         $leadData = [
-            'property_id'    => $property->id,
-            'agent_id'       => $property->agent_id,
-            'user_id'        => $user?->id,
-            'contact_type'   => 'form',
-            'full_name'      => $data['full_name'] ?? $user?->full_name,
-            'email'          => $data['email'] ?? $user?->email,
-            'phone'          => $data['phone'] ?? $user?->phone,
-            'budget_range'   => $data['budget_range'] ?? null,
-            'timeline'       => $data['timeline'] ?? null,
+            'property_id' => $property->id,
+            'agent_id' => $property->agent_id,
+            'user_id' => $user?->id,
+            'contact_type' => 'form',
+            'full_name' => $data['full_name'] ?? $user?->full_name,
+            'email' => $data['email'] ?? $user?->email,
+            'phone' => $data['phone'] ?? $user?->phone,
+            'budget_range' => $data['budget_range'] ?? null,
+            'timeline' => $data['timeline'] ?? null,
             'financing_type' => $data['financing_type'] ?? null,
-            'message'        => $data['message'] ?? null,
-            'source'         => $data['source'] ?? null,
+            'message' => $data['message'] ?? null,
+            'source' => $data['source'] ?? null,
         ];
 
         $staffMember = $this->assignStaff($property);
@@ -161,7 +161,7 @@ class LeadService
             $staff = $staffQuery->whereIn('role', ['admin', 'super_admin'])->first();
         }
 
-        if (!$staff) {
+        if (! $staff) {
             Log::warning('No staff available for lead assignment', [
                 'property_id' => $property->id,
                 'is_high_value' => $isHighValue,

@@ -40,7 +40,7 @@ class InquiryController extends Controller
             $this->notificationService->send(
                 $staffMember,
                 "New inquiry for {$property->title}",
-                ($data['full_name'] ?? $request->user()?->full_name ?? 'A buyer') . ' is interested in viewing this property.',
+                ($data['full_name'] ?? $request->user()?->full_name ?? 'A buyer').' is interested in viewing this property.',
                 'new_inquiry',
                 ['action_type' => 'inquiry', 'action_id' => $lead->id, 'action_url' => '/admin/inquiries'],
             );
@@ -58,7 +58,7 @@ class InquiryController extends Controller
     public function track(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'ref'   => ['required', 'string', 'size:10'],
+            'ref' => ['required', 'string', 'size:10'],
             'email' => ['required', 'email'],
         ]);
 
@@ -66,47 +66,47 @@ class InquiryController extends Controller
             ->where('email_hash', Lead::hashEmail($data['email']))
             ->first();
 
-        if (!$lead) {
+        if (! $lead) {
             return $this->errorResponse('No inquiry found. Please check your reference number and email.', 404);
         }
 
         $lead->load('property:id,title,slug,price_kobo');
 
         $statusLabels = [
-            'new'                  => 'Received',
-            'contacted'            => 'Under Review',
-            'qualified'            => 'Qualified',
-            'agreement_signed'     => 'Agreement Signed',
+            'new' => 'Received',
+            'contacted' => 'Under Review',
+            'qualified' => 'Qualified',
+            'agreement_signed' => 'Agreement Signed',
             'inspection_scheduled' => 'Viewing Scheduled',
-            'negotiating'          => 'In Negotiation',
-            'offer_made'           => 'Offer Made',
-            'closed_won'           => 'Closed — Congratulations!',
-            'closed_lost'          => 'Closed',
+            'negotiating' => 'In Negotiation',
+            'offer_made' => 'Offer Made',
+            'closed_won' => 'Closed — Congratulations!',
+            'closed_lost' => 'Closed',
         ];
 
         return $this->successResponse([
-            'tracking_ref'  => $lead->tracking_ref,
-            'status'        => $lead->status,
-            'status_label'  => $statusLabels[$lead->status] ?? $lead->status,
-            'property'      => $lead->property ? [
-                'title'           => $lead->property->title,
-                'slug'            => $lead->property->slug,
-                'formatted_price' => '₦' . number_format($lead->property->price_kobo / 100, 0, '.', ','),
+            'tracking_ref' => $lead->tracking_ref,
+            'status' => $lead->status,
+            'status_label' => $statusLabels[$lead->status] ?? $lead->status,
+            'property' => $lead->property ? [
+                'title' => $lead->property->title,
+                'slug' => $lead->property->slug,
+                'formatted_price' => '₦'.number_format($lead->property->price_kobo / 100, 0, '.', ','),
             ] : null,
-            'inspection_date'     => $lead->inspection_date?->toDateString(),
-            'inspection_time'     => $lead->inspection_time,
+            'inspection_date' => $lead->inspection_date?->toDateString(),
+            'inspection_time' => $lead->inspection_time,
             'inspection_location' => $lead->inspection_location,
-            'agreement_accepted'  => (bool) $lead->agreement_accepted_at,
-            'created_at'          => $lead->created_at?->toIso8601String(),
-            'qualified_at'        => $lead->qualified_at?->toIso8601String(),
-            'inspection_at'       => $lead->inspection_at?->toIso8601String(),
+            'agreement_accepted' => (bool) $lead->agreement_accepted_at,
+            'created_at' => $lead->created_at?->toIso8601String(),
+            'qualified_at' => $lead->qualified_at?->toIso8601String(),
+            'inspection_at' => $lead->inspection_at?->toIso8601String(),
         ]);
     }
 
     public function acceptAgreement(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'ref'   => ['required', 'string', 'size:10'],
+            'ref' => ['required', 'string', 'size:10'],
             'email' => ['required', 'email'],
         ]);
 
@@ -114,7 +114,7 @@ class InquiryController extends Controller
             ->where('email_hash', Lead::hashEmail($data['email']))
             ->first();
 
-        if (!$lead) {
+        if (! $lead) {
             return $this->errorResponse('No inquiry found.', 404);
         }
 
@@ -123,8 +123,8 @@ class InquiryController extends Controller
         }
 
         $lead->forceFill([
-            'agreement_accepted_at'   => now(),
-            'agreement_ip'            => $request->ip(),
+            'agreement_accepted_at' => now(),
+            'agreement_ip' => $request->ip(),
             'agreement_terms_version' => '1.0',
         ])->save();
 
@@ -175,24 +175,24 @@ class InquiryController extends Controller
 
         // Format items for admin view
         $items = collect($paginator->items())->map(fn (Lead $lead) => [
-            'id'             => $lead->id,
-            'full_name'      => $lead->full_name,
-            'phone'          => $lead->phone,
-            'email'          => $lead->email,
-            'budget_range'   => $lead->budget_range,
-            'timeline'       => $lead->timeline,
-            'financing_type'  => $lead->financing_type,
-            'status'          => $lead->status,
-            'qualification'   => $lead->qualification,
-            'assigned_to'     => $lead->assignedStaff ? [
-                'id'        => $lead->assignedStaff->id,
+            'id' => $lead->id,
+            'full_name' => $lead->full_name,
+            'phone' => $lead->phone,
+            'email' => $lead->email,
+            'budget_range' => $lead->budget_range,
+            'timeline' => $lead->timeline,
+            'financing_type' => $lead->financing_type,
+            'status' => $lead->status,
+            'qualification' => $lead->qualification,
+            'assigned_to' => $lead->assignedStaff ? [
+                'id' => $lead->assignedStaff->id,
                 'full_name' => $lead->assignedStaff->full_name,
             ] : null,
             'property' => $lead->property ? [
-                'id'              => $lead->property->id,
-                'title'           => $lead->property->title,
-                'slug'            => $lead->property->slug,
-                'formatted_price' => '₦' . number_format($lead->property->price_kobo / 100, 0, '.', ','),
+                'id' => $lead->property->id,
+                'title' => $lead->property->title,
+                'slug' => $lead->property->slug,
+                'formatted_price' => '₦'.number_format($lead->property->price_kobo / 100, 0, '.', ','),
             ] : null,
             'created_at' => $lead->created_at?->toIso8601String(),
         ]);
@@ -200,12 +200,12 @@ class InquiryController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Success',
-            'data'    => $items,
-            'meta'    => [
+            'data' => $items,
+            'meta' => [
                 'current_page' => $paginator->currentPage(),
-                'last_page'    => $paginator->lastPage(),
-                'per_page'     => $paginator->perPage(),
-                'total'        => $paginator->total(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
             ],
         ]);
     }
@@ -221,46 +221,46 @@ class InquiryController extends Controller
         ]);
 
         return $this->successResponse([
-            'id'             => $lead->id,
-            'full_name'      => $lead->full_name,
-            'phone'          => $lead->phone,
-            'email'          => $lead->email,
-            'budget_range'   => $lead->budget_range,
-            'timeline'       => $lead->timeline,
+            'id' => $lead->id,
+            'full_name' => $lead->full_name,
+            'phone' => $lead->phone,
+            'email' => $lead->email,
+            'budget_range' => $lead->budget_range,
+            'timeline' => $lead->timeline,
             'financing_type' => $lead->financing_type,
-            'message'        => $lead->message,
-            'status'         => $lead->status,
-            'qualification'  => $lead->qualification,
-            'staff_notes'    => $lead->staff_notes,
-            'assigned_to'    => $lead->assignedStaff ? [
-                'id'        => $lead->assignedStaff->id,
+            'message' => $lead->message,
+            'status' => $lead->status,
+            'qualification' => $lead->qualification,
+            'staff_notes' => $lead->staff_notes,
+            'assigned_to' => $lead->assignedStaff ? [
+                'id' => $lead->assignedStaff->id,
                 'full_name' => $lead->assignedStaff->full_name,
             ] : null,
             'property' => $lead->property ? [
-                'id'              => $lead->property->id,
-                'title'           => $lead->property->title,
-                'slug'            => $lead->property->slug,
-                'formatted_price' => '₦' . number_format($lead->property->price_kobo / 100, 0, '.', ','),
+                'id' => $lead->property->id,
+                'title' => $lead->property->title,
+                'slug' => $lead->property->slug,
+                'formatted_price' => '₦'.number_format($lead->property->price_kobo / 100, 0, '.', ','),
             ] : null,
             'agent' => $lead->property?->agent ? [
                 'company_name' => $lead->property->agent->company_name,
-                'user_name'    => $lead->property->agent->user?->full_name,
+                'user_name' => $lead->property->agent->user?->full_name,
             ] : null,
             'user' => $lead->user ? [
-                'id'        => $lead->user->id,
+                'id' => $lead->user->id,
                 'full_name' => $lead->user->full_name,
             ] : null,
-            'qualified_at'          => $lead->qualified_at?->toIso8601String(),
-            'inspection_at'         => $lead->inspection_at?->toIso8601String(),
-            'closed_at'             => $lead->closed_at?->toIso8601String(),
-            'created_at'            => $lead->created_at?->toIso8601String(),
-            'tracking_ref'          => $lead->tracking_ref,
-            'inspection_date'       => $lead->inspection_date?->toDateString(),
-            'inspection_time'       => $lead->inspection_time,
-            'inspection_location'   => $lead->inspection_location,
-            'inspection_notes'      => $lead->inspection_notes,
+            'qualified_at' => $lead->qualified_at?->toIso8601String(),
+            'inspection_at' => $lead->inspection_at?->toIso8601String(),
+            'closed_at' => $lead->closed_at?->toIso8601String(),
+            'created_at' => $lead->created_at?->toIso8601String(),
+            'tracking_ref' => $lead->tracking_ref,
+            'inspection_date' => $lead->inspection_date?->toDateString(),
+            'inspection_time' => $lead->inspection_time,
+            'inspection_location' => $lead->inspection_location,
+            'inspection_notes' => $lead->inspection_notes,
             'agreement_accepted_at' => $lead->agreement_accepted_at?->toIso8601String(),
-            'agreement_ip'          => $lead->agreement_ip,
+            'agreement_ip' => $lead->agreement_ip,
             'agreement_terms_version' => $lead->agreement_terms_version,
         ]);
     }
@@ -270,13 +270,13 @@ class InquiryController extends Controller
         $this->authorize('updateStatus', $lead);
 
         $data = $request->validate([
-            'status'              => ['required', 'in:new,contacted,qualified,agreement_signed,inspection_scheduled,negotiating,offer_made,closed_won,closed_lost'],
-            'qualification'       => ['nullable', 'in:qualified,not_qualified,cold,fake'],
-            'staff_notes'         => ['nullable', 'string', 'max:2000'],
-            'inspection_date'     => ['nullable', 'date', 'after_or_equal:today'],
-            'inspection_time'     => ['nullable', 'string', 'max:10'],
+            'status' => ['required', 'in:new,contacted,qualified,agreement_signed,inspection_scheduled,negotiating,offer_made,closed_won,closed_lost'],
+            'qualification' => ['nullable', 'in:qualified,not_qualified,cold,fake'],
+            'staff_notes' => ['nullable', 'string', 'max:2000'],
+            'inspection_date' => ['nullable', 'date', 'after_or_equal:today'],
+            'inspection_time' => ['nullable', 'string', 'max:10'],
             'inspection_location' => ['nullable', 'string', 'max:500'],
-            'inspection_notes'    => ['nullable', 'string', 'max:1000'],
+            'inspection_notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
         $previousStatus = $lead->status;
@@ -298,13 +298,13 @@ class InquiryController extends Controller
         }
 
         // Auto-set timestamps based on status transitions
-        if ($data['status'] === 'qualified' && !$lead->qualified_at) {
+        if ($data['status'] === 'qualified' && ! $lead->qualified_at) {
             $updates['qualified_at'] = now();
         }
-        if ($data['status'] === 'inspection_scheduled' && !$lead->inspection_at) {
+        if ($data['status'] === 'inspection_scheduled' && ! $lead->inspection_at) {
             $updates['inspection_at'] = now();
         }
-        if (in_array($data['status'], ['closed_won', 'closed_lost']) && !$lead->closed_at) {
+        if (in_array($data['status'], ['closed_won', 'closed_lost']) && ! $lead->closed_at) {
             $updates['closed_at'] = now();
         }
 
@@ -346,41 +346,41 @@ class InquiryController extends Controller
     protected function sendBuyerStatusNotification(User $buyer, Lead $lead, string $newStatus, string $propertyTitle): void
     {
         $messages = [
-            'contacted'            => [
+            'contacted' => [
                 'title' => 'We received your inquiry',
-                'body'  => "Our team is reviewing your interest in \"{$propertyTitle}\". We'll be in touch shortly.",
+                'body' => "Our team is reviewing your interest in \"{$propertyTitle}\". We'll be in touch shortly.",
             ],
-            'qualified'            => [
+            'qualified' => [
                 'title' => 'You\'ve been qualified',
-                'body'  => "Great news! You've been qualified for \"{$propertyTitle}\". Our team will arrange next steps.",
+                'body' => "Great news! You've been qualified for \"{$propertyTitle}\". Our team will arrange next steps.",
             ],
-            'agreement_signed'     => [
+            'agreement_signed' => [
                 'title' => 'Agreement confirmed',
-                'body'  => "Your service agreement for \"{$propertyTitle}\" has been recorded. We're moving forward.",
+                'body' => "Your service agreement for \"{$propertyTitle}\" has been recorded. We're moving forward.",
             ],
             'inspection_scheduled' => [
                 'title' => 'Your private viewing is confirmed',
-                'body'  => "Your private viewing for \"{$propertyTitle}\" has been scheduled. Check your email for details.",
+                'body' => "Your private viewing for \"{$propertyTitle}\" has been scheduled. Check your email for details.",
             ],
-            'negotiating'          => [
+            'negotiating' => [
                 'title' => 'Negotiation in progress',
-                'body'  => "We're actively negotiating on your behalf for \"{$propertyTitle}\". We'll update you soon.",
+                'body' => "We're actively negotiating on your behalf for \"{$propertyTitle}\". We'll update you soon.",
             ],
-            'offer_made'           => [
+            'offer_made' => [
                 'title' => 'Offer submitted',
-                'body'  => "An offer has been made for \"{$propertyTitle}\". We'll notify you once we hear back.",
+                'body' => "An offer has been made for \"{$propertyTitle}\". We'll notify you once we hear back.",
             ],
-            'closed_won'           => [
+            'closed_won' => [
                 'title' => 'Congratulations!',
-                'body'  => "The deal for \"{$propertyTitle}\" has been successfully closed. Welcome to your new property!",
+                'body' => "The deal for \"{$propertyTitle}\" has been successfully closed. Welcome to your new property!",
             ],
-            'closed_lost'          => [
+            'closed_lost' => [
                 'title' => 'Inquiry closed',
-                'body'  => "Your inquiry for \"{$propertyTitle}\" has been closed. Feel free to explore other properties on AncerLarins.",
+                'body' => "Your inquiry for \"{$propertyTitle}\" has been closed. Feel free to explore other properties on AncerLarins.",
             ],
         ];
 
-        if (!isset($messages[$newStatus])) {
+        if (! isset($messages[$newStatus])) {
             return;
         }
 
@@ -393,8 +393,8 @@ class InquiryController extends Controller
             'inquiry_status_update',
             [
                 'action_type' => 'inquiry',
-                'action_id'   => $lead->id,
-                'action_url'  => '/track-inquiry?ref=' . $lead->tracking_ref,
+                'action_id' => $lead->id,
+                'action_url' => '/track-inquiry?ref='.$lead->tracking_ref,
             ],
         );
     }
@@ -432,7 +432,7 @@ class InquiryController extends Controller
         $user = $request->user();
         $agentProfile = $user->agentProfile;
 
-        if (!$agentProfile) {
+        if (! $agentProfile) {
             return $this->errorResponse('Agent profile not found.', 403);
         }
 
@@ -446,13 +446,13 @@ class InquiryController extends Controller
 
         // Agent sees name + property only — NO phone/email
         $items = collect($paginator->items())->map(fn (Lead $lead) => [
-            'id'        => $lead->id,
+            'id' => $lead->id,
             'full_name' => $lead->full_name,
-            'status'    => $lead->status,
-            'property'  => $lead->property ? [
-                'id'    => $lead->property->id,
+            'status' => $lead->status,
+            'property' => $lead->property ? [
+                'id' => $lead->property->id,
                 'title' => $lead->property->title,
-                'slug'  => $lead->property->slug,
+                'slug' => $lead->property->slug,
             ] : null,
             'created_at' => $lead->created_at?->toIso8601String(),
         ]);
@@ -460,12 +460,12 @@ class InquiryController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Success',
-            'data'    => $items,
-            'meta'    => [
+            'data' => $items,
+            'meta' => [
                 'current_page' => $paginator->currentPage(),
-                'last_page'    => $paginator->lastPage(),
-                'per_page'     => $paginator->perPage(),
-                'total'        => $paginator->total(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
             ],
         ]);
     }

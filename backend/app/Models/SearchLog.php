@@ -24,10 +24,10 @@ class SearchLog extends Model
         return [
             'min_price_kobo' => 'integer',
             'max_price_kobo' => 'integer',
-            'bedrooms'       => 'integer',
-            'filters_json'   => 'array',
-            'result_count'   => 'integer',
-            'created_at'     => 'datetime',
+            'bedrooms' => 'integer',
+            'filters_json' => 'array',
+            'result_count' => 'integer',
+            'created_at' => 'datetime',
         ];
     }
 

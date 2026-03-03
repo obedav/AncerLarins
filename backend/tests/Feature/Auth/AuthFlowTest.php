@@ -9,13 +9,12 @@ use App\Models\RefreshToken;
 use App\Models\User;
 use App\Services\TermiiService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 use Tests\Traits\CreatesTestData;
 
 class AuthFlowTest extends TestCase
 {
-    use RefreshDatabase, CreatesTestData;
+    use CreatesTestData, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -32,9 +31,9 @@ class AuthFlowTest extends TestCase
     {
         $response = $this->postJson('/api/v1/auth/register', [
             'first_name' => 'John',
-            'last_name'  => 'Doe',
-            'phone'      => '+2348012345678',
-            'password'   => 'securepass123',
+            'last_name' => 'Doe',
+            'phone' => '+2348012345678',
+            'password' => 'Secure@Pass1',
         ]);
 
         $response->assertStatus(201)
@@ -42,11 +41,11 @@ class AuthFlowTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'phone' => '+2348012345678',
-            'role'  => UserRole::User->value,
+            'role' => UserRole::User->value,
         ]);
 
         $this->assertDatabaseHas('otp_codes', [
-            'phone'   => '+2348012345678',
+            'phone' => '+2348012345678',
             'purpose' => OtpPurpose::Registration->value,
         ]);
     }
@@ -55,10 +54,10 @@ class AuthFlowTest extends TestCase
     {
         $response = $this->postJson('/api/v1/auth/register', [
             'first_name' => 'Jane',
-            'last_name'  => 'Agent',
-            'phone'      => '+2348099999999',
-            'password'   => 'securepass123',
-            'role'       => 'agent',
+            'last_name' => 'Agent',
+            'phone' => '+2348099999999',
+            'password' => 'Secure@Pass1',
+            'role' => 'agent',
         ]);
 
         $response->assertStatus(201);
@@ -75,9 +74,9 @@ class AuthFlowTest extends TestCase
 
         $response = $this->postJson('/api/v1/auth/register', [
             'first_name' => 'Dup',
-            'last_name'  => 'User',
-            'phone'      => '+2348011111111',
-            'password'   => 'securepass123',
+            'last_name' => 'User',
+            'phone' => '+2348011111111',
+            'password' => 'Secure@Pass1',
         ]);
 
         $response->assertStatus(422)
@@ -106,7 +105,7 @@ class AuthFlowTest extends TestCase
             ->assertJsonPath('success', true);
 
         $this->assertDatabaseHas('otp_codes', [
-            'phone'   => '+2348022222222',
+            'phone' => '+2348022222222',
             'purpose' => OtpPurpose::Login->value,
         ]);
     }
@@ -138,14 +137,14 @@ class AuthFlowTest extends TestCase
         $user = $this->createVerifiedUser(['phone' => '+2348044444444']);
 
         OtpCode::factory()->create([
-            'phone'   => '+2348044444444',
-            'code'    => '123456',
+            'phone' => '+2348044444444',
+            'code' => '123456',
             'purpose' => OtpPurpose::Login,
         ]);
 
         $response = $this->postJson('/api/v1/auth/verify-otp', [
-            'phone'   => '+2348044444444',
-            'code'    => '123456',
+            'phone' => '+2348044444444',
+            'code' => '123456',
             'purpose' => 'login',
         ]);
 
@@ -160,14 +159,14 @@ class AuthFlowTest extends TestCase
         $user = User::factory()->unverified()->create(['phone' => '+2348055555555']);
 
         OtpCode::factory()->create([
-            'phone'   => '+2348055555555',
-            'code'    => '654321',
+            'phone' => '+2348055555555',
+            'code' => '654321',
             'purpose' => OtpPurpose::Registration,
         ]);
 
         $this->postJson('/api/v1/auth/verify-otp', [
-            'phone'   => '+2348055555555',
-            'code'    => '654321',
+            'phone' => '+2348055555555',
+            'code' => '654321',
             'purpose' => 'registration',
         ]);
 
@@ -179,14 +178,14 @@ class AuthFlowTest extends TestCase
         $this->createVerifiedUser(['phone' => '+2348066666666']);
 
         OtpCode::factory()->create([
-            'phone'   => '+2348066666666',
-            'code'    => '111111',
+            'phone' => '+2348066666666',
+            'code' => '111111',
             'purpose' => OtpPurpose::Login,
         ]);
 
         $response = $this->postJson('/api/v1/auth/verify-otp', [
-            'phone'   => '+2348066666666',
-            'code'    => '999999',
+            'phone' => '+2348066666666',
+            'code' => '999999',
             'purpose' => 'login',
         ]);
 
@@ -198,14 +197,14 @@ class AuthFlowTest extends TestCase
         $this->createVerifiedUser(['phone' => '+2348077777777']);
 
         OtpCode::factory()->expired()->create([
-            'phone'   => '+2348077777777',
-            'code'    => '222222',
+            'phone' => '+2348077777777',
+            'code' => '222222',
             'purpose' => OtpPurpose::Login,
         ]);
 
         $response = $this->postJson('/api/v1/auth/verify-otp', [
-            'phone'   => '+2348077777777',
-            'code'    => '222222',
+            'phone' => '+2348077777777',
+            'code' => '222222',
             'purpose' => 'login',
         ]);
 
@@ -220,7 +219,7 @@ class AuthFlowTest extends TestCase
         $rawToken = 'test-refresh-token-string-64-chars-long-enough-for-testing-now!';
 
         RefreshToken::create([
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'token_hash' => hash('sha256', $rawToken),
             'expires_at' => now()->addDays(30),
         ]);

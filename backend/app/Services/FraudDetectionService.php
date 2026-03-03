@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Property;
 use App\Models\PropertyImage;
 use App\Models\Report;
-use Illuminate\Support\Facades\DB;
 
 class FraudDetectionService
 {
@@ -69,7 +68,7 @@ class FraudDetectionService
             $expectedPrice = match (true) {
                 $bedrooms <= 1 => $area->avg_rent_1br,
                 $bedrooms == 2 => $area->avg_rent_2br,
-                default        => $area->avg_rent_3br,
+                default => $area->avg_rent_3br,
             };
         }
 
@@ -89,7 +88,7 @@ class FraudDetectionService
         $duplicateCount = PropertyImage::whereIn('cloudinary_public_id', $imagePublicIds)
             ->whereHas('property', function ($q) use ($property) {
                 $q->where('id', '!=', $property->id)
-                  ->where('status', 'approved');
+                    ->where('status', 'approved');
             })
             ->count();
 

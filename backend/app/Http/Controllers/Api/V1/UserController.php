@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 
 /**
  * @group User Profile
+ *
  * @authenticated
  *
  * Manage user profile, saved properties, saved searches, notifications, and push tokens.
@@ -148,18 +149,18 @@ class UserController extends Controller
     public function registerPushToken(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'token'       => ['required', 'string', 'max:500'],
+            'token' => ['required', 'string', 'max:500'],
             'device_type' => ['required', 'string', 'in:web,android,ios'],
         ]);
 
         PushToken::updateOrCreate(
             [
                 'user_id' => $request->user()->id,
-                'token'   => $data['token'],
+                'token' => $data['token'],
             ],
             [
                 'device_type' => $data['device_type'],
-                'is_active'   => true,
+                'is_active' => true,
             ]
         );
 

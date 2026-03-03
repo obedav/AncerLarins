@@ -19,11 +19,11 @@ class RegisterRequest extends FormRequest
     {
         $rules = [
             'first_name' => ['required', 'string', 'max:100'],
-            'last_name'  => ['required', 'string', 'max:100'],
-            'phone'      => ['required', 'string', 'regex:/^(\+234|0)[789]\d{9}$/', 'unique:users,phone'],
-            'email'      => ['nullable', 'email', 'max:255', 'unique:users,email'],
-            'password'   => ['required', 'string', Password::min(10)->mixedCase()->numbers()->symbols()],
-            'role'       => ['sometimes', Rule::in([UserRole::User->value, UserRole::Agent->value])],
+            'last_name' => ['required', 'string', 'max:100'],
+            'phone' => ['required', 'string', 'regex:/^(\+234|0)[789]\d{9}$/', 'unique:users,phone'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', Password::min(10)->mixedCase()->numbers()->symbols()],
+            'role' => ['sometimes', Rule::in([UserRole::User->value, UserRole::Agent->value])],
         ];
 
         if (config('services.turnstile.secret_key')) {
@@ -36,7 +36,7 @@ class RegisterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'phone.regex'              => 'Phone must be a valid Nigerian number (e.g. +2347012345678 or 07012345678).',
+            'phone.regex' => 'Phone must be a valid Nigerian number (e.g. +2347012345678 or 07012345678).',
             'turnstile_token.required' => 'Please complete the security check.',
         ];
     }

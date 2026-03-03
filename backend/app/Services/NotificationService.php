@@ -13,14 +13,14 @@ class NotificationService
         $channels = $this->resolveChannels($user);
 
         $notification = Notification::create([
-            'user_id'     => $user->id,
-            'title'       => $title,
-            'body'        => $body,
-            'type'        => $type,
+            'user_id' => $user->id,
+            'title' => $title,
+            'body' => $body,
+            'type' => $type,
             'action_type' => $data['action_type'] ?? null,
-            'action_id'   => $data['action_id'] ?? null,
-            'action_url'  => $data['action_url'] ?? null,
-            'channels'    => $channels,
+            'action_id' => $data['action_id'] ?? null,
+            'action_url' => $data['action_url'] ?? null,
+            'channels' => $channels,
         ]);
 
         SendNotificationJob::dispatch(
