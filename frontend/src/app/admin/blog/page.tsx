@@ -1,9 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { blogSchema, parseBlogTags, type BlogFormData } from '@/lib/schemas/blog';
 import { useGetPublicBlogPostsQuery, useCreateBlogPostMutation, useUpdateBlogPostMutation, useDeleteBlogPostMutation } from '@/store/api/blogApi';
 import { formatDate } from '@/lib/utils';
-import type { CreateBlogPostPayload, BlogPostCategory } from '@/types/blog';
+import type { BlogPostCategory } from '@/types/blog';
 
 const CATEGORY_OPTIONS: { value: BlogPostCategory; label: string }[] = [
   { value: 'guide', label: 'Guide' },
@@ -19,6 +22,18 @@ const STATUS_OPTIONS = [
   { value: 'archived', label: 'Archived' },
 ];
 
+const DEFAULT_VALUES: BlogFormData = {
+  title: '',
+  content: '',
+  excerpt: '',
+  category: 'guide',
+  status: 'draft',
+  tags: '',
+  cover_image_url: '',
+  meta_title: '',
+  meta_description: '',
+};
+
 export default function AdminBlogPage() {
   const [page, setPage] = useState(1);
   const { data, isLoading } = useGetPublicBlogPostsQuery({ page, per_page: 20 });
@@ -28,34 +43,23 @@ export default function AdminBlogPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState<CreateBlogPostPayload>({
-    title: '',
-    content: '',
-    excerpt: '',
-    category: 'guide',
-    status: 'draft',
-    tags: [],
-    cover_image_url: '',
-    meta_title: '',
-    meta_description: '',
+
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<BlogFormData>({
+    resolver: zodResolver(blogSchema),
+    defaultValues: DEFAULT_VALUES,
   });
-  const [tagsInput, setTagsInput] = useState('');
 
   const posts = data?.data || [];
   const meta = data?.meta;
 
   const resetForm = () => {
-    setForm({ title: '', content: '', excerpt: '', category: 'guide', status: 'draft', tags: [], cover_image_url: '', meta_title: '', meta_description: '' });
-    setTagsInput('');
+    reset(DEFAULT_VALUES);
     setEditId(null);
     setShowForm(false);
   };
 
-  const handleSubmit = async () => {
-    const payload = {
-      ...form,
-      tags: tagsInput.split(',').map((t) => t.trim()).filter(Boolean),
-    };
+  const onSubmit = async (data: BlogFormData) => {
+    const payload = { ...data, tags: parseBlogTags(data.tags) };
 
     try {
       if (editId) {
@@ -68,18 +72,17 @@ export default function AdminBlogPage() {
   };
 
   const handleEdit = (post: typeof posts[0]) => {
-    setForm({
+    reset({
       title: post.title,
       content: '',
       excerpt: post.excerpt || '',
       category: post.category,
       status: 'published',
-      tags: post.tags || [],
+      tags: (post.tags || []).join(', '),
       cover_image_url: post.cover_image_url || '',
       meta_title: '',
       meta_description: '',
     });
-    setTagsInput((post.tags || []).join(', '));
     setEditId(post.id);
     setShowForm(true);
   };
@@ -90,6 +93,13 @@ export default function AdminBlogPage() {
       await deletePost(id).unwrap();
     } catch { /* RTK handles */ }
   };
+
+  const fieldError = (name: keyof BlogFormData) => {
+    const err = errors[name];
+    return err?.message ? <p className="text-error text-xs mt-1">{err.message as string}</p> : null;
+  };
+
+  const inputClass = 'w-full px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm';
 
   return (
     <div className="space-y-6">
@@ -105,99 +115,64 @@ export default function AdminBlogPage() {
 
       {/* Create/Edit Form */}
       {showForm && (
-        <div className="bg-surface border border-border rounded-xl p-6 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="bg-surface border border-border rounded-xl p-6 space-y-4">
           <h2 className="font-semibold text-text-primary">{editId ? 'Edit Post' : 'New Post'}</h2>
 
-          <input
-            type="text"
-            placeholder="Title"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="w-full px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-          />
+          <div>
+            <input type="text" placeholder="Title" {...register('title')} className={inputClass} />
+            {fieldError('title')}
+          </div>
 
-          <textarea
-            placeholder="Content (HTML supported)"
-            value={form.content}
-            onChange={(e) => setForm({ ...form, content: e.target.value })}
-            rows={12}
-            className="w-full px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm font-mono"
-          />
+          <div>
+            <textarea placeholder="Content (HTML supported)" {...register('content')} rows={12} className={`${inputClass} font-mono`} />
+            {fieldError('content')}
+          </div>
 
-          <textarea
-            placeholder="Excerpt (short summary)"
-            value={form.excerpt}
-            onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
-            rows={2}
-            className="w-full px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-          />
+          <textarea placeholder="Excerpt (short summary)" {...register('excerpt')} rows={2} className={inputClass} />
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <select
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value as BlogPostCategory })}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-            >
+            <select {...register('category')} className={inputClass}>
               {CATEGORY_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
 
-            <select
-              value={form.status}
-              onChange={(e) => setForm({ ...form, status: e.target.value as 'draft' | 'published' | 'archived' })}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-            >
+            <select {...register('status')} className={inputClass}>
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
 
-            <input
-              type="text"
-              placeholder="Cover image URL"
-              value={form.cover_image_url}
-              onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-            />
+            <div>
+              <input type="text" placeholder="Cover image URL" {...register('cover_image_url')} className={inputClass} />
+              {fieldError('cover_image_url')}
+            </div>
           </div>
 
-          <input
-            type="text"
-            placeholder="Tags (comma-separated)"
-            value={tagsInput}
-            onChange={(e) => setTagsInput(e.target.value)}
-            className="w-full px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-          />
+          <input type="text" placeholder="Tags (comma-separated)" {...register('tags')} className={inputClass} />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="Meta title (max 70 chars)"
-              value={form.meta_title}
-              onChange={(e) => setForm({ ...form, meta_title: e.target.value })}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-            />
-            <input
-              type="text"
-              placeholder="Meta description (max 160 chars)"
-              value={form.meta_description}
-              onChange={(e) => setForm({ ...form, meta_description: e.target.value })}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-            />
+            <div>
+              <input type="text" placeholder="Meta title (max 70 chars)" {...register('meta_title')} className={inputClass} />
+              {fieldError('meta_title')}
+            </div>
+            <div>
+              <input type="text" placeholder="Meta description (max 160 chars)" {...register('meta_description')} className={inputClass} />
+              {fieldError('meta_description')}
+            </div>
           </div>
 
           <div className="flex justify-end gap-3">
-            <button onClick={resetForm} className="px-4 py-2 rounded-xl border border-border text-sm text-text-secondary">Cancel</button>
+            <button type="button" onClick={resetForm} className="px-4 py-2 rounded-xl border border-border text-sm text-text-secondary">Cancel</button>
             <button
-              onClick={handleSubmit}
-              disabled={creating || !form.title || !form.content}
+              type="submit"
+              disabled={creating}
               className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium disabled:opacity-50"
             >
               {editId ? 'Update' : 'Create'}
             </button>
           </div>
-        </div>
+        </form>
       )}
 
       {/* Posts Table */}

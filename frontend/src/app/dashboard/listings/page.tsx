@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useGetMyListingsQuery } from '@/store/api/agentApi';
 import { useDeletePropertyMutation } from '@/store/api/propertyApi';
@@ -115,7 +116,7 @@ export default function MyListingsPage() {
                       <div className="flex items-center gap-3">
                         <div className="w-14 h-10 rounded-lg bg-border/50 overflow-hidden shrink-0">
                           {p.cover_image?.thumbnail_url && (
-                            <img src={p.cover_image.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                            <Image src={p.cover_image.thumbnail_url} alt={p.title} width={56} height={40} className="w-full h-full object-cover" />
                           )}
                         </div>
                         <div className="min-w-0">

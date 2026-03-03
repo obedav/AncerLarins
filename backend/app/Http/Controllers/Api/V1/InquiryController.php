@@ -122,11 +122,11 @@ class InquiryController extends Controller
             return $this->errorResponse('Agreement has already been accepted.', 422);
         }
 
-        $lead->update([
+        $lead->forceFill([
             'agreement_accepted_at'   => now(),
             'agreement_ip'            => $request->ip(),
             'agreement_terms_version' => '1.0',
-        ]);
+        ])->save();
 
         // Notify assigned staff
         if ($lead->assigned_to) {
@@ -267,6 +267,8 @@ class InquiryController extends Controller
 
     public function updateStatus(Request $request, Lead $lead): JsonResponse
     {
+        $this->authorize('updateStatus', $lead);
+
         $data = $request->validate([
             'status'              => ['required', 'in:new,contacted,qualified,agreement_signed,inspection_scheduled,negotiating,offer_made,closed_won,closed_lost'],
             'qualification'       => ['nullable', 'in:qualified,not_qualified,cold,fake'],
@@ -306,7 +308,7 @@ class InquiryController extends Controller
             $updates['closed_at'] = now();
         }
 
-        $lead->update($updates);
+        $lead->forceFill($updates)->save();
 
         // Send notifications only when status actually changed
         if ($previousStatus !== $data['status']) {
@@ -399,11 +401,13 @@ class InquiryController extends Controller
 
     public function assign(Request $request, Lead $lead): JsonResponse
     {
+        $this->authorize('assign', $lead);
+
         $data = $request->validate([
             'assigned_to' => ['required', 'uuid', 'exists:users,id'],
         ]);
 
-        $lead->update(['assigned_to' => $data['assigned_to']]);
+        $lead->forceFill(['assigned_to' => $data['assigned_to']])->save();
 
         // Notify newly assigned staff
         $staff = User::find($data['assigned_to']);

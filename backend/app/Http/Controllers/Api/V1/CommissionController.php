@@ -18,6 +18,8 @@ class CommissionController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Commission::class);
+
         $query = Commission::with([
             'lead:id,full_name,status',
             'property:id,title,slug',
@@ -110,6 +112,8 @@ class CommissionController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $this->authorize('create', Commission::class);
+
         $data = $request->validate([
             'lead_id'          => ['required', 'uuid', 'exists:leads,id'],
             'sale_price_kobo'  => ['required', 'integer', 'min:1'],
@@ -122,17 +126,17 @@ class CommissionController extends Controller
         $rate = $data['commission_rate'] ?? 2.5;
         $amount = Commission::calculate($data['sale_price_kobo'], $rate);
 
-        $commission = Commission::create([
+        $commission = new Commission([
             'lead_id'               => $lead->id,
             'property_id'           => $lead->property_id,
             'sale_price_kobo'       => $data['sale_price_kobo'],
             'commission_rate'       => $rate,
             'commission_amount_kobo' => $amount,
-            'status'                => 'pending',
             'payment_method'        => $data['payment_method'] ?? null,
             'notes'                 => $data['notes'] ?? null,
             'created_by'            => $request->user()->id,
         ]);
+        $commission->forceFill(['status' => 'pending'])->save();
 
         $commission->load(['lead:id,full_name', 'property:id,title,slug', 'creator:id,first_name,last_name']);
 
@@ -148,6 +152,8 @@ class CommissionController extends Controller
      */
     public function updateStatus(Request $request, Commission $commission): JsonResponse
     {
+        $this->authorize('updateStatus', $commission);
+
         $data = $request->validate([
             'status'            => ['required', 'in:pending,invoiced,paid,cancelled'],
             'payment_reference' => ['nullable', 'string', 'max:200'],
@@ -166,7 +172,7 @@ class CommissionController extends Controller
             $updates['notes'] = $data['notes'];
         }
 
-        $commission->update($updates);
+        $commission->forceFill($updates)->save();
 
         return $this->successResponse(null, 'Commission updated.');
     }

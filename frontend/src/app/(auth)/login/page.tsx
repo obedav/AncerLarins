@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -12,7 +12,21 @@ import { loginSchema, otpSchema, type LoginFormData, type OtpFormData } from '@/
 
 export default function LoginPage() {
   const router = useRouter();
-  const { loginSuccess } = useAuth();
+  const { user, isAuthenticated, loginSuccess } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      router.replace(getRoleRedirect(user.role));
+    }
+  }, [isAuthenticated, user, router]);
+
+  if (isAuthenticated && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-text-muted text-sm">Redirecting...</div>
+      </div>
+    );
+  }
   const [login, { isLoading: loginLoading }] = useLoginMutation();
   const [verifyOtp, { isLoading: otpLoading }] = useVerifyOtpMutation();
 
@@ -78,21 +92,23 @@ export default function LoginPage() {
         </p>
 
         {apiError && (
-          <div className="bg-error/10 text-error p-3 rounded-lg mb-4 text-sm">{apiError}</div>
+          <div className="bg-error/10 text-error p-3 rounded-lg mb-4 text-sm" role="alert">{apiError}</div>
         )}
 
         {step === 'phone' ? (
           <form onSubmit={phoneForm.handleSubmit(handleSendOtp)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">Phone Number</label>
+              <label htmlFor="login-phone" className="block text-sm font-medium text-text-secondary mb-1.5">Phone Number</label>
               <input
+                id="login-phone"
                 type="tel"
+                autoComplete="tel"
                 {...phoneForm.register('phone')}
                 placeholder="+234 801 234 5678"
                 className={inputClass}
               />
               {phoneForm.formState.errors.phone
-                ? <p className={errorClass}>{phoneForm.formState.errors.phone.message}</p>
+                ? <p className={errorClass} role="alert">{phoneForm.formState.errors.phone.message}</p>
                 : <p className="text-xs text-text-muted mt-1">Nigerian phone number (e.g. +2348012345678 or 08012345678)</p>
               }
             </div>
@@ -107,9 +123,12 @@ export default function LoginPage() {
         ) : (
           <form onSubmit={otpForm.handleSubmit(handleVerifyOtp)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">Verification Code</label>
+              <label htmlFor="login-otp" className="block text-sm font-medium text-text-secondary mb-1.5">Verification Code</label>
               <input
+                id="login-otp"
                 type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
                 maxLength={6}
                 {...otpForm.register('otp', {
                   onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, ''); },
@@ -118,7 +137,7 @@ export default function LoginPage() {
                 className={`${inputClass} text-center text-2xl tracking-[0.5em] font-mono`}
                 autoFocus
               />
-              {otpForm.formState.errors.otp && <p className={errorClass}>{otpForm.formState.errors.otp.message}</p>}
+              {otpForm.formState.errors.otp && <p className={errorClass} role="alert">{otpForm.formState.errors.otp.message}</p>}
             </div>
             <button
               type="submit"

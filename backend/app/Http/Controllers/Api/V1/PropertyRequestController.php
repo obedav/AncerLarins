@@ -207,7 +207,8 @@ class PropertyRequestController extends Controller
         }
 
         if ($request->filled('q')) {
-            $query->where('title', 'ilike', '%' . $request->input('q') . '%');
+            $q = str_replace(['%', '_'], ['\\%', '\\_'], $request->input('q'));
+            $query->where('title', 'ilike', '%' . $q . '%');
         }
 
         $requests = $query->paginate($request->perPage(20));

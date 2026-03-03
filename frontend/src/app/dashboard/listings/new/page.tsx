@@ -2,13 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { listingSchema, type ListingFormData } from '@/lib/schemas/listing';
 import { useCreatePropertyMutation } from '@/store/api/propertyApi';
 import { useUploadPropertyImagesMutation } from '@/store/api/agentApi';
 import { useGetStatesQuery, useGetCitiesQuery, useGetAreasQuery, useGetPropertyTypesQuery } from '@/store/api/locationApi';
 import ImageUploader from '@/components/dashboard/ImageUploader';
 import type { ImageFile } from '@/components/dashboard/ImageUploader';
 import type { CreatePropertyPayload, ListingType, Furnishing, RentPeriod } from '@/types';
-import { formatPrice } from '@/lib/utils';
 
 const STEPS = ['Basic Info', 'Pricing', 'Location', 'Details', 'Photos', 'Review'];
 
@@ -16,6 +18,16 @@ const FURNISHING_OPTIONS: { value: Furnishing; label: string }[] = [
   { value: 'unfurnished', label: 'Unfurnished' },
   { value: 'semi_furnished', label: 'Semi-Furnished' },
   { value: 'furnished', label: 'Furnished' },
+];
+
+// Fields to validate per step
+const STEP_FIELDS: (keyof ListingFormData)[][] = [
+  ['listing_type', 'property_type_id', 'title', 'description'],
+  ['price_naira', 'rent_period'],
+  ['state_id', 'city_id', 'address'],
+  ['bedrooms', 'bathrooms', 'furnishing'],
+  [], // Photos — no form fields
+  [], // Review — no additional validation
 ];
 
 export default function NewListingPage() {
@@ -26,50 +38,55 @@ export default function NewListingPage() {
   const { data: propertyTypesData } = useGetPropertyTypesQuery();
 
   const [step, setStep] = useState(0);
-  const [error, setError] = useState('');
+  const [apiError, setApiError] = useState('');
   const [images, setImages] = useState<ImageFile[]>([]);
 
-  const [form, setForm] = useState({
-    listing_type: 'rent' as ListingType,
-    property_type_id: '',
-    title: '',
-    description: '',
-    price_naira: '',
-    price_negotiable: false,
-    rent_period: 'yearly' as RentPeriod,
-    agency_fee_pct: '',
-    caution_fee_naira: '',
-    service_charge_naira: '',
-    legal_fee_naira: '',
-    state_id: '',
-    city_id: '',
-    area_id: '',
-    address: '',
-    landmark_note: '',
-    bedrooms: '',
-    bathrooms: '',
-    toilets: '',
-    sitting_rooms: '',
-    floor_area_sqm: '',
-    land_area_sqm: '',
-    year_built: '',
-    furnishing: 'unfurnished' as Furnishing,
-    parking_spaces: '',
-    has_bq: false,
-    has_swimming_pool: false,
-    has_gym: false,
-    has_cctv: false,
-    has_generator: false,
-    has_water_supply: false,
-    has_prepaid_meter: false,
-    is_serviced: false,
-    is_new_build: false,
-    inspection_available: true,
-    min_stay_days: '',
-    max_stay_days: '',
-    check_in_time: '14:00',
-    check_out_time: '11:00',
+  const { register, handleSubmit: rhfSubmit, watch, setValue, trigger, formState: { errors } } = useForm<ListingFormData>({
+    resolver: zodResolver(listingSchema),
+    defaultValues: {
+      listing_type: 'rent',
+      property_type_id: '',
+      title: '',
+      description: '',
+      price_naira: '',
+      price_negotiable: false,
+      rent_period: 'yearly',
+      agency_fee_pct: '',
+      caution_fee_naira: '',
+      service_charge_naira: '',
+      legal_fee_naira: '',
+      state_id: '',
+      city_id: '',
+      area_id: '',
+      address: '',
+      landmark_note: '',
+      bedrooms: '',
+      bathrooms: '',
+      toilets: '',
+      sitting_rooms: '',
+      floor_area_sqm: '',
+      land_area_sqm: '',
+      year_built: '',
+      furnishing: 'unfurnished',
+      parking_spaces: '',
+      has_bq: false,
+      has_swimming_pool: false,
+      has_gym: false,
+      has_cctv: false,
+      has_generator: false,
+      has_water_supply: false,
+      has_prepaid_meter: false,
+      is_serviced: false,
+      is_new_build: false,
+      inspection_available: true,
+      min_stay_days: '',
+      max_stay_days: '',
+      check_in_time: '14:00',
+      check_out_time: '11:00',
+    },
   });
+
+  const form = watch();
 
   const { data: citiesData } = useGetCitiesQuery(form.state_id, { skip: !form.state_id });
   const { data: areasData } = useGetAreasQuery(form.city_id, { skip: !form.city_id });
@@ -79,48 +96,75 @@ export default function NewListingPage() {
   const areas = areasData?.data || [];
   const propertyTypes = propertyTypesData?.data || [];
 
-  const update = (field: string, value: string | boolean | number) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const validateStep = (): boolean => {
-    setError('');
-    switch (step) {
-      case 0:
-        if (!form.title || !form.description || !form.property_type_id) {
-          setError('Please fill in all required fields.');
-          return false;
-        }
-        break;
-      case 1:
-        if (!form.price_naira || Number(form.price_naira) <= 0) {
-          setError('Please enter a valid price.');
-          return false;
-        }
-        break;
-      case 2:
-        if (!form.state_id || !form.city_id || !form.address) {
-          setError('Please provide state, city, and address.');
-          return false;
-        }
-        break;
-    }
-    return true;
-  };
-
-  const nextStep = () => {
-    if (validateStep()) setStep(step + 1);
+  const nextStep = async () => {
+    setApiError('');
+    const fields = STEP_FIELDS[step];
+    const valid = fields.length === 0 || await trigger(fields);
+    if (valid) setStep(step + 1);
   };
 
   const prevStep = () => {
-    setError('');
+    setApiError('');
     setStep(Math.max(0, step - 1));
   };
 
+  const buildPayload = (data: ListingFormData): CreatePropertyPayload => {
+    const payload: CreatePropertyPayload = {
+      listing_type: data.listing_type,
+      property_type_id: data.property_type_id,
+      title: data.title,
+      description: data.description,
+      price_kobo: Math.round(Number(data.price_naira) * 100),
+      price_negotiable: data.price_negotiable,
+      state_id: data.state_id,
+      city_id: data.city_id,
+      address: data.address,
+      furnishing: data.furnishing,
+      inspection_available: data.inspection_available,
+      has_bq: data.has_bq,
+      has_swimming_pool: data.has_swimming_pool,
+      has_gym: data.has_gym,
+      has_cctv: data.has_cctv,
+      has_generator: data.has_generator,
+      has_water_supply: data.has_water_supply,
+      has_prepaid_meter: data.has_prepaid_meter,
+      is_serviced: data.is_serviced,
+      is_new_build: data.is_new_build,
+    };
+    if (data.listing_type === 'rent' || data.listing_type === 'short_let') payload.rent_period = data.rent_period;
+    if (data.listing_type === 'short_let') {
+      if (data.min_stay_days) payload.min_stay_days = Number(data.min_stay_days);
+      if (data.max_stay_days) payload.max_stay_days = Number(data.max_stay_days);
+      if (data.check_in_time) payload.check_in_time = data.check_in_time;
+      if (data.check_out_time) payload.check_out_time = data.check_out_time;
+    }
+    if (data.area_id) payload.area_id = data.area_id;
+    if (data.landmark_note) payload.landmark_note = data.landmark_note;
+    if (data.bedrooms) payload.bedrooms = Number(data.bedrooms);
+    if (data.bathrooms) payload.bathrooms = Number(data.bathrooms);
+    if (data.toilets) payload.toilets = Number(data.toilets);
+    if (data.sitting_rooms) payload.sitting_rooms = Number(data.sitting_rooms);
+    if (data.floor_area_sqm) payload.floor_area_sqm = Number(data.floor_area_sqm);
+    if (data.land_area_sqm) payload.land_area_sqm = Number(data.land_area_sqm);
+    if (data.year_built) payload.year_built = Number(data.year_built);
+    if (data.parking_spaces) payload.parking_spaces = Number(data.parking_spaces);
+    if (data.agency_fee_pct) payload.agency_fee_pct = Number(data.agency_fee_pct);
+    if (data.caution_fee_naira) payload.caution_fee_kobo = Math.round(Number(data.caution_fee_naira) * 100);
+    if (data.service_charge_naira) payload.service_charge_kobo = Math.round(Number(data.service_charge_naira) * 100);
+    if (data.legal_fee_naira) payload.legal_fee_kobo = Math.round(Number(data.legal_fee_naira) * 100);
+    return payload;
+  };
+
+  const uploadImagesForProperty = async (propertyId: string) => {
+    const formData = new FormData();
+    images.forEach((img) => formData.append('images[]', img.file));
+    await uploadImages({ propertyId, formData }).unwrap();
+  };
+
   const handleSaveDraft = async () => {
-    setError('');
+    setApiError('');
     try {
-      const payload = buildPayload();
+      const payload = buildPayload(form);
       const result = await createProperty({ ...payload, status: 'draft' as never }).unwrap();
       if (images.length > 0 && result.data?.id) {
         await uploadImagesForProperty(result.data.id);
@@ -128,14 +172,14 @@ export default function NewListingPage() {
       router.push('/dashboard/listings');
     } catch (err: unknown) {
       const apiErr = err as { data?: { message?: string } };
-      setError(apiErr?.data?.message || 'Failed to save draft.');
+      setApiError(apiErr?.data?.message || 'Failed to save draft.');
     }
   };
 
-  const handleSubmit = async () => {
-    setError('');
+  const onSubmit = async (data: ListingFormData) => {
+    setApiError('');
     try {
-      const payload = buildPayload();
+      const payload = buildPayload(data);
       const result = await createProperty(payload).unwrap();
       if (images.length > 0 && result.data?.id) {
         await uploadImagesForProperty(result.data.id);
@@ -145,64 +189,16 @@ export default function NewListingPage() {
       const apiErr = err as { data?: { message?: string; errors?: Record<string, string[]> } };
       if (apiErr?.data?.errors) {
         const firstErr = Object.values(apiErr.data.errors)[0]?.[0];
-        setError(firstErr || apiErr?.data?.message || 'Failed to create listing.');
+        setApiError(firstErr || apiErr?.data?.message || 'Failed to create listing.');
       } else {
-        setError(apiErr?.data?.message || 'Failed to create listing.');
+        setApiError(apiErr?.data?.message || 'Failed to create listing.');
       }
     }
   };
 
-  const uploadImagesForProperty = async (propertyId: string) => {
-    const formData = new FormData();
-    images.forEach((img) => formData.append('images[]', img.file));
-    await uploadImages({ propertyId, formData }).unwrap();
-  };
-
-  const buildPayload = (): CreatePropertyPayload => {
-    const payload: CreatePropertyPayload = {
-      listing_type: form.listing_type,
-      property_type_id: form.property_type_id,
-      title: form.title,
-      description: form.description,
-      price_kobo: Math.round(Number(form.price_naira) * 100),
-      price_negotiable: form.price_negotiable,
-      state_id: form.state_id,
-      city_id: form.city_id,
-      address: form.address,
-      furnishing: form.furnishing,
-      inspection_available: form.inspection_available,
-      has_bq: form.has_bq,
-      has_swimming_pool: form.has_swimming_pool,
-      has_gym: form.has_gym,
-      has_cctv: form.has_cctv,
-      has_generator: form.has_generator,
-      has_water_supply: form.has_water_supply,
-      has_prepaid_meter: form.has_prepaid_meter,
-      is_serviced: form.is_serviced,
-      is_new_build: form.is_new_build,
-    };
-    if (form.listing_type === 'rent' || form.listing_type === 'short_let') payload.rent_period = form.rent_period;
-    if (form.listing_type === 'short_let') {
-      if (form.min_stay_days) payload.min_stay_days = Number(form.min_stay_days);
-      if (form.max_stay_days) payload.max_stay_days = Number(form.max_stay_days);
-      if (form.check_in_time) payload.check_in_time = form.check_in_time;
-      if (form.check_out_time) payload.check_out_time = form.check_out_time;
-    }
-    if (form.area_id) payload.area_id = form.area_id;
-    if (form.landmark_note) payload.landmark_note = form.landmark_note;
-    if (form.bedrooms) payload.bedrooms = Number(form.bedrooms);
-    if (form.bathrooms) payload.bathrooms = Number(form.bathrooms);
-    if (form.toilets) payload.toilets = Number(form.toilets);
-    if (form.sitting_rooms) payload.sitting_rooms = Number(form.sitting_rooms);
-    if (form.floor_area_sqm) payload.floor_area_sqm = Number(form.floor_area_sqm);
-    if (form.land_area_sqm) payload.land_area_sqm = Number(form.land_area_sqm);
-    if (form.year_built) payload.year_built = Number(form.year_built);
-    if (form.parking_spaces) payload.parking_spaces = Number(form.parking_spaces);
-    if (form.agency_fee_pct) payload.agency_fee_pct = Number(form.agency_fee_pct);
-    if (form.caution_fee_naira) payload.caution_fee_kobo = Math.round(Number(form.caution_fee_naira) * 100);
-    if (form.service_charge_naira) payload.service_charge_kobo = Math.round(Number(form.service_charge_naira) * 100);
-    if (form.legal_fee_naira) payload.legal_fee_kobo = Math.round(Number(form.legal_fee_naira) * 100);
-    return payload;
+  const fieldError = (name: keyof ListingFormData) => {
+    const err = errors[name];
+    return err?.message ? <p className="text-error text-xs mt-1">{err.message as string}</p> : null;
   };
 
   const inputClass = 'w-full px-4 py-3 border border-border rounded-xl bg-background focus:outline-none focus:border-accent-dark text-text-primary text-sm';
@@ -236,8 +232,8 @@ export default function NewListingPage() {
         ))}
       </div>
 
-      {error && (
-        <div className="bg-error/10 text-error p-3 rounded-xl mb-6 text-sm">{error}</div>
+      {apiError && (
+        <div className="bg-error/10 text-error p-3 rounded-xl mb-6 text-sm">{apiError}</div>
       )}
 
       {/* Step 0: Basic Info */}
@@ -253,9 +249,9 @@ export default function NewListingPage() {
                   key={type}
                   type="button"
                   onClick={() => {
-                    update('listing_type', type);
-                    if (type === 'short_let') update('rent_period', 'daily');
-                    else if (type === 'rent') update('rent_period', 'yearly');
+                    setValue('listing_type', type);
+                    if (type === 'short_let') setValue('rent_period', 'daily');
+                    else if (type === 'rent') setValue('rent_period', 'yearly');
                   }}
                   className={`px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${
                     form.listing_type === type
@@ -271,22 +267,25 @@ export default function NewListingPage() {
 
           <div>
             <label className={labelClass}>Property Type *</label>
-            <select value={form.property_type_id} onChange={(e) => update('property_type_id', e.target.value)} className={inputClass}>
+            <select {...register('property_type_id')} className={inputClass}>
               <option value="">Select type...</option>
               {propertyTypes.map((t) => (
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
             </select>
+            {fieldError('property_type_id')}
           </div>
 
           <div>
             <label className={labelClass}>Title *</label>
-            <input type="text" value={form.title} onChange={(e) => update('title', e.target.value)} placeholder="e.g. Spacious 3 Bedroom Apartment in Lekki Phase 1" className={inputClass} />
+            <input type="text" {...register('title')} placeholder="e.g. Spacious 3 Bedroom Apartment in Lekki Phase 1" className={inputClass} />
+            {fieldError('title')}
           </div>
 
           <div>
             <label className={labelClass}>Description *</label>
-            <textarea rows={5} value={form.description} onChange={(e) => update('description', e.target.value)} placeholder="Describe the property in detail..." className={inputClass} />
+            <textarea rows={5} {...register('description')} placeholder="Describe the property in detail..." className={inputClass} />
+            {fieldError('description')}
           </div>
         </div>
       )}
@@ -300,12 +299,13 @@ export default function NewListingPage() {
             <label className={labelClass}>Price (NGN) *</label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-sm">₦</span>
-              <input type="number" min="0" value={form.price_naira} onChange={(e) => update('price_naira', e.target.value)} placeholder="3,500,000" className={`${inputClass} pl-8`} />
+              <input type="number" min="0" {...register('price_naira')} placeholder="3,500,000" className={`${inputClass} pl-8`} />
             </div>
+            {fieldError('price_naira')}
           </div>
 
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.price_negotiable} onChange={(e) => update('price_negotiable', e.target.checked)} className="w-4 h-4 text-accent-dark border-border rounded" />
+            <input type="checkbox" {...register('price_negotiable')} className="w-4 h-4 text-accent-dark border-border rounded" />
             <span className="text-sm text-text-secondary">Price is negotiable</span>
           </label>
 
@@ -313,7 +313,7 @@ export default function NewListingPage() {
             <>
               <div>
                 <label className={labelClass}>Rent Period</label>
-                <select value={form.rent_period} onChange={(e) => update('rent_period', e.target.value)} className={inputClass}>
+                <select {...register('rent_period')} className={inputClass}>
                   {form.listing_type === 'short_let' ? (
                     <>
                       <option value="daily">Per Night</option>
@@ -335,19 +335,20 @@ export default function NewListingPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className={labelClass}>Min Stay (nights)</label>
-                      <input type="number" min="1" value={form.min_stay_days} onChange={(e) => update('min_stay_days', e.target.value)} placeholder="1" className={inputClass} />
+                      <input type="number" min="1" {...register('min_stay_days')} placeholder="1" className={inputClass} />
+                      {fieldError('min_stay_days')}
                     </div>
                     <div>
                       <label className={labelClass}>Max Stay (nights)</label>
-                      <input type="number" min="1" value={form.max_stay_days} onChange={(e) => update('max_stay_days', e.target.value)} placeholder="90" className={inputClass} />
+                      <input type="number" min="1" {...register('max_stay_days')} placeholder="90" className={inputClass} />
                     </div>
                     <div>
                       <label className={labelClass}>Check-in Time</label>
-                      <input type="time" value={form.check_in_time} onChange={(e) => update('check_in_time', e.target.value)} className={inputClass} />
+                      <input type="time" {...register('check_in_time')} className={inputClass} />
                     </div>
                     <div>
                       <label className={labelClass}>Check-out Time</label>
-                      <input type="time" value={form.check_out_time} onChange={(e) => update('check_out_time', e.target.value)} className={inputClass} />
+                      <input type="time" {...register('check_out_time')} className={inputClass} />
                     </div>
                   </div>
                 </>
@@ -357,19 +358,20 @@ export default function NewListingPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Agency Fee (%)</label>
-                  <input type="number" min="0" max="100" value={form.agency_fee_pct} onChange={(e) => update('agency_fee_pct', e.target.value)} className={inputClass} />
+                  <input type="number" min="0" max="100" {...register('agency_fee_pct')} className={inputClass} />
+                  {fieldError('agency_fee_pct')}
                 </div>
                 <div>
                   <label className={labelClass}>Caution Fee (NGN)</label>
-                  <input type="number" min="0" value={form.caution_fee_naira} onChange={(e) => update('caution_fee_naira', e.target.value)} className={inputClass} />
+                  <input type="number" min="0" {...register('caution_fee_naira')} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Service Charge (NGN)</label>
-                  <input type="number" min="0" value={form.service_charge_naira} onChange={(e) => update('service_charge_naira', e.target.value)} className={inputClass} />
+                  <input type="number" min="0" {...register('service_charge_naira')} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Legal Fee (NGN)</label>
-                  <input type="number" min="0" value={form.legal_fee_naira} onChange={(e) => update('legal_fee_naira', e.target.value)} className={inputClass} />
+                  <input type="number" min="0" {...register('legal_fee_naira')} className={inputClass} />
                 </div>
               </div>
             </>
@@ -386,29 +388,31 @@ export default function NewListingPage() {
             <div>
               <label className={labelClass}>State *</label>
               <select
-                value={form.state_id}
-                onChange={(e) => { update('state_id', e.target.value); update('city_id', ''); update('area_id', ''); }}
+                {...register('state_id')}
+                onChange={(e) => { setValue('state_id', e.target.value); setValue('city_id', ''); setValue('area_id', ''); }}
                 className={inputClass}
               >
                 <option value="">Select state...</option>
                 {states.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
+              {fieldError('state_id')}
             </div>
             <div>
               <label className={labelClass}>City *</label>
               <select
-                value={form.city_id}
-                onChange={(e) => { update('city_id', e.target.value); update('area_id', ''); }}
+                {...register('city_id')}
+                onChange={(e) => { setValue('city_id', e.target.value); setValue('area_id', ''); }}
                 disabled={!form.state_id}
                 className={inputClass}
               >
                 <option value="">Select city...</option>
                 {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
+              {fieldError('city_id')}
             </div>
             <div>
               <label className={labelClass}>Area</label>
-              <select value={form.area_id} onChange={(e) => update('area_id', e.target.value)} disabled={!form.city_id} className={inputClass}>
+              <select {...register('area_id')} disabled={!form.city_id} className={inputClass}>
                 <option value="">Select area...</option>
                 {areas.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
@@ -417,12 +421,13 @@ export default function NewListingPage() {
 
           <div>
             <label className={labelClass}>Address *</label>
-            <input type="text" value={form.address} onChange={(e) => update('address', e.target.value)} placeholder="e.g. 15 Admiralty Way, Lekki Phase 1" className={inputClass} />
+            <input type="text" {...register('address')} placeholder="e.g. 15 Admiralty Way, Lekki Phase 1" className={inputClass} />
+            {fieldError('address')}
           </div>
 
           <div>
             <label className={labelClass}>Landmark Note</label>
-            <input type="text" value={form.landmark_note} onChange={(e) => update('landmark_note', e.target.value)} placeholder="e.g. Opposite Chevron, near Lekki toll gate" className={inputClass} />
+            <input type="text" {...register('landmark_note')} placeholder="e.g. Opposite Chevron, near Lekki toll gate" className={inputClass} />
           </div>
         </div>
       )}
@@ -433,44 +438,44 @@ export default function NewListingPage() {
           <h2 className="font-semibold text-text-primary">Property Details</h2>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div><label className={labelClass}>Bedrooms</label><input type="number" min="0" value={form.bedrooms} onChange={(e) => update('bedrooms', e.target.value)} className={inputClass} /></div>
-            <div><label className={labelClass}>Bathrooms</label><input type="number" min="0" value={form.bathrooms} onChange={(e) => update('bathrooms', e.target.value)} className={inputClass} /></div>
-            <div><label className={labelClass}>Toilets</label><input type="number" min="0" value={form.toilets} onChange={(e) => update('toilets', e.target.value)} className={inputClass} /></div>
-            <div><label className={labelClass}>Sitting Rooms</label><input type="number" min="0" value={form.sitting_rooms} onChange={(e) => update('sitting_rooms', e.target.value)} className={inputClass} /></div>
+            <div><label className={labelClass}>Bedrooms</label><input type="number" min="0" {...register('bedrooms')} className={inputClass} /></div>
+            <div><label className={labelClass}>Bathrooms</label><input type="number" min="0" {...register('bathrooms')} className={inputClass} /></div>
+            <div><label className={labelClass}>Toilets</label><input type="number" min="0" {...register('toilets')} className={inputClass} /></div>
+            <div><label className={labelClass}>Sitting Rooms</label><input type="number" min="0" {...register('sitting_rooms')} className={inputClass} /></div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <div><label className={labelClass}>Floor Area (sqm)</label><input type="number" min="0" value={form.floor_area_sqm} onChange={(e) => update('floor_area_sqm', e.target.value)} className={inputClass} /></div>
-            <div><label className={labelClass}>Land Area (sqm)</label><input type="number" min="0" value={form.land_area_sqm} onChange={(e) => update('land_area_sqm', e.target.value)} className={inputClass} /></div>
-            <div><label className={labelClass}>Parking Spaces</label><input type="number" min="0" value={form.parking_spaces} onChange={(e) => update('parking_spaces', e.target.value)} className={inputClass} /></div>
+            <div><label className={labelClass}>Floor Area (sqm)</label><input type="number" min="0" {...register('floor_area_sqm')} className={inputClass} /></div>
+            <div><label className={labelClass}>Land Area (sqm)</label><input type="number" min="0" {...register('land_area_sqm')} className={inputClass} /></div>
+            <div><label className={labelClass}>Parking Spaces</label><input type="number" min="0" {...register('parking_spaces')} className={inputClass} /></div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Furnishing</label>
-              <select value={form.furnishing} onChange={(e) => update('furnishing', e.target.value)} className={inputClass}>
+              <select {...register('furnishing')} className={inputClass}>
                 {FURNISHING_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
-            <div><label className={labelClass}>Year Built</label><input type="number" min="1900" max="2026" value={form.year_built} onChange={(e) => update('year_built', e.target.value)} className={inputClass} /></div>
+            <div><label className={labelClass}>Year Built</label><input type="number" min="1900" max="2026" {...register('year_built')} className={inputClass} /></div>
           </div>
 
           <h3 className="text-sm font-medium text-text-primary pt-2">Features & Amenities</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
-              { key: 'has_bq', label: 'BQ (Boys Quarter)' },
-              { key: 'has_swimming_pool', label: 'Swimming Pool' },
-              { key: 'has_gym', label: 'Gym' },
-              { key: 'has_cctv', label: 'CCTV Security' },
-              { key: 'has_generator', label: 'Generator' },
-              { key: 'has_water_supply', label: '24/7 Water' },
-              { key: 'has_prepaid_meter', label: 'Prepaid Meter' },
-              { key: 'is_serviced', label: 'Serviced' },
-              { key: 'is_new_build', label: 'New Build' },
-              { key: 'inspection_available', label: 'Inspection Available' },
+              { key: 'has_bq' as const, label: 'BQ (Boys Quarter)' },
+              { key: 'has_swimming_pool' as const, label: 'Swimming Pool' },
+              { key: 'has_gym' as const, label: 'Gym' },
+              { key: 'has_cctv' as const, label: 'CCTV Security' },
+              { key: 'has_generator' as const, label: 'Generator' },
+              { key: 'has_water_supply' as const, label: '24/7 Water' },
+              { key: 'has_prepaid_meter' as const, label: 'Prepaid Meter' },
+              { key: 'is_serviced' as const, label: 'Serviced' },
+              { key: 'is_new_build' as const, label: 'New Build' },
+              { key: 'inspection_available' as const, label: 'Inspection Available' },
             ].map(({ key, label }) => (
               <label key={key} className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form[key as keyof typeof form] as boolean} onChange={(e) => update(key, e.target.checked)} className="w-4 h-4 text-accent-dark border-border rounded" />
+                <input type="checkbox" {...register(key)} className="w-4 h-4 text-accent-dark border-border rounded" />
                 <span className="text-sm text-text-secondary">{label}</span>
               </label>
             ))}
@@ -494,7 +499,7 @@ export default function NewListingPage() {
 
             <dl className="space-y-3 text-sm">
               <ReviewRow label="Title" value={form.title} />
-              <ReviewRow label="Type" value={`${form.listing_type === 'rent' ? 'For Rent' : 'For Sale'}`} />
+              <ReviewRow label="Type" value={`${form.listing_type === 'rent' ? 'For Rent' : form.listing_type === 'short_let' ? 'Short Let' : 'For Sale'}`} />
               <ReviewRow label="Price" value={form.price_naira ? `₦${Number(form.price_naira).toLocaleString()}` : '-'} />
               {form.listing_type === 'rent' && <ReviewRow label="Rent Period" value={form.rent_period} />}
               <ReviewRow label="Address" value={form.address} />
@@ -507,9 +512,9 @@ export default function NewListingPage() {
 
           {images.length > 0 && (
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-              {images.slice(0, 6).map((img, i) => (
+              {images.slice(0, 6).map((img) => (
                 <div key={img.id} className="aspect-square rounded-lg overflow-hidden bg-border/30">
-                  <img src={img.preview} alt="" className="w-full h-full object-cover" />
+                  <img src={img.preview} alt="Upload preview" className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>
@@ -535,7 +540,7 @@ export default function NewListingPage() {
               Continue
             </button>
           ) : (
-            <button onClick={handleSubmit} disabled={creating || uploading} className="bg-accent hover:bg-accent-dark text-primary px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
+            <button onClick={rhfSubmit(onSubmit)} disabled={creating || uploading} className="bg-accent hover:bg-accent-dark text-primary px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
               {creating || uploading ? 'Submitting...' : 'Submit for Approval'}
             </button>
           )}

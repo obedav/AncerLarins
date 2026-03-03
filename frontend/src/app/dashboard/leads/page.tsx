@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useGetAgentLeadsQuery, useRespondToLeadMutation } from '@/store/api/agentApi';
 import { formatRelativeTime, formatDate } from '@/lib/utils';
 
@@ -59,7 +60,7 @@ export default function LeadsPage() {
                       <div className="flex items-center gap-3">
                         {lead.property?.cover_image?.thumbnail_url && (
                           <div className="w-12 h-9 rounded bg-border/50 overflow-hidden shrink-0">
-                            <img src={lead.property.cover_image.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                            <Image src={lead.property.cover_image.thumbnail_url} alt={lead.property.title || 'Property'} width={48} height={36} className="w-full h-full object-cover" />
                           </div>
                         )}
                         <span className="text-text-primary font-medium truncate max-w-48">

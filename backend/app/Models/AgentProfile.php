@@ -17,16 +17,12 @@ class AgentProfile extends Model
 
     protected $fillable = [
         'user_id', 'company_name', 'logo_url', 'license_number',
-        'verification_status', 'verified_at', 'verified_by', 'rejection_reason',
         'id_document_type', 'id_document_number',
         'id_document_url', 'id_document_front_url', 'id_document_back_url',
         'id_document_front_public_id', 'id_document_back_public_id',
         'selfie_url', 'selfie_public_id',
         'cac_document_url', 'cac_document_public_id',
         'whatsapp_number', 'office_address', 'office_area_id',
-        'subscription_tier', 'subscription_expires_at', 'max_listings',
-        'active_listings', 'total_listings', 'total_leads',
-        'avg_rating', 'total_reviews', 'response_rate', 'avg_response_time',
         'bio', 'specializations', 'years_experience',
     ];
 

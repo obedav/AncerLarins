@@ -31,11 +31,13 @@ export default function NeighborhoodDetailPage({ params }: { params: Promise<{ s
   const [area, setArea] = useState<AreaDetail | null>(null);
   const [properties, setProperties] = useState<PropertyListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!slug) return;
 
     setLoading(true);
+    setError('');
     Promise.all([
       api.get(`/locations/areas/${slug}`),
       api.get('/properties', { params: { area_slug: slug, per_page: 12 } }),
@@ -44,9 +46,24 @@ export default function NeighborhoodDetailPage({ params }: { params: Promise<{ s
         setArea(areaRes.data.data);
         setProperties(propRes.data.data || []);
       })
-      .catch(() => {})
+      .catch(() => { setError('Failed to load neighborhood details. Please try again.'); })
       .finally(() => setLoading(false));
   }, [slug]);
+
+  if (error) {
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-error mb-4">{error}</p>
+            <button onClick={() => window.location.reload()} className="px-4 py-2 bg-primary text-white rounded-xl text-sm">Retry</button>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   if (loading) {
     return (

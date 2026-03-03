@@ -44,7 +44,8 @@ class EstateController extends Controller
         }
 
         if ($request->filled('q')) {
-            $query->where('name', 'ilike', '%' . $request->input('q') . '%');
+            $q = str_replace(['%', '_'], ['\\%', '\\_'], $request->input('q'));
+            $query->where('name', 'ilike', '%' . $q . '%');
         }
 
         $estates = $query->paginate($request->perPage(15));
@@ -138,7 +139,8 @@ class EstateController extends Controller
         }
 
         if ($request->filled('q')) {
-            $query->where('name', 'ilike', '%' . $request->input('q') . '%');
+            $q = str_replace(['%', '_'], ['\\%', '\\_'], $request->input('q'));
+            $query->where('name', 'ilike', '%' . $q . '%');
         }
 
         $estates = $query->paginate($request->perPage(20));
@@ -174,6 +176,8 @@ class EstateController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $this->authorize('create', Estate::class);
+
         $validated = $request->validate([
             'name'                  => ['required', 'string', 'max:255'],
             'area_id'               => ['required', 'uuid', 'exists:areas,id'],
@@ -210,6 +214,8 @@ class EstateController extends Controller
     /** @authenticated */
     public function update(Request $request, Estate $estate): JsonResponse
     {
+        $this->authorize('update', $estate);
+
         $validated = $request->validate([
             'name'                  => ['sometimes', 'string', 'max:255'],
             'area_id'               => ['sometimes', 'uuid', 'exists:areas,id'],
@@ -247,6 +253,8 @@ class EstateController extends Controller
     /** @authenticated */
     public function destroy(Estate $estate): JsonResponse
     {
+        $this->authorize('delete', $estate);
+
         $estate->delete();
 
         return $this->successResponse(null, 'Estate deleted.', 204);

@@ -53,7 +53,8 @@ class ScrapedListingController extends Controller
                 $request->user()?->id,
             );
         } catch (\Exception $e) {
-            return $this->errorResponse('Failed to import listing: ' . $e->getMessage(), 500);
+            report($e);
+            return $this->errorResponse('Failed to import listing. Please try again.', 500);
         }
 
         $scrapedListing->refresh();

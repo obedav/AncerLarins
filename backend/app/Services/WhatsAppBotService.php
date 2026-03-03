@@ -139,9 +139,10 @@ class WhatsAppBotService
         }
 
         if ($areaName) {
-            $propertyQuery->whereHas('area', function ($q) use ($areaName) {
-                $q->where('name', 'ilike', "%{$areaName}%")
-                  ->orWhere('slug', 'ilike', "%{$areaName}%");
+            $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $areaName);
+            $propertyQuery->whereHas('area', function ($q) use ($escaped) {
+                $q->where('name', 'ilike', "%{$escaped}%")
+                  ->orWhere('slug', 'ilike', "%{$escaped}%");
             });
         }
 

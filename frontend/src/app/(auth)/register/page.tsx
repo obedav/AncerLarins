@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -13,7 +13,21 @@ import { registerSchema, otpSchema, type RegisterFormData, type OtpFormData } fr
 function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { loginSuccess } = useAuth();
+  const { user, isAuthenticated, loginSuccess } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      router.replace(getRoleRedirect(user.role));
+    }
+  }, [isAuthenticated, user, router]);
+
+  if (isAuthenticated && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-text-muted text-sm">Redirecting...</div>
+      </div>
+    );
+  }
   const [registerApi, { isLoading: regLoading }] = useRegisterMutation();
   const [verifyOtp, { isLoading: otpLoading }] = useVerifyOtpMutation();
 
@@ -93,32 +107,34 @@ function RegisterContent() {
         </p>
 
         {apiError && (
-          <div className="bg-error/10 text-error p-3 rounded-lg mb-4 text-sm">{apiError}</div>
+          <div className="bg-error/10 text-error p-3 rounded-lg mb-4 text-sm" role="alert">{apiError}</div>
         )}
 
         {step === 'info' ? (
           <form onSubmit={infoForm.handleSubmit(handleRegister)} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">First Name</label>
-                <input type="text" {...infoForm.register('first_name')} className={inputClass} />
-                {infoForm.formState.errors.first_name && <p className={errorClass}>{infoForm.formState.errors.first_name.message}</p>}
+                <label htmlFor="reg-first-name" className="block text-sm font-medium text-text-secondary mb-1.5">First Name</label>
+                <input id="reg-first-name" type="text" autoComplete="given-name" {...infoForm.register('first_name')} className={inputClass} />
+                {infoForm.formState.errors.first_name && <p className={errorClass} role="alert">{infoForm.formState.errors.first_name.message}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">Last Name</label>
-                <input type="text" {...infoForm.register('last_name')} className={inputClass} />
-                {infoForm.formState.errors.last_name && <p className={errorClass}>{infoForm.formState.errors.last_name.message}</p>}
+                <label htmlFor="reg-last-name" className="block text-sm font-medium text-text-secondary mb-1.5">Last Name</label>
+                <input id="reg-last-name" type="text" autoComplete="family-name" {...infoForm.register('last_name')} className={inputClass} />
+                {infoForm.formState.errors.last_name && <p className={errorClass} role="alert">{infoForm.formState.errors.last_name.message}</p>}
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">Phone Number</label>
+              <label htmlFor="reg-phone" className="block text-sm font-medium text-text-secondary mb-1.5">Phone Number</label>
               <input
+                id="reg-phone"
                 type="tel"
+                autoComplete="tel"
                 {...infoForm.register('phone')}
                 placeholder="+234 801 234 5678"
                 className={inputClass}
               />
-              {infoForm.formState.errors.phone && <p className={errorClass}>{infoForm.formState.errors.phone.message}</p>}
+              {infoForm.formState.errors.phone && <p className={errorClass} role="alert">{infoForm.formState.errors.phone.message}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">I am a...</label>
@@ -161,7 +177,7 @@ function RegisterContent() {
                 className={`${inputClass} text-center text-2xl tracking-[0.5em] font-mono`}
                 autoFocus
               />
-              {otpForm.formState.errors.otp && <p className={errorClass}>{otpForm.formState.errors.otp.message}</p>}
+              {otpForm.formState.errors.otp && <p className={errorClass} role="alert">{otpForm.formState.errors.otp.message}</p>}
             </div>
             <button
               type="submit"

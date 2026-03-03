@@ -1,0 +1,10 @@
+.git
+node_modules
+vendor
+*.log
+.env*
+tests/
+coverage/
+.editorconfig
+.phpunit.result.cache
+storage/logs/*

@@ -4,12 +4,14 @@ namespace App\Providers;
 
 use App\Models\Commission;
 use App\Models\Document;
+use App\Models\Estate;
 use App\Models\Lead;
 use App\Models\Property;
 use App\Models\PropertyType;
 use App\Models\State;
 use App\Policies\CommissionPolicy;
 use App\Policies\DocumentPolicy;
+use App\Policies\EstatePolicy;
 use App\Policies\LeadPolicy;
 use App\Policies\PropertyPolicy;
 use Illuminate\Http\Request;
@@ -37,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Lead::class, LeadPolicy::class);
         Gate::policy(Document::class, DocumentPolicy::class);
         Gate::policy(Commission::class, CommissionPolicy::class);
+        Gate::policy(Estate::class, EstatePolicy::class);
 
         // Pagination: clamp per_page between 1 and max (default 100)
         Request::macro('perPage', function (int $default = 20, int $max = 100): int {

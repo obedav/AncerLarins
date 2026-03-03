@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { profileSchema, type ProfileFormData } from '@/lib/schemas/profile';
 import { useAuth } from '@/hooks/useAuth';
 import { useUpdateAgentProfileMutation, useSubmitVerificationMutation } from '@/store/api/agentApi';
 import { VerificationBadge } from '@/components/dashboard/StatusBadge';
@@ -16,23 +19,28 @@ export default function ProfilePage() {
   const [updateProfile, { isLoading: saving }] = useUpdateAgentProfileMutation();
   const [submitVerification, { isLoading: submitting }] = useSubmitVerificationMutation();
   const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  const [apiError, setApiError] = useState('');
 
   const profile = user?.agent_profile;
 
-  const [form, setForm] = useState({
-    company_name: '',
-    bio: '',
-    whatsapp_number: '',
-    office_address: '',
-    website: '',
-    specializations: [] as string[],
-    years_experience: '',
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      company_name: '',
+      bio: '',
+      whatsapp_number: '',
+      office_address: '',
+      website: '',
+      specializations: [],
+      years_experience: '',
+    },
   });
+
+  const specializations = watch('specializations') || [];
 
   useEffect(() => {
     if (profile) {
-      setForm({
+      reset({
         company_name: profile.company_name || '',
         bio: profile.bio || '',
         whatsapp_number: profile.whatsapp_number || '',
@@ -42,37 +50,35 @@ export default function ProfilePage() {
         years_experience: profile.years_experience?.toString() || '',
       });
     }
-  }, [profile]);
+  }, [profile, reset]);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const toggleSpecialization = (spec: string) => {
+    const current = specializations as string[];
+    const updated = current.includes(spec)
+      ? current.filter((s) => s !== spec)
+      : [...current, spec];
+    setValue('specializations', updated);
+  };
+
+  const onSubmit = async (data: ProfileFormData) => {
+    setApiError('');
     setSuccess('');
     try {
       await updateProfile({
-        company_name: form.company_name,
-        bio: form.bio,
-        whatsapp_number: form.whatsapp_number,
-        office_address: form.office_address,
-        website: form.website,
-        specializations: form.specializations,
-        years_experience: form.years_experience ? Number(form.years_experience) : undefined,
+        company_name: data.company_name || undefined,
+        bio: data.bio || undefined,
+        whatsapp_number: data.whatsapp_number || undefined,
+        office_address: data.office_address || undefined,
+        website: data.website || undefined,
+        specializations: data.specializations,
+        years_experience: data.years_experience ? Number(data.years_experience) : undefined,
       }).unwrap();
       setSuccess('Profile updated successfully.');
       refreshUser();
     } catch (err: unknown) {
       const apiErr = err as { data?: { message?: string } };
-      setError(apiErr?.data?.message || 'Failed to update profile.');
+      setApiError(apiErr?.data?.message || 'Failed to update profile.');
     }
-  };
-
-  const toggleSpecialization = (spec: string) => {
-    setForm((prev) => ({
-      ...prev,
-      specializations: prev.specializations.includes(spec)
-        ? prev.specializations.filter((s) => s !== spec)
-        : [...prev.specializations, spec],
-    }));
   };
 
   const handleVerificationSubmit = async () => {
@@ -90,10 +96,15 @@ export default function ProfilePage() {
         setSuccess('Verification documents submitted. We\'ll review them shortly.');
         refreshUser();
       } catch {
-        setError('Failed to submit verification documents.');
+        setApiError('Failed to submit verification documents.');
       }
     };
     input.click();
+  };
+
+  const fieldError = (name: keyof ProfileFormData) => {
+    const err = errors[name];
+    return err?.message ? <p className="text-error text-xs mt-1">{err.message as string}</p> : null;
   };
 
   const inputClass = 'w-full px-4 py-3 border border-border rounded-xl bg-background focus:outline-none focus:border-accent-dark text-text-primary text-sm';
@@ -112,8 +123,8 @@ export default function ProfilePage() {
       {success && (
         <div className="bg-success/10 text-success p-3 rounded-xl text-sm">{success}</div>
       )}
-      {error && (
-        <div className="bg-error/10 text-error p-3 rounded-xl text-sm">{error}</div>
+      {apiError && (
+        <div className="bg-error/10 text-error p-3 rounded-xl text-sm">{apiError}</div>
       )}
 
       {/* Verification Status */}
@@ -154,73 +165,41 @@ export default function ProfilePage() {
       </div>
 
       {/* Profile Form */}
-      <form onSubmit={handleSave} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="bg-surface border border-border rounded-xl p-6 space-y-4">
           <h2 className="font-semibold text-text-primary">Business Details</h2>
 
           <div>
             <label className={labelClass}>Business / Company Name</label>
-            <input
-              type="text"
-              value={form.company_name}
-              onChange={(e) => setForm({ ...form, company_name: e.target.value })}
-              className={inputClass}
-            />
+            <input type="text" {...register('company_name')} className={inputClass} />
           </div>
 
           <div>
             <label className={labelClass}>Bio / About</label>
-            <textarea
-              rows={4}
-              value={form.bio}
-              onChange={(e) => setForm({ ...form, bio: e.target.value })}
-              placeholder="Tell potential clients about your experience and services..."
-              className={inputClass}
-            />
+            <textarea rows={4} {...register('bio')} placeholder="Tell potential clients about your experience and services..." className={inputClass} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>WhatsApp Number</label>
-              <input
-                type="tel"
-                value={form.whatsapp_number}
-                onChange={(e) => setForm({ ...form, whatsapp_number: e.target.value })}
-                placeholder="+234..."
-                className={inputClass}
-              />
+              <input type="tel" {...register('whatsapp_number')} placeholder="+234..." className={inputClass} />
+              {fieldError('whatsapp_number')}
             </div>
             <div>
               <label className={labelClass}>Years of Experience</label>
-              <input
-                type="number"
-                min="0"
-                value={form.years_experience}
-                onChange={(e) => setForm({ ...form, years_experience: e.target.value })}
-                className={inputClass}
-              />
+              <input type="number" min="0" {...register('years_experience')} className={inputClass} />
             </div>
           </div>
 
           <div>
             <label className={labelClass}>Office Address</label>
-            <input
-              type="text"
-              value={form.office_address}
-              onChange={(e) => setForm({ ...form, office_address: e.target.value })}
-              className={inputClass}
-            />
+            <input type="text" {...register('office_address')} className={inputClass} />
           </div>
 
           <div>
             <label className={labelClass}>Website</label>
-            <input
-              type="url"
-              value={form.website}
-              onChange={(e) => setForm({ ...form, website: e.target.value })}
-              placeholder="https://..."
-              className={inputClass}
-            />
+            <input type="url" {...register('website')} placeholder="https://..." className={inputClass} />
+            {fieldError('website')}
           </div>
         </div>
 
@@ -233,7 +212,7 @@ export default function ProfilePage() {
                 type="button"
                 onClick={() => toggleSpecialization(spec)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  form.specializations.includes(spec)
+                  (specializations as string[]).includes(spec)
                     ? 'bg-primary text-white'
                     : 'bg-background border border-border text-text-secondary hover:border-accent-dark'
                 }`}

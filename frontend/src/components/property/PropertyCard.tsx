@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, memo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,7 +28,7 @@ function formatDaysAgo(days: number): string {
   return `Listed ${Math.floor(days / 365)}y ago`;
 }
 
-export default function PropertyCard({ property, source }: Props) {
+function PropertyCard({ property, source }: Props) {
   const { isAuthenticated } = useAuth();
   const [saveProperty] = useSavePropertyMutation();
   const [saved, setSaved] = useState(false);
@@ -235,3 +235,5 @@ export default function PropertyCard({ property, source }: Props) {
     </Link>
   );
 }
+
+export default memo(PropertyCard);

@@ -9,12 +9,13 @@ import uiReducer from '@/store/slices/uiSlice';
 
 function createTestStore(preloadedState?: Record<string, unknown>) {
   return configureStore({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     reducer: {
       [baseApi.reducerPath]: baseApi.reducer,
       auth: authReducer,
       search: searchReducer,
       ui: uiReducer,
-    },
+    } as any,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(baseApi.middleware),
     preloadedState,

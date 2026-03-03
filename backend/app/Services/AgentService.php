@@ -27,6 +27,8 @@ class AgentService
             $updateData = [
                 'id_document_type'   => $data['id_document_type'],
                 'id_document_number' => $data['id_document_number'],
+            ];
+            $guardedData = [
                 'verification_status' => VerificationStatus::Pending,
             ];
 
@@ -54,7 +56,8 @@ class AgentService
                 $updateData['cac_document_public_id'] = $result['public_id'];
             }
 
-            $agent->update($updateData);
+            $agent->fill($updateData);
+            $agent->forceFill($guardedData)->save();
 
             return $agent->fresh();
         });
@@ -103,10 +106,10 @@ class AgentService
             ->whereNotNull('response_time_min')
             ->avg('response_time_min');
 
-        $agent->update([
+        $agent->forceFill([
             'response_rate'     => $responseRate,
             'avg_response_time' => $avgResponseTime ? (int) round($avgResponseTime) : null,
-        ]);
+        ])->save();
     }
 
     public function getDashboardStats(AgentProfile $agent): array

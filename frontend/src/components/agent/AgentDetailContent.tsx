@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -95,7 +96,7 @@ export default function AgentDetailContent({ id }: { id: string }) {
             <div className="flex items-center gap-5">
               <div className="w-20 h-20 rounded-2xl bg-accent/10 flex items-center justify-center flex-shrink-0">
                 {agent.logo_url ? (
-                  <img src={agent.logo_url} alt="" className="w-20 h-20 rounded-2xl object-cover" />
+                  <Image src={agent.logo_url} alt={agent.company_name || 'Agent'} width={80} height={80} className="w-20 h-20 rounded-2xl object-cover" unoptimized />
                 ) : (
                   <span className="text-accent text-3xl font-bold">{agent.company_name?.[0] || 'A'}</span>
                 )}

@@ -13,7 +13,7 @@ class Document extends Model
     protected $fillable = [
         'lead_id', 'uploaded_by', 'type', 'title',
         'file_path', 'file_name', 'mime_type', 'file_size',
-        'notes', 'status',
+        'notes',
     ];
 
     protected function casts(): array

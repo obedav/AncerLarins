@@ -240,9 +240,16 @@ class AdminController extends Controller
 
     public function activityLogs(Request $request): JsonResponse
     {
+        $request->validate([
+            'user_id'   => ['nullable', 'uuid'],
+            'action'    => ['nullable', 'string', 'max:100'],
+            'date_from' => ['nullable', 'date'],
+            'date_to'   => ['nullable', 'date', 'after_or_equal:date_from'],
+        ]);
+
         $logs = ActivityLog::with('user')
             ->when($request->user_id, fn ($q, $v) => $q->where('user_id', $v))
-            ->when($request->action, fn ($q, $v) => $q->where('action', 'like', "%{$v}%"))
+            ->when($request->action, fn ($q, $v) => $q->where('action', 'like', '%' . str_replace(['%', '_'], ['\\%', '\\_'], $v) . '%'))
             ->when($request->date_from, fn ($q, $v) => $q->where('created_at', '>=', $v))
             ->when($request->date_to, fn ($q, $v) => $q->where('created_at', '<=', $v))
             ->latest('created_at')

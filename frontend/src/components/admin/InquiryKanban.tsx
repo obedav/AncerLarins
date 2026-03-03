@@ -134,8 +134,9 @@ export default function InquiryKanban({ onCardClick }: { onCardClick: (inquiry: 
     e.dataTransfer.effectAllowed = 'move';
     // Make the drag ghost semi-transparent
     if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.style.opacity = '0.5';
-      setTimeout(() => { e.currentTarget.style.opacity = '1'; }, 0);
+      const el = e.currentTarget;
+      el.style.opacity = '0.5';
+      setTimeout(() => { el.style.opacity = '1'; }, 0);
     }
   }, []);
 

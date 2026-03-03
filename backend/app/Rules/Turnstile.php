@@ -1,0 +1,41 @@
+<?php
+
+namespace App\Rules;
+
+use Closure;
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+
+class Turnstile implements ValidationRule
+{
+    public function validate(string $attribute, mixed $value, Closure $fail): void
+    {
+        $secret = config('services.turnstile.secret_key');
+
+        // Skip validation if Turnstile is not configured (development)
+        if (empty($secret)) {
+            return;
+        }
+
+        if (empty($value)) {
+            $fail('Please complete the security check.');
+            return;
+        }
+
+        try {
+            $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+                'secret' => $secret,
+                'response' => $value,
+                'remoteip' => request()->ip(),
+            ]);
+
+            if (! $response->successful() || ! $response->json('success')) {
+                $fail('Security verification failed. Please try again.');
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Turnstile verification failed', ['error' => $e->getMessage()]);
+            // Allow the request through if Turnstile API is unreachable
+        }
+    }
+}

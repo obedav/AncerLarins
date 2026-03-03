@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useGetAdminAgentsQuery, useVerifyAgentMutation, useRejectAgentMutation } from '@/store/api/adminApi';
 import { VerificationBadge } from '@/components/dashboard/StatusBadge';
 import type { VerificationStatus } from '@/types';
@@ -97,7 +98,7 @@ export default function AdminAgentsPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {agent.logo_url ? (
-                          <img src={agent.logo_url} alt="" className="w-9 h-9 rounded-full object-cover" />
+                          <Image src={agent.logo_url} alt={agent.user?.full_name || 'Agent avatar'} width={36} height={36} className="rounded-full object-cover" />
                         ) : (
                           <div className="w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center text-accent-dark text-sm font-bold">
                             {(agent.user?.full_name || 'A').charAt(0)}

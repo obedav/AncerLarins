@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { estateSchema, parseEstateAmenities, type EstateFormData } from '@/lib/schemas/estate';
 import {
   useGetAdminEstatesQuery,
   useCreateEstateMutation,
@@ -8,8 +11,7 @@ import {
   useDeleteEstateMutation,
 } from '@/store/api/estateApi';
 import { useGetStatesQuery, useGetCitiesQuery, useGetAreasQuery } from '@/store/api/locationApi';
-import { formatDate } from '@/lib/utils';
-import type { CreateEstatePayload, EstateType, EstateListItem } from '@/types/estate';
+import type { EstateType, EstateListItem } from '@/types/estate';
 
 const ESTATE_TYPE_OPTIONS: { value: EstateType; label: string }[] = [
   { value: 'gated_estate', label: 'Gated Estate' },
@@ -18,17 +20,17 @@ const ESTATE_TYPE_OPTIONS: { value: EstateType; label: string }[] = [
   { value: 'mixed_use', label: 'Mixed Use' },
 ];
 
-const INITIAL_FORM: CreateEstatePayload = {
+const DEFAULT_VALUES: EstateFormData = {
   name: '',
   area_id: '',
   estate_type: 'gated_estate',
   description: '',
   developer: '',
-  year_built: undefined,
-  total_units: undefined,
-  amenities: [],
+  year_built: '',
+  total_units: '',
+  amenities: '',
   security_type: '',
-  service_charge_kobo: undefined,
+  service_charge_kobo: '',
   service_charge_period: '',
   electricity_source: '',
   water_source: '',
@@ -45,8 +47,6 @@ export default function AdminEstatesPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState<CreateEstatePayload>(INITIAL_FORM);
-  const [amenitiesInput, setAmenitiesInput] = useState('');
 
   // Cascading location selects
   const [selectedState, setSelectedState] = useState('');
@@ -55,22 +55,29 @@ export default function AdminEstatesPage() {
   const { data: citiesData } = useGetCitiesQuery(selectedState, { skip: !selectedState });
   const { data: areasData } = useGetAreasQuery(selectedCity, { skip: !selectedCity });
 
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<EstateFormData>({
+    resolver: zodResolver(estateSchema),
+    defaultValues: DEFAULT_VALUES,
+  });
+
   const estates = data?.data || [];
   const meta = data?.meta;
 
   const resetForm = () => {
-    setForm(INITIAL_FORM);
-    setAmenitiesInput('');
+    reset(DEFAULT_VALUES);
     setEditId(null);
     setShowForm(false);
     setSelectedState('');
     setSelectedCity('');
   };
 
-  const handleSubmit = async () => {
-    const payload: CreateEstatePayload = {
-      ...form,
-      amenities: amenitiesInput.split(',').map((a) => a.trim()).filter(Boolean),
+  const onSubmit = async (data: EstateFormData) => {
+    const payload = {
+      ...data,
+      amenities: parseEstateAmenities(data.amenities),
+      year_built: data.year_built ? Number(data.year_built) : undefined,
+      total_units: data.total_units ? Number(data.total_units) : undefined,
+      service_charge_kobo: data.service_charge_kobo ? Number(data.service_charge_kobo) : undefined,
     };
 
     try {
@@ -84,16 +91,21 @@ export default function AdminEstatesPage() {
   };
 
   const handleEdit = (estate: EstateListItem) => {
-    setForm({
+    reset({
       name: estate.name,
       area_id: estate.area?.id || '',
       estate_type: estate.estate_type,
       description: '',
       developer: '',
       security_type: estate.security_type || '',
-      service_charge_kobo: estate.service_charge_kobo || undefined,
+      service_charge_kobo: estate.service_charge_kobo?.toString() || '',
       service_charge_period: estate.service_charge_period || '',
       cover_image_url: estate.cover_image_url || '',
+      year_built: '',
+      total_units: '',
+      amenities: '',
+      electricity_source: '',
+      water_source: '',
     });
     setEditId(estate.id);
     setShowForm(true);
@@ -105,6 +117,13 @@ export default function AdminEstatesPage() {
       await deleteEstate(id).unwrap();
     } catch { /* RTK handles */ }
   };
+
+  const fieldError = (name: keyof EstateFormData) => {
+    const err = errors[name];
+    return err?.message ? <p className="text-error text-xs mt-1">{err.message as string}</p> : null;
+  };
+
+  const inputClass = 'px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm';
 
   return (
     <div className="space-y-6">
@@ -129,22 +148,19 @@ export default function AdminEstatesPage() {
 
       {/* Create/Edit Form */}
       {showForm && (
-        <div className="bg-surface border border-border rounded-xl p-6 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="bg-surface border border-border rounded-xl p-6 space-y-4">
           <h2 className="font-semibold text-text-primary">{editId ? 'Edit Estate' : 'New Estate'}</h2>
 
-          <input
-            type="text"
-            placeholder="Estate name"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-          />
+          <div>
+            <input type="text" placeholder="Estate name" {...register('name')} className={`w-full ${inputClass}`} />
+            {fieldError('name')}
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <select
               value={selectedState}
-              onChange={(e) => { setSelectedState(e.target.value); setSelectedCity(''); setForm({ ...form, area_id: '' }); }}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
+              onChange={(e) => { setSelectedState(e.target.value); setSelectedCity(''); setValue('area_id', ''); }}
+              className={inputClass}
             >
               <option value="">Select State</option>
               {statesData?.data?.map((s) => (
@@ -154,9 +170,9 @@ export default function AdminEstatesPage() {
 
             <select
               value={selectedCity}
-              onChange={(e) => { setSelectedCity(e.target.value); setForm({ ...form, area_id: '' }); }}
+              onChange={(e) => { setSelectedCity(e.target.value); setValue('area_id', ''); }}
               disabled={!selectedState}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm disabled:opacity-50"
+              className={`${inputClass} disabled:opacity-50`}
             >
               <option value="">Select City</option>
               {citiesData?.data?.map((c) => (
@@ -164,134 +180,64 @@ export default function AdminEstatesPage() {
               ))}
             </select>
 
-            <select
-              value={form.area_id}
-              onChange={(e) => setForm({ ...form, area_id: e.target.value })}
-              disabled={!selectedCity}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm disabled:opacity-50"
-            >
-              <option value="">Select Area</option>
-              {areasData?.data?.map((a) => (
-                <option key={a.id} value={a.id}>{a.name}</option>
-              ))}
-            </select>
+            <div>
+              <select
+                {...register('area_id')}
+                disabled={!selectedCity}
+                className={`${inputClass} w-full disabled:opacity-50`}
+              >
+                <option value="">Select Area</option>
+                {areasData?.data?.map((a) => (
+                  <option key={a.id} value={a.id}>{a.name}</option>
+                ))}
+              </select>
+              {fieldError('area_id')}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <select
-              value={form.estate_type}
-              onChange={(e) => setForm({ ...form, estate_type: e.target.value as EstateType })}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-            >
+            <select {...register('estate_type')} className={inputClass}>
               {ESTATE_TYPE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
 
-            <input
-              type="text"
-              placeholder="Developer"
-              value={form.developer || ''}
-              onChange={(e) => setForm({ ...form, developer: e.target.value })}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-            />
-
-            <input
-              type="number"
-              placeholder="Year built"
-              value={form.year_built || ''}
-              onChange={(e) => setForm({ ...form, year_built: e.target.value ? Number(e.target.value) : undefined })}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-            />
+            <input type="text" placeholder="Developer" {...register('developer')} className={inputClass} />
+            <input type="number" placeholder="Year built" {...register('year_built')} className={inputClass} />
           </div>
 
-          <textarea
-            placeholder="Description"
-            value={form.description || ''}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            rows={3}
-            className="w-full px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-          />
+          <textarea placeholder="Description" {...register('description')} rows={3} className={`w-full ${inputClass}`} />
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <input
-              type="number"
-              placeholder="Total units"
-              value={form.total_units || ''}
-              onChange={(e) => setForm({ ...form, total_units: e.target.value ? Number(e.target.value) : undefined })}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-            />
-
-            <input
-              type="text"
-              placeholder="Security type"
-              value={form.security_type || ''}
-              onChange={(e) => setForm({ ...form, security_type: e.target.value })}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-            />
-
-            <input
-              type="text"
-              placeholder="Electricity source"
-              value={form.electricity_source || ''}
-              onChange={(e) => setForm({ ...form, electricity_source: e.target.value })}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-            />
+            <input type="number" placeholder="Total units" {...register('total_units')} className={inputClass} />
+            <input type="text" placeholder="Security type" {...register('security_type')} className={inputClass} />
+            <input type="text" placeholder="Electricity source" {...register('electricity_source')} className={inputClass} />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <input
-              type="text"
-              placeholder="Water source"
-              value={form.water_source || ''}
-              onChange={(e) => setForm({ ...form, water_source: e.target.value })}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-            />
-
-            <input
-              type="number"
-              placeholder="Service charge (kobo)"
-              value={form.service_charge_kobo || ''}
-              onChange={(e) => setForm({ ...form, service_charge_kobo: e.target.value ? Number(e.target.value) : undefined })}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-            />
-
-            <input
-              type="text"
-              placeholder="Service charge period (e.g. monthly)"
-              value={form.service_charge_period || ''}
-              onChange={(e) => setForm({ ...form, service_charge_period: e.target.value })}
-              className="px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-            />
+            <input type="text" placeholder="Water source" {...register('water_source')} className={inputClass} />
+            <input type="number" placeholder="Service charge (kobo)" {...register('service_charge_kobo')} className={inputClass} />
+            <input type="text" placeholder="Service charge period (e.g. monthly)" {...register('service_charge_period')} className={inputClass} />
           </div>
 
-          <input
-            type="text"
-            placeholder="Amenities (comma-separated)"
-            value={amenitiesInput}
-            onChange={(e) => setAmenitiesInput(e.target.value)}
-            className="w-full px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-          />
+          <input type="text" placeholder="Amenities (comma-separated)" {...register('amenities')} className={`w-full ${inputClass}`} />
 
-          <input
-            type="text"
-            placeholder="Cover image URL"
-            value={form.cover_image_url || ''}
-            onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })}
-            className="w-full px-4 py-3 border border-border rounded-xl bg-background text-text-primary text-sm"
-          />
+          <div>
+            <input type="text" placeholder="Cover image URL" {...register('cover_image_url')} className={`w-full ${inputClass}`} />
+            {fieldError('cover_image_url')}
+          </div>
 
           <div className="flex justify-end gap-3">
-            <button onClick={resetForm} className="px-4 py-2 rounded-xl border border-border text-sm text-text-secondary">Cancel</button>
+            <button type="button" onClick={resetForm} className="px-4 py-2 rounded-xl border border-border text-sm text-text-secondary">Cancel</button>
             <button
-              onClick={handleSubmit}
-              disabled={creating || !form.name || !form.area_id}
+              type="submit"
+              disabled={creating}
               className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium disabled:opacity-50"
             >
               {editId ? 'Update' : 'Create'}
             </button>
           </div>
-        </div>
+        </form>
       )}
 
       {/* Estates List */}

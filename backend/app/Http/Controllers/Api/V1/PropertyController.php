@@ -174,6 +174,8 @@ class PropertyController extends Controller
     /** @authenticated */
     public function update(UpdatePropertyRequest $request, Property $property): JsonResponse
     {
+        $this->authorize('update', $property);
+
         $property = $this->propertyService->update($property, $request->validated());
 
         return $this->successResponse(
@@ -185,9 +187,7 @@ class PropertyController extends Controller
     /** @authenticated */
     public function destroy(Request $request, Property $property): JsonResponse
     {
-        if ($request->user()->id !== $property->agent?->user_id) {
-            return $this->errorResponse('Unauthorized.', 403);
-        }
+        $this->authorize('delete', $property);
 
         $this->propertyService->delete($property);
 
@@ -207,6 +207,8 @@ class PropertyController extends Controller
      */
     public function uploadImages(Request $request, Property $property): JsonResponse
     {
+        $this->authorize('uploadImages', $property);
+
         set_time_limit(180); // Allow up to 3 minutes for multiple image uploads
 
         $request->validate([
@@ -227,9 +229,7 @@ class PropertyController extends Controller
     /** @authenticated */
     public function removeImage(Request $request, PropertyImage $image): JsonResponse
     {
-        if ($request->user()->id !== $image->property?->agent?->user_id) {
-            return $this->errorResponse('Unauthorized.', 403);
-        }
+        $this->authorize('update', $image->property);
 
         $this->propertyService->removeImage($image);
 

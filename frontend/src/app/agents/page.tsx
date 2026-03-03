@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -10,17 +11,19 @@ import type { AgentListItem } from '@/types';
 export default function AgentsPage() {
   const [agents, setAgents] = useState<AgentListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState<{ current_page: number; last_page: number; total: number } | null>(null);
 
   useEffect(() => {
     setLoading(true);
+    setError('');
     api.get('/agents', { params: { page, per_page: 12 } })
       .then(({ data }) => {
         setAgents(data.data || []);
         setMeta(data.meta || null);
       })
-      .catch(() => {})
+      .catch(() => { setError('Failed to load agents. Please try again.'); })
       .finally(() => setLoading(false));
   }, [page]);
 
@@ -39,7 +42,12 @@ export default function AgentsPage() {
         </div>
 
         <div className="container-app py-8">
-          {loading ? (
+          {error ? (
+            <div className="text-center py-16">
+              <p className="text-error mb-4">{error}</p>
+              <button onClick={() => setPage(page)} className="px-4 py-2 bg-primary text-white rounded-xl text-sm">Retry</button>
+            </div>
+          ) : loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="bg-surface rounded-xl border border-border animate-pulse p-6">
@@ -85,7 +93,7 @@ export default function AgentsPage() {
                     <div className="flex items-center gap-4 mb-4">
                       <div className="w-14 h-14 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
                         {agent.logo_url ? (
-                          <img src={agent.logo_url} alt="" className="w-14 h-14 rounded-full object-cover" />
+                          <Image src={agent.logo_url} alt={agent.company_name || 'Agent'} width={56} height={56} className="w-14 h-14 rounded-full object-cover" unoptimized />
                         ) : (
                           <span className="text-accent-dark font-bold text-xl">
                             {agent.company_name?.[0] || 'A'}

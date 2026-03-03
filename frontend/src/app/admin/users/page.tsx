@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useGetAdminUsersQuery, useBanUserMutation, useUnbanUserMutation } from '@/store/api/adminApi';
 import { formatDate } from '@/lib/utils';
 
@@ -93,7 +94,7 @@ export default function AdminUsersPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {user.avatar_url ? (
-                          <img src={user.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                          <Image src={user.avatar_url} alt={user.full_name} width={32} height={32} className="w-8 h-8 rounded-full object-cover" unoptimized />
                         ) : (
                           <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center text-accent-dark text-sm font-bold">
                             {user.first_name.charAt(0)}

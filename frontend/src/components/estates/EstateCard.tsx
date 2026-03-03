@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { EstateListItem } from '@/types/estate';
@@ -16,7 +17,7 @@ function formatPrice(kobo: number | null): string {
   return `₦${(kobo / 100).toLocaleString()}`;
 }
 
-export default function EstateCard({ estate }: { estate: EstateListItem }) {
+function EstateCard({ estate }: { estate: EstateListItem }) {
   return (
     <Link
       href={`/estates/${estate.slug}`}
@@ -80,3 +81,5 @@ export default function EstateCard({ estate }: { estate: EstateListItem }) {
     </Link>
   );
 }
+
+export default memo(EstateCard);

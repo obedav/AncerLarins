@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useGetPropertyRequestQuery, useRespondToRequestMutation, useAcceptRequestResponseMutation } from '@/store/api/requestApi';
 import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/layout/Navbar';
@@ -189,7 +190,7 @@ export default function RequestDetail({ id }: { id: string }) {
                         <div className="flex items-start justify-between gap-3 mb-2">
                           <div className="flex items-center gap-2">
                             {resp.agent?.logo_url ? (
-                              <img src={resp.agent.logo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                              <Image src={resp.agent.logo_url} alt={resp.agent.company_name || 'Agent'} width={32} height={32} className="w-8 h-8 rounded-full object-cover" unoptimized />
                             ) : (
                               <div className="w-8 h-8 rounded-full bg-accent/15 flex items-center justify-center">
                                 <span className="text-accent text-xs font-bold">{resp.agent?.company_name?.[0]}</span>

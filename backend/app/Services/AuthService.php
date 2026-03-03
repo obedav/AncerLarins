@@ -24,15 +24,17 @@ class AuthService
         return DB::transaction(function () use ($data) {
             $phone = $this->normalizePhone($data['phone']);
 
-            $user = User::create([
+            $user = new User([
                 'first_name'    => $data['first_name'],
                 'last_name'     => $data['last_name'],
                 'phone'         => $phone,
                 'email'         => $data['email'] ?? null,
                 'password_hash' => $data['password'] ?? null,
-                'role'          => UserRole::from($data['role'] ?? 'user'),
-                'status'        => UserStatus::Active,
             ]);
+            $user->forceFill([
+                'role'   => UserRole::from($data['role'] ?? 'user'),
+                'status' => UserStatus::Active,
+            ])->save();
 
             if ($user->role === UserRole::Agent) {
                 $user->agentProfile()->create([
@@ -91,11 +93,11 @@ class AuthService
         }
 
         if ($purpose === OtpPurpose::Registration || $purpose === OtpPurpose::Login) {
-            $user->update([
+            $user->forceFill([
                 'phone_verified' => true,
                 'last_login_at'  => now(),
                 'last_login_ip'  => request()->ip(),
-            ]);
+            ])->save();
 
             $tokens = $this->generateTokens($user);
 
@@ -169,11 +171,26 @@ class AuthService
 
         $termiiKey = config('services.termii.api_key');
         if (empty($termiiKey) || str_starts_with($termiiKey, 'your_')) {
-            Log::info("OTP for {$phone}: {$code} (Termii not configured)");
+            Log::warning('OTP delivery skipped — Termii not configured', [
+                'phone_suffix' => substr($phone, -4),
+                'purpose'      => $purpose->value,
+            ]);
             return;
         }
 
-        $this->termiiService->sendOtp($phone);
+        try {
+            $this->termiiService->sendOtp($phone);
+            Log::info('OTP sent successfully', [
+                'phone_suffix' => substr($phone, -4),
+                'purpose'      => $purpose->value,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('OTP delivery failed', [
+                'phone_suffix' => substr($phone, -4),
+                'purpose'      => $purpose->value,
+                'error'        => $e->getMessage(),
+            ]);
+        }
     }
 
     protected function generateTokens(User $user): array

@@ -104,16 +104,18 @@ class LeadService
             'financing_type' => $data['financing_type'] ?? null,
             'message'        => $data['message'] ?? null,
             'source'         => $data['source'] ?? null,
-            'status'         => 'new',
         ];
 
         $staffMember = $this->assignStaff($property);
 
-        if ($staffMember) {
-            $leadData['assigned_to'] = $staffMember->id;
-        }
-
         $lead = Lead::create($leadData);
+
+        // Set admin-managed fields outside $fillable
+        $adminFields = ['status' => 'new'];
+        if ($staffMember) {
+            $adminFields['assigned_to'] = $staffMember->id;
+        }
+        $lead->forceFill($adminFields)->save();
 
         // Increment counters
         $property->increment('contact_count');

@@ -53,7 +53,9 @@ class SearchService
         $cacheKey = 'search_suggestions:' . mb_strtolower(trim($query));
 
         return Cache::remember($cacheKey, 3600, function () use ($query) {
-            $areas = Area::where('name', 'ilike', "%{$query}%")
+            $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $query);
+
+            $areas = Area::where('name', 'ilike', "%{$escaped}%")
                 ->active()
                 ->with('city')
                 ->limit(4)
@@ -66,7 +68,7 @@ class SearchService
                     'parent_name' => $a->city?->name,
                 ]);
 
-            $cities = City::where('name', 'ilike', "%{$query}%")
+            $cities = City::where('name', 'ilike', "%{$escaped}%")
                 ->active()
                 ->with('state')
                 ->limit(3)
@@ -79,7 +81,7 @@ class SearchService
                     'parent_name' => $c->state?->name,
                 ]);
 
-            $propertyTypes = PropertyType::where('name', 'ilike', "%{$query}%")
+            $propertyTypes = PropertyType::where('name', 'ilike', "%{$escaped}%")
                 ->active()
                 ->limit(3)
                 ->get()

@@ -25,15 +25,16 @@ const nextConfig: NextConfig = {
         key: 'Content-Security-Policy',
         value: [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co",
+          "script-src 'self' 'unsafe-inline' https://js.paystack.co https://challenges.cloudflare.com",
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data: blob: https://res.cloudinary.com https://*.tile.openstreetmap.org https://pictures-nigeria.jijistatic.net https://images.propertypro.ng https://www.propertypro.ng https://images.nigeriapropertycentre.com",
           "font-src 'self' data:",
           `connect-src 'self' ${process.env.NEXT_PUBLIC_API_URL ? new URL(process.env.NEXT_PUBLIC_API_URL).origin : 'http://localhost:8000'} https://*.sentry.io https://wa.me https://api.paystack.co`,
-          "frame-src 'none'",
+          "frame-src https://challenges.cloudflare.com",
           "object-src 'none'",
           "base-uri 'self'",
           "form-action 'self'",
+          "upgrade-insecure-requests",
         ].join('; '),
       },
     ];

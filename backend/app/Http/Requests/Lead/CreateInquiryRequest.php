@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Lead;
 
+use App\Rules\Turnstile;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateInquiryRequest extends FormRequest
@@ -15,7 +16,7 @@ class CreateInquiryRequest extends FormRequest
     {
         $isGuest = $this->user() === null;
 
-        return [
+        $rules = [
             'property_id'    => ['required', 'uuid', 'exists:properties,id'],
             'full_name'      => [$isGuest ? 'required' : 'nullable', 'string', 'max:100'],
             'email'          => [$isGuest ? 'required' : 'nullable', 'email', 'max:255'],
@@ -26,14 +27,22 @@ class CreateInquiryRequest extends FormRequest
             'message'        => ['nullable', 'string', 'max:1000'],
             'source'         => ['nullable', 'string', 'max:100'],
         ];
+
+        // Require Turnstile for guest submissions (when configured)
+        if ($isGuest && config('services.turnstile.secret_key')) {
+            $rules['turnstile_token'] = ['required', new Turnstile];
+        }
+
+        return $rules;
     }
 
     public function messages(): array
     {
         return [
-            'full_name.required' => 'Please enter your full name.',
-            'email.required'     => 'Please enter your email address.',
-            'phone.required'     => 'Please enter your phone number.',
+            'full_name.required'      => 'Please enter your full name.',
+            'email.required'          => 'Please enter your email address.',
+            'phone.required'          => 'Please enter your phone number.',
+            'turnstile_token.required' => 'Please complete the security check.',
         ];
     }
 }

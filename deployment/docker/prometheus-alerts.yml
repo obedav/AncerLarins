@@ -1,0 +1,49 @@
+groups:
+  - name: application
+    rules:
+      - alert: AppDown
+        expr: laravel_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Laravel application is down"
+          description: "The Laravel application has been unreachable for more than 1 minute."
+
+      - alert: QueueBacklog
+        expr: laravel_queue_size{queue="default"} > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Queue backlog is growing"
+          description: "The default queue has more than 100 pending jobs for over 5 minutes."
+
+      - alert: HighDBConnections
+        expr: laravel_db_connections_active > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High database connection count"
+          description: "Active database connections have exceeded 80 for over 5 minutes."
+
+  - name: infrastructure
+    rules:
+      - alert: RedisHighMemory
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis is using more than 80% of its configured max memory for over 10 minutes."
+
+      - alert: DiskSpaceLow
+        expr: node_filesystem_avail_bytes < 1073741824
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk space is critically low"
+          description: "Available disk space is below 1GB for over 10 minutes."

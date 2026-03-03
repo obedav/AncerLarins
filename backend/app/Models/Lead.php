@@ -17,14 +17,10 @@ class Lead extends Model
     protected $fillable = [
         'property_id', 'agent_id', 'user_id',
         'contact_type', 'source', 'utm_campaign',
-        'responded_at', 'response_time_min',
-        'full_name', 'email', 'phone', 'email_hash', 'budget_range',
+        'full_name', 'email', 'phone', 'budget_range',
         'timeline', 'financing_type', 'message',
-        'status', 'qualification', 'assigned_to', 'staff_notes',
-        'qualified_at', 'inspection_at', 'closed_at',
         'inspection_date', 'inspection_time', 'inspection_location', 'inspection_notes',
-        'agreement_accepted_at', 'agreement_ip', 'agreement_terms_version',
-        'tracking_ref',
+        'agreement_ip', 'agreement_terms_version',
     ];
 
     protected function casts(): array
@@ -147,9 +143,9 @@ class Lead extends Model
 
     public function markResponded(): void
     {
-        $this->update([
+        $this->forceFill([
             'responded_at'      => now(),
             'response_time_min' => (int) $this->created_at->diffInMinutes(now()),
-        ]);
+        ])->save();
     }
 }

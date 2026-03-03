@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSubmitInquiryMutation } from '@/store/api/inquiryApi';
 import { useSavePropertyMutation } from '@/store/api/propertyApi';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/Toast';
+import Turnstile from '@/components/ui/Turnstile';
 import { getLeadSource, formatPrice } from '@/lib/utils';
 import { inquirySchema, inquirySchemaAuthenticated } from '@/lib/schemas/inquiry';
 import type { InquiryFormData } from '@/lib/schemas/inquiry';
@@ -44,11 +45,11 @@ export default function InquiryForm({ property }: InquiryFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const [trackingRef, setTrackingRef] = useState('');
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const schema = user ? inquirySchemaAuthenticated : inquirySchema;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { register, handleSubmit, formState: { errors } } = useForm<InquiryFormData>({
-    resolver: zodResolver(schema) as any,
+    resolver: zodResolver(schema) as Resolver<InquiryFormData>,
     defaultValues: {
       full_name: user?.first_name ? `${user.first_name} ${user.last_name}` : '',
       email: user?.email || '',
@@ -74,6 +75,7 @@ export default function InquiryForm({ property }: InquiryFormProps) {
         financing_type: data.financing_type || undefined,
         message: data.message || undefined,
         source: getLeadSource(),
+        ...(turnstileToken ? { turnstile_token: turnstileToken } : {}),
       }).unwrap();
       setTrackingRef(res.data.tracking_ref || '');
       setSubmitted(true);
@@ -91,58 +93,64 @@ export default function InquiryForm({ property }: InquiryFormProps) {
   const formFields = (
     <>
       <div>
-        <label className="block text-xs font-medium text-text-muted mb-1">Full Name *</label>
-        <input type="text" {...register('full_name')} placeholder="Your full name" className={inputClass} />
-        {errors.full_name && <p className={errorClass}>{errors.full_name.message}</p>}
+        <label htmlFor="inquiry-full-name" className="block text-xs font-medium text-text-muted mb-1">Full Name *</label>
+        <input id="inquiry-full-name" type="text" {...register('full_name')} placeholder="Your full name" className={inputClass} autoComplete="name" />
+        {errors.full_name && <p className={errorClass} role="alert">{errors.full_name.message}</p>}
       </div>
       <div>
-        <label className="block text-xs font-medium text-text-muted mb-1">Phone *</label>
-        <input type="tel" {...register('phone')} placeholder="08012345678" className={inputClass} />
-        {errors.phone && <p className={errorClass}>{errors.phone.message}</p>}
+        <label htmlFor="inquiry-phone" className="block text-xs font-medium text-text-muted mb-1">Phone *</label>
+        <input id="inquiry-phone" type="tel" {...register('phone')} placeholder="08012345678" className={inputClass} autoComplete="tel" />
+        {errors.phone && <p className={errorClass} role="alert">{errors.phone.message}</p>}
       </div>
       <div>
-        <label className="block text-xs font-medium text-text-muted mb-1">Email *</label>
-        <input type="email" {...register('email')} placeholder="you@example.com" className={inputClass} />
-        {errors.email && <p className={errorClass}>{errors.email.message}</p>}
+        <label htmlFor="inquiry-email" className="block text-xs font-medium text-text-muted mb-1">Email *</label>
+        <input id="inquiry-email" type="email" {...register('email')} placeholder="you@example.com" className={inputClass} autoComplete="email" />
+        {errors.email && <p className={errorClass} role="alert">{errors.email.message}</p>}
       </div>
       <div>
-        <label className="block text-xs font-medium text-text-muted mb-1">Budget Range</label>
-        <select {...register('budget_range')} className={inputClass}>
+        <label htmlFor="inquiry-budget" className="block text-xs font-medium text-text-muted mb-1">Budget Range</label>
+        <select id="inquiry-budget" {...register('budget_range')} className={inputClass}>
           {BUDGET_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
       </div>
       <div>
-        <label className="block text-xs font-medium text-text-muted mb-1">Timeline</label>
-        <select {...register('timeline')} className={inputClass}>
+        <label htmlFor="inquiry-timeline" className="block text-xs font-medium text-text-muted mb-1">Timeline</label>
+        <select id="inquiry-timeline" {...register('timeline')} className={inputClass}>
           {TIMELINE_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
       </div>
       <div>
-        <label className="block text-xs font-medium text-text-muted mb-1">Financing</label>
-        <div className="flex gap-3">
-          {(['cash', 'mortgage', 'undecided'] as const).map((opt) => (
-            <label key={opt} className="flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" value={opt} {...register('financing_type')} className="accent-accent-dark" />
-              <span className="text-sm text-text-secondary capitalize">{opt}</span>
-            </label>
-          ))}
-        </div>
+        <fieldset>
+          <legend className="block text-xs font-medium text-text-muted mb-1">Financing</legend>
+          <div className="flex gap-3">
+            {(['cash', 'mortgage', 'undecided'] as const).map((opt) => (
+              <label key={opt} className="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" value={opt} {...register('financing_type')} className="accent-accent-dark" />
+                <span className="text-sm text-text-secondary capitalize">{opt}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
       </div>
       <div>
-        <label className="block text-xs font-medium text-text-muted mb-1">Message (optional)</label>
+        <label htmlFor="inquiry-message" className="block text-xs font-medium text-text-muted mb-1">Message (optional)</label>
         <textarea
+          id="inquiry-message"
           {...register('message')}
           placeholder="Any questions or preferences..."
           rows={3}
           maxLength={1000}
           className={`${inputClass} resize-none`}
         />
-        {errors.message && <p className={errorClass}>{errors.message.message}</p>}
+        {errors.message && <p className={errorClass} role="alert">{errors.message.message}</p>}
       </div>
+      {!user && (
+        <Turnstile onVerify={setTurnstileToken} onExpire={() => setTurnstileToken('')} />
+      )}
     </>
   );
 
@@ -250,7 +258,13 @@ export default function InquiryForm({ property }: InquiryFormProps) {
 
       {/* Mobile Slide-Up Modal */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-[60] flex items-end" onClick={() => setMobileOpen(false)}>
+        <div
+          className="lg:hidden fixed inset-0 z-[60] flex items-end"
+          onClick={() => setMobileOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Request private viewing"
+        >
           <div className="absolute inset-0 bg-black/50" />
           <div
             className="relative w-full bg-surface rounded-t-2xl max-h-[90vh] overflow-y-auto animate-slide-up"
@@ -258,16 +272,16 @@ export default function InquiryForm({ property }: InquiryFormProps) {
           >
             {/* Drag handle */}
             <div className="flex justify-center py-3">
-              <div className="w-10 h-1 bg-border rounded-full" />
+              <div className="w-10 h-1 bg-border rounded-full" aria-hidden="true" />
             </div>
 
             <div className="px-5 pb-8">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-1 h-6 bg-accent-dark rounded-full" />
+                  <div className="w-1 h-6 bg-accent-dark rounded-full" aria-hidden="true" />
                   <h3 className="font-semibold text-text-primary">Request Private Viewing</h3>
                 </div>
-                <button onClick={() => setMobileOpen(false)} className="text-text-muted hover:text-text-primary text-2xl leading-none">&times;</button>
+                <button onClick={() => setMobileOpen(false)} className="text-text-muted hover:text-text-primary text-2xl leading-none" aria-label="Close inquiry form">&times;</button>
               </div>
 
               <div className="mb-4 pb-3 border-b border-border">

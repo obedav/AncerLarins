@@ -248,7 +248,7 @@ export default function PropertyDetailContent({ slug }: { slug: string }) {
                         aria-label={`View image ${i + 1}`}
                         className={`relative w-20 h-14 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-colors ${i === activeImage ? 'border-accent-dark' : 'border-transparent'}`}
                       >
-                        <Image src={img.thumbnail_url || img.url} alt="" fill className="object-cover" />
+                        <Image src={img.thumbnail_url || img.url} alt={`Property image ${i + 1}`} fill className="object-cover" />
                       </button>
                     ))}
                   </div>

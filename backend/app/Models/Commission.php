@@ -13,8 +13,8 @@ class Commission extends Model
     protected $fillable = [
         'lead_id', 'property_id', 'sale_price_kobo',
         'commission_rate', 'commission_amount_kobo',
-        'status', 'payment_method', 'payment_reference',
-        'paid_at', 'notes', 'created_by',
+        'payment_method', 'payment_reference',
+        'notes', 'created_by',
     ];
 
     protected function casts(): array

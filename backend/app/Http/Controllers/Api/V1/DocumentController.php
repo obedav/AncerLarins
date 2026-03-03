@@ -19,6 +19,8 @@ class DocumentController extends Controller
      */
     public function index(Request $request, Lead $lead): JsonResponse
     {
+        $this->authorize('view', $lead);
+
         $docs = $lead->documents()
             ->with('uploader:id,first_name,last_name')
             ->orderByDesc('created_at')
@@ -33,8 +35,10 @@ class DocumentController extends Controller
      */
     public function store(Request $request, Lead $lead): JsonResponse
     {
+        $this->authorize('create', Document::class);
+
         $request->validate([
-            'file'  => ['required', 'file', 'max:10240'], // 10MB max
+            'file'  => ['required', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png,doc,docx,xlsx'], // 10MB max
             'type'  => ['required', 'in:buyer_agreement,proof_of_funds,id_verification,offer_letter,other'],
             'title' => ['required', 'string', 'max:200'],
             'notes' => ['nullable', 'string', 'max:1000'],
@@ -43,7 +47,7 @@ class DocumentController extends Controller
         $file = $request->file('file');
         $path = $file->store("documents/{$lead->id}", 'private');
 
-        $document = Document::create([
+        $document = new Document([
             'lead_id'     => $lead->id,
             'uploaded_by' => $request->user()->id,
             'type'        => $request->input('type'),
@@ -53,8 +57,8 @@ class DocumentController extends Controller
             'mime_type'   => $file->getMimeType(),
             'file_size'   => $file->getSize(),
             'notes'       => $request->input('notes'),
-            'status'      => 'pending',
         ]);
+        $document->forceFill(['status' => 'pending'])->save();
 
         $document->load('uploader:id,first_name,last_name');
 
@@ -70,6 +74,8 @@ class DocumentController extends Controller
      */
     public function download(Document $document)
     {
+        $this->authorize('view', $document);
+
         if (!Storage::disk('private')->exists($document->file_path)) {
             return $this->errorResponse('File not found.', 404);
         }
@@ -85,12 +91,14 @@ class DocumentController extends Controller
      */
     public function updateStatus(Request $request, Document $document): JsonResponse
     {
+        $this->authorize('updateStatus', $document);
+
         $data = $request->validate([
             'status' => ['required', 'in:pending,approved,rejected'],
             'notes'  => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $document->update($data);
+        $document->forceFill($data)->save();
 
         return $this->successResponse(null, 'Document status updated.');
     }
@@ -100,6 +108,8 @@ class DocumentController extends Controller
      */
     public function destroy(Document $document): JsonResponse
     {
+        $this->authorize('delete', $document);
+
         Storage::disk('private')->delete($document->file_path);
         $document->delete();
 

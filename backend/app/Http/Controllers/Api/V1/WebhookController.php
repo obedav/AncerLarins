@@ -94,7 +94,35 @@ class WebhookController extends Controller
 
     public function termii(Request $request): JsonResponse
     {
-        Log::info('Termii webhook received', $request->all());
+        // ── Signature / IP verification ─────────────────────
+        $secret = config('services.termii.webhook_secret');
+
+        if ($secret) {
+            $signature = $request->header('x-termii-signature')
+                      ?? $request->header('x-webhook-signature');
+
+            $expected = hash_hmac('sha512', $request->getContent(), $secret);
+
+            if (! $signature || ! hash_equals($expected, $signature)) {
+                Log::warning('Termii webhook: invalid signature', [
+                    'ip' => $request->ip(),
+                ]);
+                return response()->json(['status' => 'invalid signature'], 403);
+            }
+        } else {
+            // Fallback: restrict to known Termii IP ranges when no secret is configured
+            $allowedIps = config('services.termii.webhook_ips', []);
+
+            if (! empty($allowedIps) && ! in_array($request->ip(), $allowedIps, true)) {
+                Log::warning('Termii webhook: untrusted IP', ['ip' => $request->ip()]);
+                return response()->json(['status' => 'forbidden'], 403);
+            }
+        }
+
+        Log::info('Termii webhook received', [
+            'type' => $request->input('type', 'unknown'),
+            'ip'   => $request->ip(),
+        ]);
 
         // Handle inbound SMS for WhatsApp bot
         $phone = $request->input('from') ?? $request->input('phone') ?? $request->input('msisdn');

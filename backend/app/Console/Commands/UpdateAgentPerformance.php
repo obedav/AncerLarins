@@ -38,11 +38,11 @@ class UpdateAgentPerformance extends Command
                 ? round($leadStats->avg_response_seconds / 60)
                 : null;
 
-            $agent->update([
+            $agent->forceFill([
                 'response_rate'     => $responseRate,
                 'avg_response_time' => $avgResponseMinutes,
                 'active_listings'   => $activeListings,
-            ]);
+            ])->save();
         }
 
         $this->info("Updated performance for {$agents->count()} agents.");

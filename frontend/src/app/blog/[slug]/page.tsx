@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import DOMPurify from 'isomorphic-dompurify';
 import { API_URL } from '@/lib/constants';
@@ -147,7 +148,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <div className="container-app max-w-3xl py-8 md:py-12">
           {post.cover_image_url && (
             <div className="relative aspect-[16/9] rounded-2xl overflow-hidden mb-8">
-              <img src={post.cover_image_url} alt={post.title} className="w-full h-full object-cover" />
+              <Image src={post.cover_image_url} alt={post.title} fill className="object-cover" unoptimized />
             </div>
           )}
 

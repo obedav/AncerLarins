@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCreatePropertyRequestMutation } from '@/store/api/requestApi';
 import { propertyRequestSchema, type PropertyRequestFormData } from '@/lib/schemas/property-request';
@@ -22,9 +22,8 @@ export default function CreateRequestForm({ onSuccess, onCancel }: Props) {
   const [createRequest, { isLoading }] = useCreatePropertyRequestMutation();
   const [apiError, setApiError] = useState('');
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<PropertyRequestFormData>({
-    resolver: zodResolver(propertyRequestSchema) as any,
+    resolver: zodResolver(propertyRequestSchema) as Resolver<PropertyRequestFormData>,
     defaultValues: {
       title: '',
       description: '',

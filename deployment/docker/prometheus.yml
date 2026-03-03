@@ -2,6 +2,14 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+rule_files:
+  - "prometheus-alerts.yml"
+
 scrape_configs:
   # Laravel application metrics
   - job_name: laravel
@@ -23,3 +31,8 @@ scrape_configs:
   - job_name: redis
     static_configs:
       - targets: ["redis-exporter:9121"]
+
+  # Node (host) metrics for disk/CPU/memory alerts
+  - job_name: node
+    static_configs:
+      - targets: ["node-exporter:9100"]

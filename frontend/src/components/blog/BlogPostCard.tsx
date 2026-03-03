@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatDate } from '@/lib/utils';
@@ -13,7 +14,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   area_spotlight: 'Area Spotlight',
 };
 
-export default function BlogPostCard({ post }: { post: BlogPostListItem }) {
+function BlogPostCard({ post }: { post: BlogPostListItem }) {
   return (
     <Link href={`/blog/${post.slug}`} className="group block">
       <article className="bg-surface rounded-2xl overflow-hidden border border-border transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
@@ -75,3 +76,5 @@ export default function BlogPostCard({ post }: { post: BlogPostListItem }) {
     </Link>
   );
 }
+
+export default memo(BlogPostCard);

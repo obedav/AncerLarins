@@ -38,12 +38,12 @@ Route::prefix('v1')->group(function () {
     Route::get('/metrics', MetricsController::class);
 
     // ── Public: Auth ────────────────────────────────────
-    Route::prefix('auth')->middleware('throttle:30,1')->group(function () {
-        Route::post('/register', [AuthController::class, 'register']);
-        Route::post('/login', [AuthController::class, 'login']);
-        Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
-        Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-        Route::post('/refresh', [AuthController::class, 'refresh']);
+    Route::prefix('auth')->group(function () {
+        Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,60');
+        Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,10');
+        Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:5,1');
+        Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,60');
+        Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('throttle:30,1');
     });
 
     // ── Public: Properties ──────────────────────────────

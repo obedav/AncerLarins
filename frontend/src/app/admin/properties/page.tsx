@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useGetAdminPropertiesQuery, useApprovePropertyMutation, useRejectPropertyMutation, useDeletePropertyMutation } from '@/store/api/adminApi';
 import { PropertyStatusBadge, VerificationBadge } from '@/components/dashboard/StatusBadge';
@@ -124,7 +125,7 @@ export default function AdminPropertiesPage() {
                 {/* Cover Image */}
                 <div className="w-24 h-18 rounded-lg bg-border/50 overflow-hidden shrink-0">
                   {property.cover_image?.thumbnail_url && (
-                    <img src={property.cover_image.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                    <Image src={property.cover_image.thumbnail_url} alt={property.title} width={96} height={72} className="w-full h-full object-cover" />
                   )}
                 </div>
 

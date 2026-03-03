@@ -213,11 +213,11 @@ class SubscriptionService
                 ->update(['status' => SubscriptionStatus::Cancelled]);
 
             // Downgrade agent to free tier
-            $agent->update([
+            $agent->forceFill([
                 'subscription_tier'       => SubscriptionTier::Free,
                 'subscription_expires_at' => null,
                 'max_listings'            => 3,
-            ]);
+            ])->save();
         });
 
         $this->notificationService->send(
@@ -258,11 +258,11 @@ class SubscriptionService
             ]);
 
             // Update agent profile
-            $agent->update([
+            $agent->forceFill([
                 'subscription_tier'       => $tierEnum,
                 'subscription_expires_at' => $subscription->ends_at,
                 'max_listings'            => $limits['max_listings'],
-            ]);
+            ])->save();
 
             // Notify agent
             $this->notificationService->send(

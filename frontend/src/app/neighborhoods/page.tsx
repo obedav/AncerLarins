@@ -22,11 +22,13 @@ interface Area {
 export default function NeighborhoodsPage() {
   const [areas, setAreas] = useState<Area[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
+    setError('');
     api.get('/locations/areas')
       .then(({ data }) => setAreas(data.data || []))
-      .catch(() => {})
+      .catch(() => { setError('Failed to load neighborhoods. Please try again.'); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -42,7 +44,12 @@ export default function NeighborhoodsPage() {
         </div>
 
         <div className="container-app py-8">
-          {loading ? (
+          {error ? (
+            <div className="text-center py-16">
+              <p className="text-error mb-4">{error}</p>
+              <button onClick={() => window.location.reload()} className="px-4 py-2 bg-primary text-white rounded-xl text-sm">Retry</button>
+            </div>
+          ) : loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="bg-surface rounded-xl border border-border animate-pulse">

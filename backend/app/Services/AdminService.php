@@ -117,11 +117,11 @@ class AdminService
 
     public function verifyAgent(AgentProfile $agent, User $admin): void
     {
-        $agent->update([
+        $agent->forceFill([
             'verification_status' => VerificationStatus::Verified,
             'verified_at'         => now(),
             'verified_by'         => $admin->id,
-        ]);
+        ])->save();
 
         if ($agent->user) {
             $this->notificationService->send(
@@ -135,10 +135,10 @@ class AdminService
 
     public function rejectAgent(AgentProfile $agent, string $reason, User $admin): void
     {
-        $agent->update([
+        $agent->forceFill([
             'verification_status'    => VerificationStatus::Rejected,
             'verification_rejection' => $reason,
-        ]);
+        ])->save();
 
         if ($agent->user) {
             $this->notificationService->send(
@@ -152,23 +152,23 @@ class AdminService
 
     public function banUser(User $user, string $reason, User $admin): void
     {
-        $user->update([
+        $user->forceFill([
             'status'     => UserStatus::Banned,
             'ban_reason' => $reason,
             'banned_at'  => now(),
             'banned_by'  => $admin->id,
-        ]);
+        ])->save();
 
         $user->tokens()->delete();
     }
 
     public function unbanUser(User $user): void
     {
-        $user->update([
+        $user->forceFill([
             'status'     => UserStatus::Active,
             'ban_reason' => null,
             'banned_at'  => null,
             'banned_by'  => null,
-        ]);
+        ])->save();
     }
 }

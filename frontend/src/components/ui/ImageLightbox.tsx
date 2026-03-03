@@ -136,7 +136,7 @@ export default function ImageLightbox({ images, initialIndex = 0, onClose }: Ima
               }`}
               aria-label={`Go to image ${i + 1}`}
             >
-              <Image src={img.url} alt="" fill className="object-cover" sizes="56px" />
+              <Image src={img.url} alt={`Thumbnail ${i + 1}`} fill className="object-cover" sizes="56px" />
             </button>
           ))}
         </div>

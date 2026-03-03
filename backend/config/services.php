@@ -41,6 +41,13 @@ return [
         'api_key' => env('TERMII_API_KEY'),
         'base_url' => env('TERMII_BASE_URL', 'https://api.ng.termii.com/api'),
         'sender_id' => env('TERMII_SENDER_ID', 'AncerLarins'),
+        'webhook_secret' => env('TERMII_WEBHOOK_SECRET'),
+        'webhook_ips' => array_filter(explode(',', env('TERMII_WEBHOOK_IPS', ''))),
+    ],
+
+    'turnstile' => [
+        'secret_key' => env('TURNSTILE_SECRET_KEY'),
+        'site_key' => env('TURNSTILE_SITE_KEY'),
     ],
 
     'paystack' => [

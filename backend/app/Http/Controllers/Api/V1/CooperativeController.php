@@ -205,7 +205,8 @@ class CooperativeController extends Controller
         }
 
         if ($request->filled('q')) {
-            $query->where('name', 'ilike', '%' . $request->input('q') . '%');
+            $q = str_replace(['%', '_'], ['\\%', '\\_'], $request->input('q'));
+            $query->where('name', 'ilike', '%' . $q . '%');
         }
 
         $cooperatives = $query->paginate($request->perPage(20));

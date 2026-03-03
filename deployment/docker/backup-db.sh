@@ -29,8 +29,14 @@ until pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" > /dev/null 2>&1; do
   sleep 5
 done
 
+# Create .pgpass to avoid PGPASSWORD in process tree
+PGPASS_FILE="$(mktemp)"
+echo "${DB_HOST}:${DB_PORT}:${DB_NAME}:${DB_USER}:${DB_PASSWORD}" > "$PGPASS_FILE"
+chmod 600 "$PGPASS_FILE"
+export PGPASSFILE="$PGPASS_FILE"
+
 # Run the dump
-PGPASSWORD="${DB_PASSWORD}" pg_dump \
+pg_dump \
   -h "$DB_HOST" \
   -p "$DB_PORT" \
   -U "$DB_USER" \
@@ -39,6 +45,8 @@ PGPASSWORD="${DB_PASSWORD}" pg_dump \
   --no-privileges \
   --format=plain \
   | gzip > "$FILEPATH"
+
+rm -f "$PGPASS_FILE"
 
 SIZE=$(du -h "$FILEPATH" | cut -f1)
 echo "[$(date -Iseconds)] Backup complete: ${FILENAME} (${SIZE})"
