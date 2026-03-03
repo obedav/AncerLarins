@@ -20,7 +20,7 @@ class CreateInquiryRequest extends FormRequest
             'property_id'    => ['required', 'uuid', 'exists:properties,id'],
             'full_name'      => [$isGuest ? 'required' : 'nullable', 'string', 'max:100'],
             'email'          => [$isGuest ? 'required' : 'nullable', 'email', 'max:255'],
-            'phone'          => [$isGuest ? 'required' : 'nullable', 'string', 'max:20'],
+            'phone'          => [$isGuest ? 'required' : 'nullable', 'string', 'regex:/^(\+234|0)[789]\d{9}$/'],
             'budget_range'   => ['nullable', 'string', 'max:50'],
             'timeline'       => ['nullable', 'in:immediately,1_3_months,3_6_months,6_12_months,just_browsing'],
             'financing_type' => ['nullable', 'in:cash,mortgage,undecided'],
@@ -42,6 +42,7 @@ class CreateInquiryRequest extends FormRequest
             'full_name.required'      => 'Please enter your full name.',
             'email.required'          => 'Please enter your email address.',
             'phone.required'          => 'Please enter your phone number.',
+            'phone.regex'             => 'Phone must be a valid Nigerian number (e.g. +2347012345678 or 07012345678).',
             'turnstile_token.required' => 'Please complete the security check.',
         ];
     }

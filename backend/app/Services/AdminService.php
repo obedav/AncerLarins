@@ -6,6 +6,7 @@ use App\Enums\PropertyStatus;
 use App\Enums\UserStatus;
 use App\Enums\VerificationStatus;
 use App\Jobs\MatchSavedSearchesJob;
+use App\Models\ActivityLog;
 use App\Models\AgentProfile;
 use App\Models\Lead;
 use App\Models\Property;
@@ -55,13 +56,15 @@ class AdminService
 
     public function approveProperty(Property $property, User $admin): Property
     {
-        $property->update([
+        $previousStatus = $property->status?->value;
+
+        $property->forceFill([
             'status'       => PropertyStatus::Approved,
             'approved_by'  => $admin->id,
             'approved_at'  => now(),
             'published_at' => now(),
-            'expires_at'   => now()->addDays(90),
-        ]);
+            'expires_at'   => now()->addDays(config('ancerlarins.property_expiry_days', 90)),
+        ])->save();
 
         $agentUser = $property->agent?->user;
         if ($agentUser) {
@@ -77,16 +80,20 @@ class AdminService
         // Match against saved searches asynchronously
         MatchSavedSearchesJob::dispatch($property->id);
 
+        $this->log($admin, 'property_approved', $property, ['previous_status' => $previousStatus]);
+
         return $property->fresh();
     }
 
     public function rejectProperty(Property $property, string $reason, User $admin): Property
     {
-        $property->update([
+        $previousStatus = $property->status?->value;
+
+        $property->forceFill([
             'status'           => PropertyStatus::Rejected,
             'rejection_reason' => $reason,
             'approved_by'      => $admin->id,
-        ]);
+        ])->save();
 
         $agentUser = $property->agent?->user;
         if ($agentUser) {
@@ -99,21 +106,29 @@ class AdminService
             );
         }
 
+        $this->log($admin, 'property_rejected', $property, ['reason' => $reason, 'previous_status' => $previousStatus]);
+
         return $property->fresh();
     }
 
-    public function featureProperty(Property $property, int $days = 30): Property
+    public function featureProperty(Property $property, ?int $days = null): Property
     {
-        $property->update([
+        $effectiveDays = $days ?? config('ancerlarins.featured_default_days', 30);
+
+        $property->forceFill([
             'featured'       => true,
-            'featured_until' => now()->addDays($days),
-        ]);
+            'featured_until' => now()->addDays($effectiveDays),
+        ])->save();
+
+        $this->log(request()->user(), 'property_featured', $property, ['days' => $effectiveDays]);
 
         return $property->fresh();
     }
 
     public function verifyAgent(AgentProfile $agent, User $admin): void
     {
+        $previousStatus = $agent->verification_status?->value;
+
         $agent->forceFill([
             'verification_status' => VerificationStatus::Verified,
             'verified_at'         => now(),
@@ -128,10 +143,14 @@ class AdminService
                 'agent_verified',
             );
         }
+
+        $this->log($admin, 'agent_verified', $agent, ['previous_status' => $previousStatus]);
     }
 
     public function rejectAgent(AgentProfile $agent, string $reason, User $admin): void
     {
+        $previousStatus = $agent->verification_status?->value;
+
         $agent->forceFill([
             'verification_status'    => VerificationStatus::Rejected,
             'verification_rejection' => $reason,
@@ -145,10 +164,14 @@ class AdminService
                 'agent_rejected',
             );
         }
+
+        $this->log($admin, 'agent_rejected', $agent, ['reason' => $reason, 'previous_status' => $previousStatus]);
     }
 
     public function banUser(User $user, string $reason, User $admin): void
     {
+        $previousStatus = $user->status?->value;
+
         $user->forceFill([
             'status'     => UserStatus::Banned,
             'ban_reason' => $reason,
@@ -157,15 +180,33 @@ class AdminService
         ])->save();
 
         $user->tokens()->delete();
+
+        $this->log($admin, 'user_banned', $user, ['reason' => $reason, 'previous_status' => $previousStatus]);
     }
 
-    public function unbanUser(User $user): void
+    public function unbanUser(User $user, ?User $admin = null): void
     {
+        $previousStatus = $user->status?->value;
+
         $user->forceFill([
             'status'     => UserStatus::Active,
             'ban_reason' => null,
             'banned_at'  => null,
             'banned_by'  => null,
         ])->save();
+
+        $this->log($admin ?? request()->user(), 'user_unbanned', $user, ['previous_status' => $previousStatus]);
+    }
+
+    private function log(?User $admin, string $action, $target, array $metadata = []): void
+    {
+        ActivityLog::create([
+            'user_id'     => $admin?->id,
+            'action'      => $action,
+            'target_type' => $target->getMorphClass(),
+            'target_id'   => $target->getKey(),
+            'metadata'    => $metadata,
+            'ip_address'  => request()->ip(),
+        ]);
     }
 }

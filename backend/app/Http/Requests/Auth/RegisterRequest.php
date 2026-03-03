@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Rules\Turnstile;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
 {
@@ -21,7 +22,7 @@ class RegisterRequest extends FormRequest
             'last_name'  => ['required', 'string', 'max:100'],
             'phone'      => ['required', 'string', 'regex:/^(\+234|0)[789]\d{9}$/', 'unique:users,phone'],
             'email'      => ['nullable', 'email', 'max:255', 'unique:users,email'],
-            'password'   => ['required', 'string', 'min:8'],
+            'password'   => ['required', 'string', Password::min(10)->mixedCase()->numbers()->symbols()],
             'role'       => ['sometimes', Rule::in([UserRole::User->value, UserRole::Agent->value])],
         ];
 

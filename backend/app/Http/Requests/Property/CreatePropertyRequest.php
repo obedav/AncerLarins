@@ -21,7 +21,7 @@ class CreatePropertyRequest extends FormRequest
             'listing_type'       => ['required', Rule::in(array_column(ListingType::cases(), 'value'))],
             'property_type_id'   => ['required', 'uuid', 'exists:property_types,id'],
             'title'              => ['required', 'string', 'max:255'],
-            'description'        => ['required', 'string', 'max:5000'],
+            'description'        => ['required', 'string', 'max:5000', 'not_regex:/<script|<iframe|javascript:|on\w+\s*=/i'],
             'price_kobo'         => ['required', 'integer', 'min:1'],
             'price_negotiable'   => ['sometimes', 'boolean'],
             'rent_period'        => ['required_if:listing_type,rent,short_let', 'nullable', Rule::in(array_column(RentPeriod::cases(), 'value'))],

@@ -67,7 +67,7 @@ class Lead extends Model
      */
     public static function hashEmail(string $email): string
     {
-        return hash_hmac('sha256', strtolower(trim($email)), config('app.key'));
+        return hash_hmac('sha256', strtolower(trim($email)), config('app.blind_index_key'));
     }
 
     // ── Relationships ────────────────────────────────────

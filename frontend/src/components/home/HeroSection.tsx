@@ -1,16 +1,7 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function HeroSection() {
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoaded(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <section className="relative w-full overflow-hidden bg-primary -mt-20" aria-label="Hero">
@@ -37,12 +28,8 @@ export default function HeroSection() {
             <div className="relative z-10">
               {/* Headline */}
               <h1
-                className="font-playfair text-4xl sm:text-5xl lg:text-[56px] xl:text-[64px] font-bold leading-[1.1] text-white mb-6"
-                style={{
-                  opacity: loaded ? 1 : 0,
-                  transform: loaded ? 'translateY(0)' : 'translateY(24px)',
-                  transition: 'opacity 0.7s ease-out 0.2s, transform 0.7s ease-out 0.2s',
-                }}
+                className="font-playfair text-4xl sm:text-5xl lg:text-[56px] xl:text-[64px] font-bold leading-[1.1] text-white mb-6 animate-fade-in-up"
+                style={{ animationDelay: '0.2s' }}
               >
                 Your next home<br />
                 shouldn&apos;t be found.<br />
@@ -51,12 +38,8 @@ export default function HeroSection() {
 
               {/* Subtitle */}
               <p
-                className="text-white/50 text-base lg:text-lg leading-relaxed max-w-md mb-8"
-                style={{
-                  opacity: loaded ? 1 : 0,
-                  transform: loaded ? 'translateY(0)' : 'translateY(24px)',
-                  transition: 'opacity 0.7s ease-out 0.4s, transform 0.7s ease-out 0.4s',
-                }}
+                className="text-white/50 text-base lg:text-lg leading-relaxed max-w-md mb-8 animate-fade-in-up"
+                style={{ animationDelay: '0.4s' }}
               >
                 Private viewings of Lagos&apos;s most extraordinary residences,
                 arranged exclusively for you by our concierge team.
@@ -64,12 +47,8 @@ export default function HeroSection() {
 
               {/* CTA Buttons */}
               <div
-                className="flex items-center gap-5"
-                style={{
-                  opacity: loaded ? 1 : 0,
-                  transform: loaded ? 'translateY(0)' : 'translateY(24px)',
-                  transition: 'opacity 0.7s ease-out 0.6s, transform 0.7s ease-out 0.6s',
-                }}
+                className="flex items-center gap-5 animate-fade-in-up"
+                style={{ animationDelay: '0.6s' }}
               >
                 <Link
                   href="/properties"
@@ -98,11 +77,8 @@ export default function HeroSection() {
           {/* Right: Hero Image */}
           <div className="relative hidden lg:block">
             <div
-              className="absolute inset-0"
-              style={{
-                opacity: loaded ? 1 : 0,
-                transition: 'opacity 1s ease-out 0.3s',
-              }}
+              className="absolute inset-0 animate-fade-in"
+              style={{ animationDelay: '0.3s', animationDuration: '1s' }}
             >
               <Image
                 src="/images/neighborhoods/lekki.jpg"

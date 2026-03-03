@@ -32,8 +32,6 @@ class Property extends Model
         'has_generator', 'has_water_supply', 'has_prepaid_meter',
         'is_serviced', 'is_new_build',
         'available_from', 'inspection_available',
-        'status', 'rejection_reason', 'approved_by', 'approved_at',
-        'featured', 'featured_until',
         'meta_title', 'meta_description',
         'published_at', 'expires_at',
     ];

@@ -15,28 +15,13 @@ const nextConfig: NextConfig = {
     unoptimized: process.env.NODE_ENV === 'development',
   },
   async headers() {
+    // CSP is handled dynamically in middleware.ts (nonce-based)
     const securityHeaders = [
       { key: 'X-Content-Type-Options', value: 'nosniff' },
       { key: 'X-Frame-Options', value: 'DENY' },
       { key: 'X-XSS-Protection', value: '1; mode=block' },
       { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
       { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
-      {
-        key: 'Content-Security-Policy',
-        value: [
-          "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' https://js.paystack.co https://challenges.cloudflare.com",
-          "style-src 'self' 'unsafe-inline'",
-          "img-src 'self' data: blob: https://res.cloudinary.com https://*.tile.openstreetmap.org https://pictures-nigeria.jijistatic.net https://images.propertypro.ng https://www.propertypro.ng https://images.nigeriapropertycentre.com",
-          "font-src 'self' data:",
-          `connect-src 'self' ${process.env.NEXT_PUBLIC_API_URL ? new URL(process.env.NEXT_PUBLIC_API_URL).origin : 'http://localhost:8000'} https://*.sentry.io https://wa.me https://api.paystack.co`,
-          "frame-src https://challenges.cloudflare.com",
-          "object-src 'none'",
-          "base-uri 'self'",
-          "form-action 'self'",
-          "upgrade-insecure-requests",
-        ].join('; '),
-      },
     ];
 
     return [

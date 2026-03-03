@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Inter, Playfair_Display } from "next/font/google";
 import { ReduxProvider } from "@/store/provider";
 import { ToastProvider } from "@/components/ui/Toast";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
+import CookieConsent from "@/components/ui/CookieConsent";
 import "./globals.css";
 
 const inter = Inter({
@@ -71,15 +73,20 @@ export const viewport: Viewport = {
   themeColor: "#0A0A0A",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const nonce = headersList.get('x-nonce') || '';
+
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`} suppressHydrationWarning>
       <head>
         <script
+          nonce={nonce}
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`,
           }}
@@ -132,6 +139,7 @@ export default function RootLayout({
           <ToastProvider>{children}</ToastProvider>
         </ReduxProvider>
         <ServiceWorkerRegistration />
+        <CookieConsent />
       </body>
     </html>
   );

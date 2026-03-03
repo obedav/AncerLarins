@@ -28,4 +28,14 @@ class LeadPolicy
     {
         return $user->isAdmin();
     }
+
+    public function delete(User $user, Lead $lead): bool
+    {
+        return $user->isAdmin();
+    }
+
+    public function forceDelete(User $user, Lead $lead): bool
+    {
+        return $user->isAdmin();
+    }
 }

@@ -28,7 +28,7 @@ class UpdatePropertyRequest extends FormRequest
             'listing_type'       => ['sometimes', Rule::in(array_column(ListingType::cases(), 'value'))],
             'property_type_id'   => ['sometimes', 'uuid', 'exists:property_types,id'],
             'title'              => ['sometimes', 'string', 'max:255'],
-            'description'        => ['sometimes', 'string', 'max:5000'],
+            'description'        => ['sometimes', 'string', 'max:5000', 'not_regex:/<script|<iframe|javascript:|on\w+\s*=/i'],
             'price_kobo'         => ['sometimes', 'integer', 'min:0'],
             'price_negotiable'   => ['sometimes', 'boolean'],
             'rent_period'        => ['nullable', Rule::in(array_column(RentPeriod::cases(), 'value'))],

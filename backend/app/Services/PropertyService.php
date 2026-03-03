@@ -44,19 +44,22 @@ class PropertyService
 
             $property->ancer_estimate = $this->valuationService->estimate($property);
 
-            // Attach nearby landmarks within 5km if property has a location
+            // Attach nearby landmarks if property has a location
             if ($property->latitude && $property->longitude) {
+                $radiusMeters = config('ancerlarins.landmark_radius_meters', 5000);
+                $landmarkLimit = config('ancerlarins.landmark_limit', 10);
+
                 $property->nearby_landmarks = Landmark::whereNotNull('location')
                     ->whereRaw(
                         'ST_DWithin(location, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)',
-                        [$property->longitude, $property->latitude, 5000]
+                        [$property->longitude, $property->latitude, $radiusMeters]
                     )
                     ->selectRaw(
                         'id, name, type, ROUND(CAST(ST_Distance(location, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) / 1000 AS numeric), 1) AS distance_km',
                         [$property->longitude, $property->latitude]
                     )
                     ->orderBy('distance_km')
-                    ->limit(10)
+                    ->limit($landmarkLimit)
                     ->get();
             }
         }
@@ -69,11 +72,12 @@ class PropertyService
         return DB::transaction(function () use ($data, $agent) {
             $slug = $this->generateSlug($data['title']);
 
-            $property = Property::create(array_merge($data, [
+            $property = new Property(array_merge($data, [
                 'agent_id' => $agent->id,
                 'slug'     => $slug,
-                'status'   => PropertyStatus::Pending,
             ]));
+            $property->status = PropertyStatus::Pending;
+            $property->save();
 
             if (! empty($data['amenity_ids'])) {
                 $property->amenities()->sync($data['amenity_ids']);
@@ -94,10 +98,10 @@ class PropertyService
             // Run fraud detection
             $fraud = $this->fraudDetectionService->analyze($property);
             if ($fraud['score'] > 0) {
-                $property->update([
+                $property->forceFill([
                     'fraud_score' => $fraud['score'],
                     'fraud_flags' => $fraud['flags'],
-                ]);
+                ])->save();
             }
 
             // Notify admins about new pending property
@@ -200,14 +204,14 @@ class PropertyService
 
     public function markAsSold(Property $property): Property
     {
-        $property->update(['status' => PropertyStatus::Sold]);
+        $property->forceFill(['status' => PropertyStatus::Sold])->save();
 
         return $property->fresh();
     }
 
     public function markAsRented(Property $property): Property
     {
-        $property->update(['status' => PropertyStatus::Rented]);
+        $property->forceFill(['status' => PropertyStatus::Rented])->save();
 
         return $property->fresh();
     }

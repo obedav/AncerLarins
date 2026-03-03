@@ -99,6 +99,8 @@ return [
 
     'key' => env('APP_KEY'),
 
+    'blind_index_key' => env('BLIND_INDEX_KEY', env('APP_KEY')),
+
     'previous_keys' => [
         ...array_filter(
             explode(',', env('APP_PREVIOUS_KEYS', ''))

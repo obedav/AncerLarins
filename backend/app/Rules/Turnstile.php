@@ -35,7 +35,7 @@ class Turnstile implements ValidationRule
             }
         } catch (\Throwable $e) {
             Log::warning('Turnstile verification failed', ['error' => $e->getMessage()]);
-            // Allow the request through if Turnstile API is unreachable
+            $fail('Security verification unavailable. Please try again later.');
         }
     }
 }
