@@ -61,3 +61,15 @@ done
 
 REMAINING=$(find "$BACKUP_DIR" -name "ancerlarins_*.sql.gz" -type f | wc -l)
 echo "[$(date -Iseconds)] Retention: keeping ${REMAINING} backups (max age: ${RETENTION_DAYS} days)"
+
+# ── Off-site upload to S3 (optional) ─────────────────────
+# Set BACKUP_S3_BUCKET to enable. Requires aws CLI in the image.
+if [ -n "${BACKUP_S3_BUCKET:-}" ]; then
+  S3_PATH="s3://${BACKUP_S3_BUCKET}/db-backups/${FILENAME}"
+  echo "[$(date -Iseconds)] Uploading to ${S3_PATH}..."
+  if aws s3 cp "$FILEPATH" "$S3_PATH" --storage-class STANDARD_IA 2>&1; then
+    echo "[$(date -Iseconds)] S3 upload complete"
+  else
+    echo "[$(date -Iseconds)] WARNING: S3 upload failed — local backup retained"
+  fi
+fi

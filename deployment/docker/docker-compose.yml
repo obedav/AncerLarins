@@ -56,6 +56,46 @@ services:
     networks:
       - ancerlarins
 
+  # ── PgBouncer (Connection Pooling) ─────────────────────
+  pgbouncer:
+    image: bitnami/pgbouncer:1.22.1
+    restart: unless-stopped
+    environment:
+      PGBOUNCER_DATABASE: ${DB_DATABASE:-ancerlarins}
+      POSTGRESQL_HOST: postgres
+      POSTGRESQL_PORT: 5432
+      POSTGRESQL_USERNAME: ${DB_USERNAME:-ancerlarins}
+      POSTGRESQL_PASSWORD: ${DB_PASSWORD}
+      PGBOUNCER_PORT: 6432
+      PGBOUNCER_POOL_MODE: transaction
+      PGBOUNCER_MAX_CLIENT_CONN: 200
+      PGBOUNCER_DEFAULT_POOL_SIZE: 20
+      PGBOUNCER_MIN_POOL_SIZE: 5
+      PGBOUNCER_RESERVE_POOL_SIZE: 5
+      PGBOUNCER_SERVER_RESET_QUERY: "DISCARD ALL"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 6432 -U ${DB_USERNAME:-ancerlarins}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: "0.25"
+    networks:
+      - ancerlarins
+
   # ── Laravel Backend (PHP-FPM) ──────────────────────────
   backend:
     build:
@@ -63,8 +103,11 @@ services:
       dockerfile: deployment/docker/Dockerfile.backend
     restart: unless-stopped
     env_file: .env
+    environment:
+      DB_HOST: pgbouncer
+      DB_PORT: 6432
     depends_on:
-      postgres:
+      pgbouncer:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -105,9 +148,12 @@ services:
       dockerfile: deployment/docker/Dockerfile.backend
     restart: unless-stopped
     env_file: .env
+    environment:
+      DB_HOST: pgbouncer
+      DB_PORT: 6432
     command: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
     depends_on:
-      postgres:
+      pgbouncer:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -135,9 +181,12 @@ services:
       dockerfile: deployment/docker/Dockerfile.backend
     restart: unless-stopped
     env_file: .env
+    environment:
+      DB_HOST: pgbouncer
+      DB_PORT: 6432
     command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
     depends_on:
-      postgres:
+      pgbouncer:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -232,7 +281,7 @@ services:
     volumes:
       - ./backup-db.sh:/usr/local/bin/backup-db.sh:ro
       - db_backups:/backups
-    entrypoint: "/bin/sh -c 'chmod +x /usr/local/bin/backup-db.sh && /usr/local/bin/backup-db.sh && trap exit TERM; while :; do sleep 86400; /usr/local/bin/backup-db.sh; done'"
+    entrypoint: "/bin/sh -c 'apk add --no-cache aws-cli 2>/dev/null; chmod +x /usr/local/bin/backup-db.sh && /usr/local/bin/backup-db.sh && trap exit TERM; while :; do sleep 86400; /usr/local/bin/backup-db.sh; done'"
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -241,6 +290,10 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       BACKUP_DIR: /backups
       RETENTION_DAYS: 7
+      BACKUP_S3_BUCKET: ${BACKUP_S3_BUCKET:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-af-south-1}
     depends_on:
       postgres:
         condition: service_healthy
@@ -348,12 +401,14 @@ services:
     image: grafana/grafana:10.4.1
     restart: unless-stopped
     ports:
-      - "${GRAFANA_PORT:-3001}:3000"
+      - "127.0.0.1:${GRAFANA_PORT:-3001}:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_AUTH_ANONYMOUS_ORG_ROLE: ""
+      GF_SERVER_ROOT_URL: "https://ancerlarins.com/grafana/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
