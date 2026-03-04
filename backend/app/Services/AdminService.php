@@ -153,7 +153,7 @@ class AdminService
 
         $agent->forceFill([
             'verification_status' => VerificationStatus::Rejected,
-            'verification_rejection' => $reason,
+            'rejection_reason' => $reason,
         ])->save();
 
         if ($agent->user) {
