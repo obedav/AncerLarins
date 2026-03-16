@@ -79,7 +79,7 @@ export default function SavedSearchesPage() {
   const searches = data?.data ?? [];
 
   const [deleteSearch] = useDeleteSavedSearchMutation();
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const buildSearchUrl = (search: typeof searches[number]) => {
     const params = new URLSearchParams();
@@ -94,7 +94,7 @@ export default function SavedSearchesPage() {
     return `/properties?${params.toString()}`;
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     if (confirmDeleteId === id) {
       deleteSearch(id);
       setConfirmDeleteId(null);
