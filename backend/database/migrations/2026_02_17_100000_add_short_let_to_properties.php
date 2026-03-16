@@ -9,12 +9,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // PostgreSQL: drop old check constraints and add new ones with expanded values
-        DB::statement('ALTER TABLE properties DROP CONSTRAINT IF EXISTS properties_listing_type_check');
-        DB::statement("ALTER TABLE properties ADD CONSTRAINT properties_listing_type_check CHECK (listing_type::text = ANY (ARRAY['rent'::text, 'sale'::text, 'short_let'::text]))");
-
-        DB::statement('ALTER TABLE properties DROP CONSTRAINT IF EXISTS properties_rent_period_check');
-        DB::statement("ALTER TABLE properties ADD CONSTRAINT properties_rent_period_check CHECK (rent_period::text = ANY (ARRAY['yearly'::text, 'monthly'::text, 'quarterly'::text, 'weekly'::text, 'daily'::text]))");
+        // MySQL: modify enum columns to add new values
+        DB::statement("ALTER TABLE properties MODIFY COLUMN listing_type ENUM('rent', 'sale', 'short_let') NOT NULL");
+        DB::statement("ALTER TABLE properties MODIFY COLUMN rent_period ENUM('yearly', 'monthly', 'quarterly', 'weekly', 'daily') NULL");
 
         // Add short-let specific columns
         Schema::table('properties', function (Blueprint $table) {
@@ -31,10 +28,7 @@ return new class extends Migration
             $table->dropColumn(['min_stay_days', 'max_stay_days', 'check_in_time', 'check_out_time']);
         });
 
-        DB::statement('ALTER TABLE properties DROP CONSTRAINT IF EXISTS properties_rent_period_check');
-        DB::statement("ALTER TABLE properties ADD CONSTRAINT properties_rent_period_check CHECK (rent_period::text = ANY (ARRAY['yearly'::text, 'monthly'::text, 'quarterly'::text]))");
-
-        DB::statement('ALTER TABLE properties DROP CONSTRAINT IF EXISTS properties_listing_type_check');
-        DB::statement("ALTER TABLE properties ADD CONSTRAINT properties_listing_type_check CHECK (listing_type::text = ANY (ARRAY['rent'::text, 'sale'::text]))");
+        DB::statement("ALTER TABLE properties MODIFY COLUMN rent_period ENUM('yearly', 'monthly', 'quarterly') NULL");
+        DB::statement("ALTER TABLE properties MODIFY COLUMN listing_type ENUM('rent', 'sale') NOT NULL");
     }
 };

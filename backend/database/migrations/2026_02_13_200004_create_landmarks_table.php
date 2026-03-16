@@ -9,16 +9,17 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('landmarks')) {
+            return;
+        }
+
         Schema::create('landmarks', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('area_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('type');
-            $table->timestampsTz();
+            $table->timestamps();
         });
-
-        DB::statement('ALTER TABLE landmarks ADD COLUMN location geography(Point, 4326)');
-        DB::statement('CREATE INDEX landmarks_location_gist ON landmarks USING GIST(location)');
     }
 
     public function down(): void

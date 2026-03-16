@@ -115,12 +115,6 @@ return new class extends Migration
             );
         });
 
-        // PostGIS location column
-        DB::statement('ALTER TABLE properties ADD COLUMN location geography(Point, 4326)');
-        DB::statement('CREATE INDEX properties_location_gist ON properties USING GIST(location)');
-
-        // Full-text search GIN index
-        DB::statement("CREATE INDEX properties_fulltext_idx ON properties USING GIN(to_tsvector('english', coalesce(title, '') || ' ' || coalesce(description, '')))");
     }
 
     public function down(): void

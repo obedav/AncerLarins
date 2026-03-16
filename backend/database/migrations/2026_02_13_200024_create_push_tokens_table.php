@@ -18,8 +18,8 @@ return new class extends Migration
             $table->timestampsTz();
         });
 
-        // Partial index: only active tokens
-        DB::statement('CREATE INDEX push_tokens_user_active ON push_tokens (user_id) WHERE is_active = true');
+        // Standard index (MySQL doesn't support partial indexes)
+        DB::statement('CREATE INDEX push_tokens_user_active ON push_tokens (user_id, is_active)');
     }
 
     public function down(): void

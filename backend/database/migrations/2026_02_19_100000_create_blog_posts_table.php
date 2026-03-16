@@ -33,7 +33,8 @@ return new class extends Migration
             $table->index('author_id');
         });
 
-        DB::statement("CREATE INDEX blog_posts_fulltext_idx ON blog_posts USING GIN(to_tsvector('english', coalesce(title, '') || ' ' || coalesce(excerpt, '') || ' ' || coalesce(content, '')))");
+        // MySQL fulltext index (replaces PostgreSQL GIN index)
+        DB::statement('ALTER TABLE blog_posts ADD FULLTEXT blog_posts_fulltext_idx (title, excerpt, content)');
     }
 
     public function down(): void

@@ -9,6 +9,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('areas')) {
+            return;
+        }
+
         Schema::create('areas', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('city_id')->constrained()->cascadeOnDelete();
@@ -23,13 +27,10 @@ return new class extends Migration
             $table->decimal('traffic_score', 3, 1)->nullable();
             $table->decimal('amenity_score', 3, 1)->nullable();
             $table->boolean('is_active')->default(true);
-            $table->timestampsTz();
+            $table->timestamps();
 
             $table->unique(['city_id', 'slug']);
         });
-
-        DB::statement('ALTER TABLE areas ADD COLUMN location geography(Point, 4326)');
-        DB::statement('CREATE INDEX areas_location_gist ON areas USING GIST(location)');
     }
 
     public function down(): void
