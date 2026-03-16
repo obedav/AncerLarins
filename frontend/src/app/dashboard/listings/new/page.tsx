@@ -6,13 +6,16 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { listingSchema, type ListingFormData } from '@/lib/schemas/listing';
 import { useCreatePropertyMutation } from '@/store/api/propertyApi';
-import { useUploadPropertyImagesMutation } from '@/store/api/agentApi';
+import { useUploadPropertyImagesMutation, useUploadPropertyVideoMutation } from '@/store/api/agentApi';
 import { useGetStatesQuery, useGetCitiesQuery, useGetAreasQuery, useGetPropertyTypesQuery } from '@/store/api/locationApi';
 import ImageUploader from '@/components/dashboard/ImageUploader';
 import type { ImageFile } from '@/components/dashboard/ImageUploader';
 import type { CreatePropertyPayload, ListingType, Furnishing, RentPeriod } from '@/types';
 
-const STEPS = ['Basic Info', 'Pricing', 'Location', 'Details', 'Photos', 'Review'];
+const STEPS = ['Basic Info', 'Pricing', 'Location', 'Details', 'Photos', 'Video', 'Review'];
+
+const MAX_VIDEO_SIZE_MB = 50;
+const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
 
 const FURNISHING_OPTIONS: { value: Furnishing; label: string }[] = [
   { value: 'unfurnished', label: 'Unfurnished' },
@@ -27,6 +30,7 @@ const STEP_FIELDS: (keyof ListingFormData)[][] = [
   ['state_id', 'city_id', 'address'],
   ['bedrooms', 'bathrooms', 'furnishing'],
   [], // Photos — no form fields
+  [], // Video — no form fields
   [], // Review — no additional validation
 ];
 
@@ -34,12 +38,16 @@ export default function NewListingPage() {
   const router = useRouter();
   const [createProperty, { isLoading: creating }] = useCreatePropertyMutation();
   const [uploadImages, { isLoading: uploading }] = useUploadPropertyImagesMutation();
+  const [uploadVideo, { isLoading: uploadingVideo }] = useUploadPropertyVideoMutation();
   const { data: statesData } = useGetStatesQuery();
   const { data: propertyTypesData } = useGetPropertyTypesQuery();
 
   const [step, setStep] = useState(0);
   const [apiError, setApiError] = useState('');
   const [images, setImages] = useState<ImageFile[]>([]);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [videoError, setVideoError] = useState('');
 
   const { register, handleSubmit: rhfSubmit, watch, setValue, trigger, formState: { errors } } = useForm<ListingFormData>({
     resolver: zodResolver(listingSchema),
@@ -161,13 +169,46 @@ export default function NewListingPage() {
     await uploadImages({ propertyId, formData }).unwrap();
   };
 
+  const uploadVideoForProperty = async (propertyId: string) => {
+    if (!videoFile) return;
+    const formData = new FormData();
+    formData.append('video', videoFile);
+    await uploadVideo({ propertyId, formData }).unwrap();
+  };
+
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setVideoError('');
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!ACCEPTED_VIDEO_TYPES.includes(file.type)) {
+      setVideoError('Please select an MP4, MOV, or WebM file.');
+      return;
+    }
+    if (file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
+      setVideoError(`Video must be under ${MAX_VIDEO_SIZE_MB}MB.`);
+      return;
+    }
+
+    setVideoFile(file);
+    setVideoPreview(URL.createObjectURL(file));
+  };
+
+  const removeVideo = () => {
+    if (videoPreview) URL.revokeObjectURL(videoPreview);
+    setVideoFile(null);
+    setVideoPreview(null);
+    setVideoError('');
+  };
+
   const handleSaveDraft = async () => {
     setApiError('');
     try {
       const payload = buildPayload(form);
       const result = await createProperty({ ...payload, status: 'draft' as never }).unwrap();
-      if (images.length > 0 && result.data?.id) {
-        await uploadImagesForProperty(result.data.id);
+      if (result.data?.id) {
+        if (images.length > 0) await uploadImagesForProperty(result.data.id);
+        if (videoFile) await uploadVideoForProperty(result.data.id);
       }
       router.push('/dashboard/listings');
     } catch (err: unknown) {
@@ -181,8 +222,9 @@ export default function NewListingPage() {
     try {
       const payload = buildPayload(data);
       const result = await createProperty(payload).unwrap();
-      if (images.length > 0 && result.data?.id) {
-        await uploadImagesForProperty(result.data.id);
+      if (result.data?.id) {
+        if (images.length > 0) await uploadImagesForProperty(result.data.id);
+        if (videoFile) await uploadVideoForProperty(result.data.id);
       }
       router.push('/dashboard/listings');
     } catch (err: unknown) {
@@ -491,8 +533,56 @@ export default function NewListingPage() {
         </div>
       )}
 
-      {/* Step 5: Review */}
+      {/* Step 5: Video */}
       {step === 5 && (
+        <div className="bg-surface border border-border rounded-xl p-6">
+          <h2 className="font-semibold text-text-primary mb-1">Video Tour</h2>
+          <p className="text-sm text-text-muted mb-4">Upload a video walkthrough of your property (optional). Max 50MB, MP4/MOV/WebM.</p>
+
+          {videoError && (
+            <div className="bg-error/10 text-error p-3 rounded-xl mb-4 text-sm">{videoError}</div>
+          )}
+
+          {videoPreview ? (
+            <div className="space-y-3">
+              <video
+                src={videoPreview}
+                controls
+                className="w-full rounded-xl border border-border max-h-80"
+              />
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-text-secondary">
+                  {videoFile?.name} ({(videoFile!.size / (1024 * 1024)).toFixed(1)} MB)
+                </p>
+                <button
+                  type="button"
+                  onClick={removeVideo}
+                  className="text-sm text-error hover:text-error/80 font-medium transition-colors"
+                >
+                  Remove Video
+                </button>
+              </div>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-accent-dark hover:bg-accent/5 transition-colors">
+              <svg className="w-10 h-10 text-text-muted mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+              <span className="text-sm font-medium text-text-secondary">Click to upload video</span>
+              <span className="text-xs text-text-muted mt-1">MP4, MOV, or WebM up to 50MB</span>
+              <input
+                type="file"
+                accept="video/mp4,video/quicktime,video/webm"
+                onChange={handleVideoSelect}
+                className="hidden"
+              />
+            </label>
+          )}
+        </div>
+      )}
+
+      {/* Step 6: Review */}
+      {step === 6 && (
         <div className="space-y-4">
           <div className="bg-surface border border-border rounded-xl p-6">
             <h2 className="font-semibold text-text-primary mb-4">Review Your Listing</h2>
@@ -507,6 +597,7 @@ export default function NewListingPage() {
               <ReviewRow label="Bathrooms" value={form.bathrooms || '-'} />
               <ReviewRow label="Furnishing" value={form.furnishing.replace('_', ' ')} />
               <ReviewRow label="Photos" value={`${images.length} images`} />
+              <ReviewRow label="Video" value={videoFile ? videoFile.name : 'None'} />
             </dl>
           </div>
 
@@ -540,8 +631,8 @@ export default function NewListingPage() {
               Continue
             </button>
           ) : (
-            <button onClick={rhfSubmit(onSubmit)} disabled={creating || uploading} className="bg-accent hover:bg-accent-dark text-primary px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
-              {creating || uploading ? 'Submitting...' : 'Submit for Approval'}
+            <button onClick={rhfSubmit(onSubmit)} disabled={creating || uploading || uploadingVideo} className="bg-accent hover:bg-accent-dark text-primary px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
+              {creating || uploading || uploadingVideo ? 'Submitting...' : 'Submit for Approval'}
             </button>
           )}
         </div>

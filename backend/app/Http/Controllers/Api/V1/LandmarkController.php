@@ -47,13 +47,14 @@ class LandmarkController extends Controller
         $radiusKm = $request->float('radius', 5);
         $radiusMetres = $radiusKm * 1000;
 
-        $landmarks = Landmark::whereNotNull('location')
+        $landmarks = Landmark::whereNotNull('latitude')
+            ->whereNotNull('longitude')
             ->whereRaw(
-                'ST_DWithin(location, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)',
+                'ST_Distance_Sphere(POINT(longitude, latitude), POINT(?, ?)) <= ?',
                 [$lng, $lat, $radiusMetres]
             )
             ->selectRaw(
-                '*, ROUND(CAST(ST_Distance(location, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) / 1000 AS numeric), 1) AS distance_km',
+                '*, ROUND(ST_Distance_Sphere(POINT(longitude, latitude), POINT(?, ?)) / 1000, 1) AS distance_km',
                 [$lng, $lat]
             )
             ->orderBy('distance_km')

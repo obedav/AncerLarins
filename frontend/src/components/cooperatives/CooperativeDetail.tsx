@@ -73,8 +73,11 @@ export default function CooperativeDetail({ id }: { id: string }) {
     }
     try {
       const result = await contribute({ cooperativeId: id, amount_kobo: amountKobo }).unwrap();
-      if (result.data.authorization_url) {
-        window.location.href = result.data.authorization_url;
+      const payUrl = result.data.authorization_url;
+      if (payUrl && (payUrl.startsWith('https://checkout.paystack.com/') || payUrl.startsWith('https://standard.paystack.co/'))) {
+        window.location.href = payUrl;
+      } else if (payUrl) {
+        setError('Unexpected payment redirect URL.');
       }
     } catch (err: unknown) {
       const apiError = err as { data?: { message?: string } };

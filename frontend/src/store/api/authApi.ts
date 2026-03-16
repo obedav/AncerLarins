@@ -1,6 +1,13 @@
 import { baseApi } from './baseApi';
 import type { ApiResponse, User, AuthTokens } from '@/types';
 
+interface PasskeyCredential {
+  id: string;
+  device_name: string;
+  created_at: string;
+  last_used_at: string | null;
+}
+
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     register: builder.mutation<
@@ -36,6 +43,46 @@ export const authApi = baseApi.injectEndpoints({
       query: () => '/me',
       providesTags: ['User'],
     }),
+
+    // ── Passkey endpoints ──────────────────────────────
+    passkeyAuthOptions: builder.mutation<
+      ApiResponse<{ challenge_id: string; options: Record<string, unknown> }>,
+      void
+    >({
+      query: () => ({ url: '/passkeys/authenticate/options', method: 'POST' }),
+    }),
+
+    passkeyAuthenticate: builder.mutation<
+      ApiResponse<{ user: User } & AuthTokens>,
+      { challenge_id: string; credential: Record<string, unknown> }
+    >({
+      query: (body) => ({ url: '/passkeys/authenticate', method: 'POST', body }),
+    }),
+
+    passkeyRegisterOptions: builder.mutation<
+      ApiResponse<{ challenge_id: string; options: Record<string, unknown> }>,
+      void
+    >({
+      query: () => ({ url: '/passkeys/register/options', method: 'POST' }),
+    }),
+
+    passkeyRegister: builder.mutation<
+      ApiResponse<{ id: string; device_name: string; created_at: string }>,
+      { challenge_id: string; credential: Record<string, unknown>; device_name?: string }
+    >({
+      query: (body) => ({ url: '/passkeys/register', method: 'POST', body }),
+      invalidatesTags: ['Passkey'],
+    }),
+
+    listPasskeys: builder.query<ApiResponse<PasskeyCredential[]>, void>({
+      query: () => '/passkeys',
+      providesTags: ['Passkey'],
+    }),
+
+    deletePasskey: builder.mutation<ApiResponse<null>, string>({
+      query: (id) => ({ url: `/passkeys/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['Passkey'],
+    }),
   }),
 });
 
@@ -46,4 +93,10 @@ export const {
   useRefreshTokenMutation,
   useLogoutMutation,
   useGetMeQuery,
+  usePasskeyAuthOptionsMutation,
+  usePasskeyAuthenticateMutation,
+  usePasskeyRegisterOptionsMutation,
+  usePasskeyRegisterMutation,
+  useListPasskeysQuery,
+  useDeletePasskeyMutation,
 } = authApi;

@@ -36,7 +36,16 @@ class WebhookController extends Controller
         // ── Signature verification ──────────────────────────
         $secret = config('services.paystack.secret_key');
 
-        if ($secret && $request->header('x-paystack-signature') !== hash_hmac('sha512', $request->getContent(), $secret)) {
+        if (empty($secret)) {
+            Log::critical('Paystack webhook secret not configured');
+
+            return response()->json(['status' => 'service not configured'], 500);
+        }
+
+        $expected = hash_hmac('sha512', $request->getContent(), $secret);
+        $signature = $request->header('x-paystack-signature', '');
+
+        if (! hash_equals($expected, $signature)) {
             Log::warning('Paystack webhook: invalid signature');
 
             return response()->json(['status' => 'invalid signature'], 403);
@@ -117,7 +126,13 @@ class WebhookController extends Controller
             // Fallback: restrict to known Termii IP ranges when no secret is configured
             $allowedIps = config('services.termii.webhook_ips', []);
 
-            if (! empty($allowedIps) && ! in_array($request->ip(), $allowedIps, true)) {
+            if (empty($allowedIps)) {
+                Log::critical('Termii webhook: no secret or IP allowlist configured');
+
+                return response()->json(['status' => 'service not configured'], 500);
+            }
+
+            if (! in_array($request->ip(), $allowedIps, true)) {
                 Log::warning('Termii webhook: untrusted IP', ['ip' => $request->ip()]);
 
                 return response()->json(['status' => 'forbidden'], 403);

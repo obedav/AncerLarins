@@ -19,14 +19,14 @@ class DatabaseSeeder extends Seeder
 
         $now = now();
 
-        // Create admin user
+        // Create admin user (credentials from .env)
         DB::table('users')->insert([
             'id' => Str::uuid()->toString(),
-            'first_name' => 'Admin',
-            'last_name' => 'User',
-            'email' => 'admin@ancerlarins.com',
-            'phone' => '+2348000000001',
-            'password_hash' => Hash::make('password'),
+            'first_name' => env('SUPER_ADMIN_FIRST_NAME', 'Admin'),
+            'last_name' => env('SUPER_ADMIN_LAST_NAME', 'User'),
+            'email' => env('SUPER_ADMIN_EMAIL', 'admin@ancerlarins.com'),
+            'phone' => env('SUPER_ADMIN_PHONE', '+2340000000000'),
+            'password_hash' => Hash::make(env('SUPER_ADMIN_PASSWORD', 'changeme')),
             'phone_verified' => true,
             'email_verified' => true,
             'role' => 'super_admin',

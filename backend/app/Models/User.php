@@ -129,6 +129,11 @@ class User extends Authenticatable
         return $this->hasMany(RefreshToken::class);
     }
 
+    public function webauthnCredentials(): Relations\HasMany
+    {
+        return $this->hasMany(WebauthnCredential::class);
+    }
+
     // ── Scopes ───────────────────────────────────────────
 
     public function scopeActive($query)
@@ -156,6 +161,21 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return in_array($this->role, [UserRole::Admin, UserRole::SuperAdmin]);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === UserRole::SuperAdmin;
+    }
+
+    public function isAgent(): bool
+    {
+        return $this->role === UserRole::Agent;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === UserStatus::Active;
     }
 
     // ── Accessors ────────────────────────────────────────

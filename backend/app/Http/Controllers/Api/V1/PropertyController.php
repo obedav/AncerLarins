@@ -35,6 +35,19 @@ class PropertyController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'listing_type' => ['nullable', 'string', 'in:sale,rent,shortlet'],
+            'property_type_id' => ['nullable', 'uuid'],
+            'city_id' => ['nullable', 'uuid'],
+            'area_id' => ['nullable', 'uuid'],
+            'min_price' => ['nullable', 'integer', 'min:0'],
+            'max_price' => ['nullable', 'integer', 'min:0'],
+            'min_bedrooms' => ['nullable', 'integer', 'min:0', 'max:20'],
+            'max_bedrooms' => ['nullable', 'integer', 'min:0', 'max:20'],
+            'q' => ['nullable', 'string', 'max:200'],
+            'sort_by' => ['nullable', 'string', 'in:price_asc,price_desc,popular,latest'],
+        ]);
+
         $query = Property::query()
             ->approved()
             ->with(['propertyType', 'state', 'city', 'area', 'images', 'agent.user']);
@@ -115,6 +128,10 @@ class PropertyController extends Controller
         if (! $agent) {
             return $this->errorResponse('Agent profile required.', 403);
         }
+
+        $request->validate([
+            'status' => ['nullable', 'string', 'in:pending,approved,rejected,draft,sold,rented'],
+        ]);
 
         $query = Property::query()
             ->where('agent_id', $agent->id)
@@ -225,6 +242,38 @@ class PropertyController extends Controller
         );
 
         return $this->successResponse($images, 'Images uploaded.', 201);
+    }
+
+    /**
+     * Upload Property Video
+     *
+     * Upload a video walkthrough for a property listing. Maximum 50MB, MP4/MOV/WebM.
+     *
+     * @authenticated
+     */
+    public function uploadVideo(Request $request, Property $property): JsonResponse
+    {
+        $this->authorize('update', $property);
+
+        set_time_limit(300); // Allow up to 5 minutes for video upload
+
+        $request->validate([
+            'video' => 'required|file|mimetypes:video/mp4,video/quicktime,video/webm|max:51200',
+        ]);
+
+        $tour = $this->propertyService->uploadVideo($property, $request->file('video'));
+
+        return $this->successResponse($tour, 'Video uploaded.', 201);
+    }
+
+    /** @authenticated */
+    public function removeVideo(Request $request, Property $property): JsonResponse
+    {
+        $this->authorize('update', $property);
+
+        $this->propertyService->removeVideo($property);
+
+        return response()->json(null, 204);
     }
 
     /** @authenticated */

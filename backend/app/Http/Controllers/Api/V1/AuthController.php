@@ -9,9 +9,9 @@ use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Http\Resources\UserResource;
 use App\Services\AuthService;
 use App\Traits\ApiResponse;
+use App\Traits\AttachesAuthCookies;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Cookie;
 
 /**
  * @group Authentication
@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\Cookie;
  */
 class AuthController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AttachesAuthCookies;
 
     public function __construct(
         protected AuthService $authService,
@@ -88,7 +88,7 @@ class AuthController extends Controller
     public function forgotPassword(Request $request): JsonResponse
     {
         $request->validate([
-            'phone' => ['required', 'string'],
+            'phone' => ['required', 'string', 'regex:/^(\+234|0)[789]\d{9}$/'],
         ]);
 
         $this->authService->forgotPassword($request->phone);
@@ -140,56 +140,4 @@ class AuthController extends Controller
         return $jsonResponse;
     }
 
-    // ── Cookie helpers ──────────────────────────────────
-
-    private function attachAuthCookies(JsonResponse $response, string $accessToken, string $refreshToken): void
-    {
-        $secure = app()->environment('production');
-        $domain = config('session.domain');
-
-        // httpOnly access token — 24 hours
-        $response->withCookie(new Cookie(
-            name: 'access_token',
-            value: $accessToken,
-            expire: now()->addDay(),
-            path: '/',
-            domain: $domain,
-            secure: $secure,
-            httpOnly: true,
-            sameSite: 'lax',
-        ));
-
-        // httpOnly refresh token — 30 days
-        $response->withCookie(new Cookie(
-            name: 'refresh_token',
-            value: $refreshToken,
-            expire: now()->addDays(30),
-            path: '/',
-            domain: $domain,
-            secure: $secure,
-            httpOnly: true,
-            sameSite: 'lax',
-        ));
-
-        // Non-httpOnly indicator so the frontend knows auth state
-        $response->withCookie(new Cookie(
-            name: 'is_logged_in',
-            value: '1',
-            expire: now()->addDays(30),
-            path: '/',
-            domain: $domain,
-            secure: $secure,
-            httpOnly: false,
-            sameSite: 'lax',
-        ));
-    }
-
-    private function clearAuthCookies(JsonResponse $response): void
-    {
-        $domain = config('session.domain');
-
-        $response->withCookie(Cookie::create('access_token')->withPath('/')->withDomain($domain)->withExpires(0));
-        $response->withCookie(Cookie::create('refresh_token')->withPath('/')->withDomain($domain)->withExpires(0));
-        $response->withCookie(Cookie::create('is_logged_in')->withPath('/')->withDomain($domain)->withExpires(0));
-    }
 }

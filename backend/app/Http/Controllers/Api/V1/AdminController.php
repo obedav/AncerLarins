@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ApprovePropertyRequest;
 use App\Http\Requests\Admin\BanUserRequest;
+use App\Http\Requests\Admin\DemoteAdminRequest;
+use App\Http\Requests\Admin\PromoteAdminRequest;
 use App\Http\Requests\Admin\RejectAgentRequest;
 use App\Http\Requests\Admin\RejectPropertyRequest;
 use App\Http\Requests\Admin\VerifyAgentRequest;
@@ -236,6 +238,87 @@ class AdminController extends Controller
         $this->reportService->dismiss($report, $request->user(), $request->resolution_note);
 
         return $this->successResponse(null, 'Report dismissed.');
+    }
+
+    public function listUsers(Request $request): JsonResponse
+    {
+        $query = User::query()->latest();
+
+        if ($request->filled('role')) {
+            $query->where('role', $request->input('role'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->paginate($request->perPage(20));
+
+        return $this->paginatedResponse($users);
+    }
+
+    public function listAdmins(Request $request): JsonResponse
+    {
+        $admins = User::admins()
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $search = $request->input('search');
+                $q->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate($request->perPage(20));
+
+        return $this->paginatedResponse($admins);
+    }
+
+    public function promoteToAdmin(PromoteAdminRequest $request): JsonResponse
+    {
+        $target = User::findOrFail($request->user_id);
+        $user = $this->adminService->promoteToAdmin($target, $request->user());
+
+        return $this->successResponse($user, 'User promoted to admin.');
+    }
+
+    public function demoteAdmin(DemoteAdminRequest $request): JsonResponse
+    {
+        $target = User::findOrFail($request->user_id);
+        $user = $this->adminService->demoteAdmin($target, $request->user());
+
+        return $this->successResponse($user, 'Admin demoted to user.');
+    }
+
+    public function getSystemSettings(): JsonResponse
+    {
+        $settings = $this->adminService->getSystemSettings();
+
+        return $this->successResponse($settings);
+    }
+
+    public function updateSystemSettings(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'property_expiry_days' => ['sometimes', 'integer', 'min:1', 'max:365'],
+            'featured_default_days' => ['sometimes', 'integer', 'min:1', 'max:365'],
+            'landmark_radius_km' => ['sometimes', 'numeric', 'min:0.1', 'max:100'],
+            'landmark_limit' => ['sometimes', 'integer', 'min:1', 'max:500'],
+            'max_upload_size_mb' => ['sometimes', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $settings = $this->adminService->updateSystemSettings($data, $request->user());
+
+        return $this->successResponse($settings, 'Settings updated.');
     }
 
     public function activityLogs(Request $request): JsonResponse

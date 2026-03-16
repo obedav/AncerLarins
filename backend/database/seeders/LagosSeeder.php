@@ -175,10 +175,10 @@ class LagosSeeder extends Seeder
 
             // Set PostGIS location
             if (isset($area['lat']) && isset($area['lng'])) {
-                DB::statement(
-                    'UPDATE areas SET location = ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography WHERE id = ?',
-                    [$area['lng'], $area['lat'], $areaId]
-                );
+                DB::table('areas')->where('id', $areaId)->update([
+                    'latitude' => $area['lat'],
+                    'longitude' => $area['lng'],
+                ]);
             }
         }
 
@@ -357,14 +357,11 @@ class LagosSeeder extends Seeder
                 'area_id' => $areaId,
                 'name' => $lm['name'],
                 'type' => $lm['type'],
+                'latitude' => $lm['lat'],
+                'longitude' => $lm['lng'],
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
-
-            DB::statement(
-                'UPDATE landmarks SET location = ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography WHERE id = ?',
-                [$lm['lng'], $lm['lat'], $id]
-            );
         }
     }
 }

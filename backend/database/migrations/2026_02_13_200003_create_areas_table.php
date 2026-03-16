@@ -27,6 +27,8 @@ return new class extends Migration
             $table->decimal('traffic_score', 3, 1)->nullable();
             $table->decimal('amenity_score', 3, 1)->nullable();
             $table->boolean('is_active')->default(true);
+            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 10, 7)->nullable();
             $table->timestamps();
 
             $table->unique(['city_id', 'slug']);

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\PropertyStatus;
+use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Enums\VerificationStatus;
 use App\Jobs\MatchSavedSearchesJob;
@@ -196,6 +197,78 @@ class AdminService
         ])->save();
 
         $this->log($admin ?? request()->user(), 'user_unbanned', $user, ['previous_status' => $previousStatus]);
+    }
+
+    public function promoteToAdmin(User $target, User $superAdmin): User
+    {
+        $previousRole = $target->role?->value;
+
+        $target->forceFill(['role' => UserRole::Admin])->save();
+
+        $this->notificationService->send(
+            $target,
+            'Role Updated',
+            'You have been promoted to Admin.',
+            'role_changed',
+        );
+
+        $this->log($superAdmin, 'admin_promoted', $target, ['previous_role' => $previousRole]);
+
+        return $target->fresh();
+    }
+
+    public function demoteAdmin(User $target, User $superAdmin): User
+    {
+        $previousRole = $target->role?->value;
+
+        $target->forceFill(['role' => UserRole::User])->save();
+        $target->tokens()->delete();
+
+        $this->notificationService->send(
+            $target,
+            'Role Updated',
+            'Your admin privileges have been removed.',
+            'role_changed',
+        );
+
+        $this->log($superAdmin, 'admin_demoted', $target, ['previous_role' => $previousRole]);
+
+        return $target->fresh();
+    }
+
+    public function getSystemSettings(): array
+    {
+        return [
+            'property_expiry_days' => (int) config('ancerlarins.property_expiry_days', 90),
+            'featured_default_days' => (int) config('ancerlarins.featured_default_days', 30),
+            'landmark_radius_km' => (float) config('ancerlarins.landmark_radius_km', 5),
+            'landmark_limit' => (int) config('ancerlarins.landmark_limit', 50),
+            'max_upload_size_mb' => (int) config('ancerlarins.max_upload_size_mb', 10),
+        ];
+    }
+
+    public function updateSystemSettings(array $settings, User $superAdmin): array
+    {
+        // Persist to database-backed settings or .env
+        // For now, store in a simple JSON file that can be loaded by config
+        $path = storage_path('app/system_settings.json');
+        $existing = file_exists($path) ? json_decode(file_get_contents($path), true) : [];
+
+        $allowed = ['property_expiry_days', 'featured_default_days', 'landmark_radius_km', 'landmark_limit', 'max_upload_size_mb'];
+        $updated = [];
+
+        foreach ($allowed as $key) {
+            if (array_key_exists($key, $settings)) {
+                $existing[$key] = $settings[$key];
+                $updated[$key] = $settings[$key];
+            }
+        }
+
+        file_put_contents($path, json_encode($existing, JSON_PRETTY_PRINT));
+
+        $this->log($superAdmin, 'system_settings_updated', $superAdmin, ['changed' => $updated]);
+
+        return $existing;
     }
 
     private function log(?User $admin, string $action, $target, array $metadata = []): void

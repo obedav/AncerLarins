@@ -105,6 +105,39 @@ class CloudinaryService
         }
     }
 
+    public function uploadVideo($file, string $folder = 'properties'): array
+    {
+        try {
+            $result = $this->cloudinary()->uploadApi()->upload($file->getRealPath(), [
+                'folder' => "ancerlarins/{$folder}",
+                'resource_type' => 'video',
+            ]);
+
+            return [
+                'url' => $result['secure_url'],
+                'public_id' => $result['public_id'],
+                'duration' => $result['duration'] ?? null,
+            ];
+        } catch (\Exception $e) {
+            Log::error('Cloudinary video upload failed', ['error' => $e->getMessage()]);
+
+            return ['url' => null, 'public_id' => null, 'duration' => null];
+        }
+    }
+
+    public function deleteVideo(string $publicId): bool
+    {
+        try {
+            $this->cloudinary()->uploadApi()->destroy($publicId, ['resource_type' => 'video']);
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Cloudinary video delete failed', ['error' => $e->getMessage()]);
+
+            return false;
+        }
+    }
+
     public function uploadMultiple(array $files, string $folder = 'properties'): array
     {
         return array_map(fn ($file) => $this->uploadImage($file, $folder), $files);

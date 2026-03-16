@@ -131,6 +131,31 @@ export const adminApi = baseApi.injectEndpoints({
       query: (id) => ({ url: `/admin/scraped-listings/${id}/reject`, method: 'POST' }),
       invalidatesTags: ['ScrapedListing'],
     }),
+
+    // Super admin: Admin team management
+    getAdminList: builder.query<PaginatedResponse<User>, Record<string, unknown> | void>({
+      query: (params) => ({ url: '/admin/admins', params: params || undefined }),
+      providesTags: [{ type: 'User', id: 'ADMIN_TEAM' }],
+    }),
+
+    promoteToAdmin: builder.mutation<ApiResponse<User>, { user_id: string }>({
+      query: (body) => ({ url: '/admin/admins/promote', method: 'POST', body }),
+      invalidatesTags: [{ type: 'User', id: 'ADMIN_LIST' }, { type: 'User', id: 'ADMIN_TEAM' }],
+    }),
+
+    demoteAdmin: builder.mutation<ApiResponse<User>, { user_id: string }>({
+      query: (body) => ({ url: '/admin/admins/demote', method: 'POST', body }),
+      invalidatesTags: [{ type: 'User', id: 'ADMIN_LIST' }, { type: 'User', id: 'ADMIN_TEAM' }],
+    }),
+
+    // Super admin: System settings
+    getSystemSettings: builder.query<ApiResponse<Record<string, number>>, void>({
+      query: () => '/admin/settings',
+    }),
+
+    updateSystemSettings: builder.mutation<ApiResponse<Record<string, number>>, Record<string, number>>({
+      query: (body) => ({ url: '/admin/settings', method: 'PUT', body }),
+    }),
   }),
 });
 
@@ -153,4 +178,9 @@ export const {
   useGetScrapedListingsQuery,
   useApproveScrapedListingMutation,
   useRejectScrapedListingMutation,
+  useGetAdminListQuery,
+  usePromoteToAdminMutation,
+  useDemoteAdminMutation,
+  useGetSystemSettingsQuery,
+  useUpdateSystemSettingsMutation,
 } = adminApi;

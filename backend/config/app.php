@@ -99,7 +99,7 @@ return [
 
     'key' => env('APP_KEY'),
 
-    'blind_index_key' => env('BLIND_INDEX_KEY', env('APP_KEY')),
+    'blind_index_key' => env('BLIND_INDEX_KEY', ''),
 
     'previous_keys' => [
         ...array_filter(

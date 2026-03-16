@@ -7,10 +7,12 @@ use App\Enums\UserRole;
 use App\Models\AgentProfile;
 use App\Models\Landmark;
 use App\Models\PriceHistory;
+use App\Enums\TourType;
 use App\Models\Property;
 use App\Models\PropertyImage;
 use App\Models\PropertyView;
 use App\Models\User;
+use App\Models\VirtualTour;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -49,13 +51,14 @@ class PropertyService
                 $radiusMeters = config('ancerlarins.landmark_radius_meters', 5000);
                 $landmarkLimit = config('ancerlarins.landmark_limit', 10);
 
-                $property->nearby_landmarks = Landmark::whereNotNull('location')
+                $property->nearby_landmarks = Landmark::whereNotNull('latitude')
+                    ->whereNotNull('longitude')
                     ->whereRaw(
-                        'ST_DWithin(location, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)',
+                        'ST_Distance_Sphere(POINT(longitude, latitude), POINT(?, ?)) <= ?',
                         [$property->longitude, $property->latitude, $radiusMeters]
                     )
                     ->selectRaw(
-                        'id, name, type, ROUND(CAST(ST_Distance(location, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) / 1000 AS numeric), 1) AS distance_km',
+                        'id, name, type, ROUND(ST_Distance_Sphere(POINT(longitude, latitude), POINT(?, ?)) / 1000, 1) AS distance_km',
                         [$property->longitude, $property->latitude]
                     )
                     ->orderBy('distance_km')
@@ -162,6 +165,11 @@ class PropertyService
                 $this->imageService->delete($image->cloudinary_public_id);
             }
 
+            // Clean up video if present
+            if ($property->virtualTour?->cloudinary_public_id) {
+                $this->imageService->deleteVideo($property->virtualTour->cloudinary_public_id);
+            }
+
             $property->delete();
         });
     }
@@ -191,6 +199,37 @@ class PropertyService
         }
 
         return $images;
+    }
+
+    public function uploadVideo(Property $property, $file): VirtualTour
+    {
+        // Delete existing video if any
+        $this->removeVideo($property);
+
+        $result = $this->imageService->uploadVideo($file, 'properties');
+
+        return $property->virtualTour()->create([
+            'tour_type' => TourType::Video,
+            'url' => $result['url'],
+            'cloudinary_public_id' => $result['public_id'],
+            'thumbnail_url' => $result['thumbnail_url'],
+            'duration_seconds' => $result['duration'] ? (int) round($result['duration']) : null,
+        ]);
+    }
+
+    public function removeVideo(Property $property): void
+    {
+        $tour = $property->virtualTour;
+
+        if (! $tour) {
+            return;
+        }
+
+        if ($tour->cloudinary_public_id) {
+            $this->imageService->deleteVideo($tour->cloudinary_public_id);
+        }
+
+        $tour->delete();
     }
 
     public function removeImage(PropertyImage $image): void

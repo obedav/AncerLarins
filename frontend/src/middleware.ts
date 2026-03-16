@@ -1,6 +1,17 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // ── Server-side auth guard for protected routes ─────
+  const isLoggedIn = request.cookies.get('is_logged_in')?.value === '1';
+
+  if (!isLoggedIn && (pathname.startsWith('/admin') || pathname.startsWith('/dashboard') || pathname.startsWith('/agent'))) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
 
   // Build connect-src with API URL
@@ -8,18 +19,20 @@ export function middleware(request: NextRequest) {
     ? new URL(process.env.NEXT_PUBLIC_API_URL).origin
     : 'http://localhost:8000';
 
+  const isDev = process.env.NODE_ENV === 'development';
+
   const cspDirectives = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' https://js.paystack.co https://challenges.cloudflare.com`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://res.cloudinary.com https://*.tile.openstreetmap.org https://pictures-nigeria.jijistatic.net https://images.propertypro.ng https://www.propertypro.ng https://images.nigeriapropertycentre.com",
     "font-src 'self' data:",
-    `connect-src 'self' ${apiOrigin} https://*.sentry.io https://wa.me https://api.paystack.co`,
+    `connect-src 'self' ${apiOrigin} https://*.sentry.io https://wa.me https://api.paystack.co${isDev ? ' ws://localhost:* http://localhost:*' : ''}`,
     "frame-src https://challenges.cloudflare.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
-    "upgrade-insecure-requests",
+    ...(isDev ? [] : ["upgrade-insecure-requests"]),
   ];
 
   const cspHeader = cspDirectives.join('; ');
@@ -34,8 +47,6 @@ export function middleware(request: NextRequest) {
   response.headers.set('Content-Security-Policy', cspHeader);
 
   // ── Cache control ─────────────────────────────────────
-  const { pathname } = request.nextUrl;
-
   // Public listing pages — allow CDN/proxy caching
   if (pathname === '/' || pathname === '/properties' || pathname.startsWith('/properties/rent') || pathname.startsWith('/properties/sale')) {
     response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');

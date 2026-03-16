@@ -11,7 +11,7 @@ return [
     'breadcrumbs' => [
         'logs' => true,
         'sql_queries' => true,
-        'sql_bindings' => true,
+        'sql_bindings' => false, // Disabled to prevent PII (phone numbers, emails) from being sent to Sentry
         'queue_info' => true,
         'command_info' => true,
     ],

@@ -39,13 +39,13 @@ class ImageService
             }
         }
 
-        // Fallback: store in private local disk
+        // Fallback: store in private local disk (NOT publicly accessible)
         $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
-        $path = $file->storeAs("private/{$folder}", $filename, 'local');
+        $path = $file->storeAs("verification/{$folder}", $filename, 'private');
 
         return [
-            'url' => url("storage/private/{$folder}/{$filename}"),
-            'public_id' => "local:{$path}",
+            'url' => null, // Private files must be served via a signed download endpoint
+            'public_id' => "private:{$path}",
         ];
     }
 
@@ -59,7 +59,64 @@ class ImageService
             return url('storage/'.str_replace('local:', '', $publicId));
         }
 
+        if (str_starts_with($publicId, 'private:')) {
+            $path = str_replace('private:', '', $publicId);
+
+            return Storage::disk('private')->temporaryUrl($path, now()->addMinutes(15));
+        }
+
         return $this->cloudinaryService->getSignedUrl($publicId);
+    }
+
+    public function uploadVideo($file, string $folder = 'properties'): array
+    {
+        if ($this->isCloudinaryConfigured()) {
+            $result = $this->cloudinaryService->uploadVideo($file, $folder);
+
+            if ($result['url']) {
+                return [
+                    'url' => $result['url'],
+                    'thumbnail_url' => $this->generateVideoThumbnailUrl($result['url']),
+                    'public_id' => $result['public_id'],
+                    'duration' => $result['duration'],
+                ];
+            }
+        }
+
+        // Fallback to local storage
+        $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
+        $path = $file->storeAs("videos/{$folder}", $filename, 'public');
+        $url = url("storage/{$path}");
+
+        return [
+            'url' => $url,
+            'thumbnail_url' => null,
+            'public_id' => "local:{$path}",
+            'duration' => null,
+        ];
+    }
+
+    public function generateVideoThumbnailUrl(string $url): string
+    {
+        // Replace the file extension with .jpg and add thumbnail transformation
+        $thumbnailUrl = preg_replace('/\.[^.]+$/', '.jpg', $url);
+
+        return str_replace('/upload/', '/upload/c_fill,w_800,h_450,so_2/', $thumbnailUrl);
+    }
+
+    public function deleteVideo(?string $publicId): bool
+    {
+        if (! $publicId) {
+            return false;
+        }
+
+        if (str_starts_with($publicId, 'local:')) {
+            $path = str_replace('local:', '', $publicId);
+
+            return Storage::disk('public')->delete($path);
+        }
+
+        return $this->cloudinaryService->deleteVideo($publicId);
     }
 
     public function delete(?string $publicId): bool

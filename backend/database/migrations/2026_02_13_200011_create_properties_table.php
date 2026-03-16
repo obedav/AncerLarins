@@ -112,6 +112,10 @@ return new class extends Migration
             $table->index('state_id');
             $table->index('featured');
 
+            // Location (lat/lng for MySQL spatial queries)
+            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 10, 7)->nullable();
+
             // Composite index for browse queries
             $table->index(
                 ['status', 'listing_type', 'city_id', 'property_type_id', 'price_kobo'],
@@ -119,6 +123,8 @@ return new class extends Migration
             );
         });
 
+        // MySQL fulltext index for search
+        DB::statement('ALTER TABLE properties ADD FULLTEXT properties_fulltext_idx (title, description)');
     }
 
     public function down(): void

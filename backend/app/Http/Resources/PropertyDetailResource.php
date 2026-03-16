@@ -114,7 +114,9 @@ class PropertyDetailResource extends JsonResource
                 $this->relationLoaded('virtualTour') && $this->virtualTour,
                 fn () => [
                     'type' => $this->virtualTour->tour_type,
-                    'url' => $this->virtualTour->tour_url,
+                    'url' => $this->virtualTour->url,
+                    'thumbnail_url' => $this->virtualTour->thumbnail_url,
+                    'duration_seconds' => $this->virtualTour->duration_seconds,
                 ]
             ),
             'meta_title' => $this->meta_title,

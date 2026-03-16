@@ -18,6 +18,8 @@ return new class extends Migration
             $table->foreignUuid('area_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('type');
+            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 10, 7)->nullable();
             $table->timestamps();
         });
     }

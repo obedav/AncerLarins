@@ -58,7 +58,10 @@ class AuthService
 
         $phone = $user?->phone;
 
-        if (! $user || $user->status === UserStatus::Banned) {
+        if (! $user || ! $user->isActive()) {
+            // Simulate OTP send delay to prevent user enumeration via timing
+            usleep(random_int(200_000, 500_000));
+
             return null;
         }
 
@@ -72,14 +75,37 @@ class AuthService
         $phone = $this->normalizePhone($phone);
         $purpose = OtpPurpose::from($purpose);
 
+        $codeHash = hash_hmac('sha256', $code, config('app.key'));
+
         $otp = OtpCode::where('phone', $phone)
             ->where('purpose', $purpose)
-            ->where('code', $code)
+            ->where('code_hash', $codeHash)
             ->valid()
             ->latest('created_at')
             ->first();
 
         if (! $otp) {
+            // Increment attempts on the latest valid OTP for this phone+purpose (brute-force protection)
+            $latestOtp = OtpCode::where('phone', $phone)
+                ->where('purpose', $purpose)
+                ->valid()
+                ->latest('created_at')
+                ->first();
+
+            if ($latestOtp) {
+                $latestOtp->incrementAttempts();
+
+                // Lock OTP after 5 failed attempts
+                if ($latestOtp->attempts >= 5) {
+                    $latestOtp->markVerified(); // Consume it so it can't be tried again
+                }
+            }
+
+            return null;
+        }
+
+        // Reject if too many failed attempts on this OTP
+        if ($otp->attempts >= 5) {
             return null;
         }
 
@@ -152,6 +178,7 @@ class AuthService
     public function sendOtp(string $phone, OtpPurpose $purpose): void
     {
         $recentCount = OtpCode::where('phone', $phone)
+            ->where('purpose', $purpose)
             ->where('created_at', '>=', now()->subHour())
             ->count();
 
@@ -161,9 +188,15 @@ class AuthService
 
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
+        if (app()->environment('local')) {
+            Log::info('DEV OTP', ['phone_suffix' => substr($phone, -4), 'code' => $code]);
+        }
+
+        $codeHash = hash_hmac('sha256', $code, config('app.key'));
+
         OtpCode::create([
             'phone' => $phone,
-            'code' => $code,
+            'code_hash' => $codeHash,
             'purpose' => $purpose,
             'expires_at' => now()->addMinutes(10),
         ]);
@@ -179,8 +212,9 @@ class AuthService
         }
 
         try {
-            $this->termiiService->sendOtp($phone);
-            Log::info('OTP sent successfully', [
+            $message = "Your AncerLarins verification code is {$code}. Valid for 10 minutes.";
+            $this->termiiService->sendSms($phone, $message);
+            Log::info('OTP sent via SMS', [
                 'phone_suffix' => substr($phone, -4),
                 'purpose' => $purpose->value,
             ]);
@@ -193,15 +227,29 @@ class AuthService
         }
     }
 
-    protected function generateTokens(User $user): array
+    public function recordLogin(User $user): void
     {
-        $accessToken = $user->createToken('api')->plainTextToken;
+        $user->forceFill([
+            'last_login_at' => now(),
+            'last_login_ip' => request()->ip(),
+        ])->save();
+    }
+
+    public function generateTokens(User $user): array
+    {
+        // Revoke existing access tokens to prevent token accumulation
+        $user->tokens()->delete();
+
+        $tokenName = request()->userAgent() ?: 'api';
+        $accessToken = $user->createToken($tokenName)->plainTextToken;
 
         $rawRefreshToken = Str::random(64);
         RefreshToken::create([
             'user_id' => $user->id,
             'token_hash' => hash('sha256', $rawRefreshToken),
             'expires_at' => now()->addDays(30),
+            'ip_address' => request()->ip(),
+            'device_info' => mb_substr(request()->userAgent() ?? '', 0, 500),
         ]);
 
         return [

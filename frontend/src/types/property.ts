@@ -160,7 +160,7 @@ export interface PropertyDetail extends Omit<PropertyListItem, 'agent'> {
   images?: PropertyImage[];
   amenities?: Amenity[];
   agent?: AgentDetail | null;
-  virtual_tour?: { type: string; url: string } | null;
+  virtual_tour?: { type: string; url: string; thumbnail_url: string | null; duration_seconds: number | null } | null;
   meta_title: string | null;
   meta_description: string | null;
   saves_count?: number;

@@ -255,6 +255,25 @@ export default function PropertyDetailContent({ slug }: { slug: string }) {
                 )}
               </div>
 
+              {/* Video Tour */}
+              {property.virtual_tour?.url && (
+                <div className="bg-surface rounded-xl border border-border p-6">
+                  <h2 className="text-lg font-semibold text-text-primary mb-3">Video Tour</h2>
+                  <video
+                    src={property.virtual_tour.url}
+                    poster={property.virtual_tour.thumbnail_url || undefined}
+                    controls
+                    preload="metadata"
+                    className="w-full rounded-xl"
+                  />
+                  {property.virtual_tour.duration_seconds != null && (
+                    <p className="text-xs text-text-muted mt-2">
+                      Duration: {Math.floor(property.virtual_tour.duration_seconds / 60)}:{String(property.virtual_tour.duration_seconds % 60).padStart(2, '0')}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Details */}
               <div className="bg-surface rounded-xl border border-border p-6">
                 {/* Listing + Property Type Badges */}

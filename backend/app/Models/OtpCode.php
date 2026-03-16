@@ -15,7 +15,7 @@ class OtpCode extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'phone', 'code', 'purpose', 'expires_at', 'verified_at', 'attempts',
+        'phone', 'code_hash', 'purpose', 'expires_at', 'verified_at', 'attempts',
     ];
 
     protected function casts(): array

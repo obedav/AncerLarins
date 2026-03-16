@@ -123,7 +123,7 @@ class SearchService
         }
 
         return $query->select(['id', 'title', 'slug', 'price_kobo', 'listing_type', 'bedrooms', 'bathrooms'])
-            ->selectRaw('ST_Y(location::geometry) as latitude, ST_X(location::geometry) as longitude')
+            ->addSelect(['latitude', 'longitude'])
             ->limit(200)
             ->get()
             ->toArray();

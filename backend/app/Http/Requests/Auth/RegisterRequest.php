@@ -15,6 +15,19 @@ class RegisterRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->phone) {
+            $phone = preg_replace('/[\s\-\(\)]+/', '', $this->phone);
+            if (str_starts_with($phone, '0')) {
+                $phone = '+234' . substr($phone, 1);
+            } elseif (str_starts_with($phone, '234') && !str_starts_with($phone, '+')) {
+                $phone = '+' . $phone;
+            }
+            $this->merge(['phone' => $phone]);
+        }
+    }
+
     public function rules(): array
     {
         $rules = [
@@ -22,7 +35,7 @@ class RegisterRequest extends FormRequest
             'last_name' => ['required', 'string', 'max:100'],
             'phone' => ['required', 'string', 'regex:/^(\+234|0)[789]\d{9}$/', 'unique:users,phone'],
             'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', Password::min(10)->mixedCase()->numbers()->symbols()],
+            'password' => ['nullable', 'string', Password::min(10)->mixedCase()->numbers()->symbols()],
             'role' => ['sometimes', Rule::in([UserRole::User->value, UserRole::Agent->value])],
         ];
 
@@ -37,6 +50,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             'phone.regex' => 'Phone must be a valid Nigerian number (e.g. +2347012345678 or 07012345678).',
+            'phone.unique' => 'This phone number is already registered. Please sign in instead.',
             'turnstile_token.required' => 'Please complete the security check.',
         ];
     }

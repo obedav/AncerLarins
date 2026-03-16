@@ -29,6 +29,9 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
-        <env name="DB_PORT" value="5433"/>
+        <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_PORT" value="3306"/>
+        <env name="BLIND_INDEX_KEY" value="dGVzdC1ibGluZC1pbmRleC1rZXktZm9yLXBocHVuaXQ="/>
+        <env name="TERMII_WEBHOOK_SECRET" value="test_termii_secret"/>
     </php>
 </phpunit>

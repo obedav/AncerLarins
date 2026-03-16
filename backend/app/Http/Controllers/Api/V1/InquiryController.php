@@ -150,6 +150,14 @@ class InquiryController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'status' => ['nullable', 'string', 'in:new,contacted,qualified,agreement_signed,inspection_scheduled,negotiating,offer_made,closed_won,closed_lost'],
+            'assigned_to' => ['nullable', 'uuid'],
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date', 'after_or_equal:from'],
+            'qualification' => ['nullable', 'string', 'in:qualified,not_qualified,cold,fake'],
+        ]);
+
         $query = Lead::with(['property:id,title,slug,price_kobo,agent_id', 'assignedStaff:id,first_name,last_name'])
             ->whereNotNull('status')
             ->where('status', '!=', '');
@@ -212,6 +220,8 @@ class InquiryController extends Controller
 
     public function show(Lead $lead): JsonResponse
     {
+        $this->authorize('view', $lead);
+
         $lead->load([
             'property:id,title,slug,price_kobo,agent_id',
             'property.agent:id,company_name,user_id',

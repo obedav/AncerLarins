@@ -53,7 +53,7 @@ class DocumentController extends Controller
             'type' => $request->input('type'),
             'title' => $request->input('title'),
             'file_path' => $path,
-            'file_name' => $file->getClientOriginalName(),
+            'file_name' => basename(str_replace(['..', '/', '\\'], '', $file->getClientOriginalName())),
             'mime_type' => $file->getMimeType(),
             'file_size' => $file->getSize(),
             'notes' => $request->input('notes'),

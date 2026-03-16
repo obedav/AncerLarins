@@ -58,8 +58,10 @@ export interface AdminDashboardStats {
   total_agents: number;
   agents_by_verification: Record<VerificationStatus, number>;
   total_users: number;
+  total_leads: number;
   leads_this_week: number;
   pending_approvals: number;
+  pending_agents: number;
   open_reports: number;
   new_listings_this_week: number;
   new_users_this_week: number;

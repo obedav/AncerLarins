@@ -14,20 +14,6 @@ function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isAuthenticated, loginSuccess } = useAuth();
-
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      router.replace(getRoleRedirect(user.role));
-    }
-  }, [isAuthenticated, user, router]);
-
-  if (isAuthenticated && user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-text-muted text-sm">Redirecting...</div>
-      </div>
-    );
-  }
   const [registerApi, { isLoading: regLoading }] = useRegisterMutation();
   const [verifyOtp, { isLoading: otpLoading }] = useVerifyOtpMutation();
 
@@ -51,6 +37,20 @@ function RegisterContent() {
     resolver: zodResolver(otpSchema),
     defaultValues: { otp: '' },
   });
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      router.replace(getRoleRedirect(user.role));
+    }
+  }, [isAuthenticated, user, router]);
+
+  if (isAuthenticated && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-text-muted text-sm">Redirecting...</div>
+      </div>
+    );
+  }
 
   const role = infoForm.watch('role');
 

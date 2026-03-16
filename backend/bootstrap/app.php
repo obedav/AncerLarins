@@ -2,14 +2,17 @@
 
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureAgent;
+use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsurePhoneVerified;
 use App\Http\Middleware\ExtractTokenFromCookie;
 use App\Http\Middleware\ForceJsonResponse;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrackActivity;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Sentry\Laravel\Integration;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -21,14 +24,25 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustProxies(
+            at: '*',
+            headers: Request::HEADER_X_FORWARDED_FOR |
+                     Request::HEADER_X_FORWARDED_HOST |
+                     Request::HEADER_X_FORWARDED_PORT |
+                     Request::HEADER_X_FORWARDED_PROTO |
+                     Request::HEADER_X_FORWARDED_AWS_ELB
+        );
+
         $middleware->prepend(ForceJsonResponse::class);
         $middleware->prepend(ExtractTokenFromCookie::class);
         $middleware->append(SetLocale::class);
+        $middleware->append(SecurityHeaders::class);
 
         $middleware->alias([
             'ensure.phone_verified' => EnsurePhoneVerified::class,
             'ensure.agent' => EnsureAgent::class,
             'ensure.admin' => EnsureAdmin::class,
+            'ensure.super_admin' => EnsureSuperAdmin::class,
             'track.activity' => TrackActivity::class,
         ]);
     })

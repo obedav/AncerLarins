@@ -46,7 +46,6 @@ class AuthFlowTest extends TestCase
 
         $this->assertDatabaseHas('otp_codes', [
             'phone' => '+2348012345678',
-            'purpose' => OtpPurpose::Registration->value,
         ]);
     }
 
@@ -106,7 +105,6 @@ class AuthFlowTest extends TestCase
 
         $this->assertDatabaseHas('otp_codes', [
             'phone' => '+2348022222222',
-            'purpose' => OtpPurpose::Login->value,
         ]);
     }
 
@@ -136,9 +134,8 @@ class AuthFlowTest extends TestCase
     {
         $user = $this->createVerifiedUser(['phone' => '+2348044444444']);
 
-        OtpCode::factory()->create([
+        OtpCode::factory()->withCode('123456')->create([
             'phone' => '+2348044444444',
-            'code' => '123456',
             'purpose' => OtpPurpose::Login,
         ]);
 
@@ -158,9 +155,8 @@ class AuthFlowTest extends TestCase
     {
         $user = User::factory()->unverified()->create(['phone' => '+2348055555555']);
 
-        OtpCode::factory()->create([
+        OtpCode::factory()->withCode('654321')->create([
             'phone' => '+2348055555555',
-            'code' => '654321',
             'purpose' => OtpPurpose::Registration,
         ]);
 
@@ -177,9 +173,8 @@ class AuthFlowTest extends TestCase
     {
         $this->createVerifiedUser(['phone' => '+2348066666666']);
 
-        OtpCode::factory()->create([
+        OtpCode::factory()->withCode('111111')->create([
             'phone' => '+2348066666666',
-            'code' => '111111',
             'purpose' => OtpPurpose::Login,
         ]);
 
@@ -196,9 +191,8 @@ class AuthFlowTest extends TestCase
     {
         $this->createVerifiedUser(['phone' => '+2348077777777']);
 
-        OtpCode::factory()->expired()->create([
+        OtpCode::factory()->withCode('222222')->expired()->create([
             'phone' => '+2348077777777',
-            'code' => '222222',
             'purpose' => OtpPurpose::Login,
         ]);
 

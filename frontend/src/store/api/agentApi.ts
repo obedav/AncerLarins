@@ -104,6 +104,24 @@ export const agentApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _err, { propertyId }) => [{ type: 'Property', id: propertyId }],
     }),
 
+    // Property video management
+    uploadPropertyVideo: builder.mutation<ApiResponse<unknown>, { propertyId: string; formData: FormData }>({
+      query: ({ propertyId, formData }) => ({
+        url: `/agent/properties/${propertyId}/video`,
+        method: 'POST',
+        body: formData,
+      }),
+      invalidatesTags: (_result, _err, { propertyId }) => [{ type: 'Property', id: propertyId }],
+    }),
+
+    deletePropertyVideo: builder.mutation<ApiResponse<null>, string>({
+      query: (propertyId) => ({
+        url: `/agent/properties/${propertyId}/video`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _err, propertyId) => [{ type: 'Property', id: propertyId }],
+    }),
+
     // Lead management
     respondToLead: builder.mutation<ApiResponse<Lead>, string>({
       query: (leadId) => ({
@@ -129,5 +147,7 @@ export const {
   useUploadPropertyImagesMutation,
   useDeletePropertyImageMutation,
   useSetCoverImageMutation,
+  useUploadPropertyVideoMutation,
+  useDeletePropertyVideoMutation,
   useRespondToLeadMutation,
 } = agentApi;

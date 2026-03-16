@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations;
-use Illuminate\Support\Facades\DB;
 
 class Area extends Model
 {
@@ -17,6 +16,7 @@ class Area extends Model
         'city_id', 'name', 'slug', 'description',
         'avg_rent_1br', 'avg_rent_2br', 'avg_rent_3br', 'avg_buy_price_sqm',
         'safety_score', 'traffic_score', 'amenity_score', 'is_active',
+        'latitude', 'longitude',
     ];
 
     protected function casts(): array
@@ -74,9 +74,10 @@ class Area extends Model
 
     public function scopeNearby(Builder $query, float $lat, float $lng, int $radiusKm = 5): Builder
     {
-        return $query->whereNotNull('location')
+        return $query->whereNotNull('latitude')
+            ->whereNotNull('longitude')
             ->whereRaw(
-                'ST_DWithin(location, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)',
+                'ST_Distance_Sphere(POINT(longitude, latitude), POINT(?, ?)) <= ?',
                 [$lng, $lat, $radiusKm * 1000]
             );
     }
@@ -85,27 +86,6 @@ class Area extends Model
 
     public function setLocation(float $lat, float $lng): void
     {
-        DB::statement(
-            'UPDATE areas SET location = ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography WHERE id = ?',
-            [$lng, $lat, $this->id]
-        );
-    }
-
-    public function getLatitudeAttribute(): ?float
-    {
-        if (! $this->attributes['location']) {
-            return null;
-        }
-
-        return DB::selectOne('SELECT ST_Y(location::geometry) AS lat FROM areas WHERE id = ?', [$this->id])?->lat;
-    }
-
-    public function getLongitudeAttribute(): ?float
-    {
-        if (! $this->attributes['location']) {
-            return null;
-        }
-
-        return DB::selectOne('SELECT ST_X(location::geometry) AS lng FROM areas WHERE id = ?', [$this->id])?->lng;
+        $this->update(['latitude' => $lat, 'longitude' => $lng]);
     }
 }

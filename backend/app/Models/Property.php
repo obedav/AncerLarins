@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
 
 class Property extends Model
 {
@@ -34,6 +33,7 @@ class Property extends Model
         'available_from', 'inspection_available',
         'meta_title', 'meta_description',
         'published_at', 'expires_at',
+        'latitude', 'longitude',
     ];
 
     protected function casts(): array
@@ -218,16 +218,17 @@ class Property extends Model
     public function scopeSearch(Builder $query, string $term): Builder
     {
         return $query->whereRaw(
-            "to_tsvector('english', coalesce(title, '') || ' ' || coalesce(description, '')) @@ plainto_tsquery('english', ?)",
+            "MATCH(title, description) AGAINST(? IN BOOLEAN MODE)",
             [$term]
         );
     }
 
     public function scopeNearby(Builder $query, float $lat, float $lng, int $radiusKm = 5): Builder
     {
-        return $query->whereNotNull('location')
+        return $query->whereNotNull('latitude')
+            ->whereNotNull('longitude')
             ->whereRaw(
-                'ST_DWithin(location, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)',
+                'ST_Distance_Sphere(POINT(longitude, latitude), POINT(?, ?)) <= ?',
                 [$lng, $lat, $radiusKm * 1000]
             );
     }
@@ -253,9 +254,6 @@ class Property extends Model
 
     public function setLocation(float $lat, float $lng): void
     {
-        DB::statement(
-            'UPDATE properties SET location = ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography WHERE id = ?',
-            [$lng, $lat, $this->id]
-        );
+        $this->update(['latitude' => $lat, 'longitude' => $lng]);
     }
 }

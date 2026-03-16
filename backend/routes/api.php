@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AdminController;
 use App\Http\Controllers\Api\V1\AgentController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\PasskeyController;
 use App\Http\Controllers\Api\V1\BlogPostController;
 use App\Http\Controllers\Api\V1\CommissionController;
 use App\Http\Controllers\Api\V1\CooperativeController;
@@ -34,8 +35,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/health/deep', [HealthController::class, 'readiness'])
         ->middleware(['auth:sanctum', 'ensure.admin']);
 
-    // ── Metrics (internal, restricted by nginx to Docker network) ──
-    Route::get('/metrics', MetricsController::class);
+    // ── Metrics (restricted by nginx to Docker network + app-layer auth as defense-in-depth) ──
+    Route::get('/metrics', MetricsController::class)
+        ->middleware(['auth:sanctum', 'ensure.admin']);
 
     // ── Public: Auth ────────────────────────────────────
     Route::prefix('auth')->group(function () {
@@ -44,6 +46,12 @@ Route::prefix('v1')->group(function () {
         Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:5,1');
         Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,60');
         Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('throttle:30,60');
+    });
+
+    // ── Public: Passkey Authentication ──────────────────
+    Route::prefix('passkeys')->group(function () {
+        Route::post('/authenticate/options', [PasskeyController::class, 'authenticationOptions'])->middleware('throttle:10,1');
+        Route::post('/authenticate', [PasskeyController::class, 'authenticate'])->middleware('throttle:5,1');
     });
 
     // ── Public: Properties ──────────────────────────────
@@ -113,6 +121,12 @@ Route::prefix('v1')->group(function () {
 
         // Auth
         Route::post('/auth/logout', [AuthController::class, 'logout']);
+
+        // Passkey management
+        Route::get('/passkeys', [PasskeyController::class, 'index']);
+        Route::post('/passkeys/register/options', [PasskeyController::class, 'registrationOptions']);
+        Route::post('/passkeys/register', [PasskeyController::class, 'register']);
+        Route::delete('/passkeys/{credential}', [PasskeyController::class, 'destroy']);
 
         // User profile & preferences
         Route::get('/me', [UserController::class, 'me']);
@@ -185,6 +199,8 @@ Route::prefix('v1')->group(function () {
             Route::put('/properties/{property}', [PropertyController::class, 'update']);
             Route::delete('/properties/{property}', [PropertyController::class, 'destroy']);
             Route::post('/properties/{property}/images', [PropertyController::class, 'uploadImages']);
+            Route::post('/properties/{property}/video', [PropertyController::class, 'uploadVideo']);
+            Route::delete('/properties/{property}/video', [PropertyController::class, 'removeVideo']);
             Route::delete('/images/{image}', [PropertyController::class, 'removeImage']);
 
             // Property request responses
@@ -219,6 +235,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/agents/reject', [AdminController::class, 'rejectAgent']);
 
             // Users
+            Route::get('/users', [AdminController::class, 'listUsers']);
             Route::post('/users/ban', [AdminController::class, 'banUser']);
             Route::post('/users/unban', [AdminController::class, 'unbanUser']);
 
@@ -277,6 +294,15 @@ Route::prefix('v1')->group(function () {
             Route::post('/commissions', [CommissionController::class, 'store']);
             Route::put('/commissions/{commission}/status', [CommissionController::class, 'updateStatus']);
             Route::post('/commissions/calculate', [CommissionController::class, 'calculate']);
+
+            // ── Super Admin exclusive routes ────────────
+            Route::middleware('ensure.super_admin')->group(function () {
+                Route::get('/admins', [AdminController::class, 'listAdmins']);
+                Route::post('/admins/promote', [AdminController::class, 'promoteToAdmin']);
+                Route::post('/admins/demote', [AdminController::class, 'demoteAdmin']);
+                Route::get('/settings', [AdminController::class, 'getSystemSettings']);
+                Route::put('/settings', [AdminController::class, 'updateSystemSettings']);
+            });
         });
     });
 });

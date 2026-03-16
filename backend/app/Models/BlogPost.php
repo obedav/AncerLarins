@@ -55,11 +55,9 @@ class BlogPost extends Model
 
     public function scopeSearch(Builder $query, string $term): Builder
     {
-        $sanitized = str_replace(['\\', "'", '"'], '', $term);
-
         return $query->whereRaw(
-            "to_tsvector('english', coalesce(title, '') || ' ' || coalesce(excerpt, '') || ' ' || coalesce(content, '')) @@ plainto_tsquery('english', ?)",
-            [$sanitized]
+            "MATCH(title, excerpt, content) AGAINST(? IN BOOLEAN MODE)",
+            [$term]
         );
     }
 }

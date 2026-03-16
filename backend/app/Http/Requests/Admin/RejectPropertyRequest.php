@@ -8,7 +8,7 @@ class RejectPropertyRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return $this->user()?->isAdmin() === true;
     }
 
     public function rules(): array

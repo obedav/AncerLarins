@@ -10,13 +10,14 @@ class GeoSearchService
     public function searchNearby(float $lat, float $lng, float $radiusKm = 5, array $filters = []): Builder
     {
         return Property::query()
-            ->whereNotNull('location')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
             ->whereRaw(
-                'ST_DWithin(location, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)',
+                'ST_Distance_Sphere(POINT(longitude, latitude), POINT(?, ?)) <= ?',
                 [$lng, $lat, $radiusKm * 1000]
             )
             ->selectRaw(
-                '*, ST_Distance(location, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) as distance',
+                '*, ST_Distance_Sphere(POINT(longitude, latitude), POINT(?, ?)) as distance',
                 [$lng, $lat]
             )
             ->orderBy('distance');
@@ -25,10 +26,9 @@ class GeoSearchService
     public function searchByBounds(float $northLat, float $southLat, float $eastLng, float $westLng): Builder
     {
         return Property::query()
-            ->whereNotNull('location')
-            ->whereRaw(
-                'ST_Within(location::geometry, ST_MakeEnvelope(?, ?, ?, ?, 4326))',
-                [$westLng, $southLat, $eastLng, $northLat]
-            );
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->whereBetween('latitude', [$southLat, $northLat])
+            ->whereBetween('longitude', [$westLng, $eastLng]);
     }
 }

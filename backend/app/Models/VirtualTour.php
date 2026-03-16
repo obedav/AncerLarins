@@ -14,8 +14,8 @@ class VirtualTour extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'property_id', 'tour_type', 'url', 'thumbnail_url',
-        'duration_seconds', 'view_count',
+        'property_id', 'tour_type', 'url', 'cloudinary_public_id',
+        'thumbnail_url', 'duration_seconds', 'view_count',
     ];
 
     protected function casts(): array

@@ -19,7 +19,7 @@ class CreateBlogPostRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'content' => ['required', 'string'],
+            'content' => ['required', 'string', 'max:50000', 'not_regex:/<script|<iframe|javascript:|on\w+\s*=/i'],
             'excerpt' => ['nullable', 'string', 'max:500'],
             'cover_image_url' => ['nullable', 'url', 'max:2048'],
             'category' => ['required', Rule::in(array_column(BlogPostCategory::cases(), 'value'))],

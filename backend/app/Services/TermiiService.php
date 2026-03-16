@@ -65,6 +65,9 @@ class TermiiService
     public function sendSms(string $phone, string $message): array
     {
         try {
+            // Termii requires international format without '+' prefix
+            $phone = ltrim($phone, '+');
+
             $response = Http::post("{$this->baseUrl}/sms/send", [
                 'api_key' => $this->apiKey,
                 'to' => $phone,
@@ -74,7 +77,15 @@ class TermiiService
                 'channel' => 'generic',
             ]);
 
-            return $response->json();
+            $result = $response->json();
+
+            Log::info('Termii sendSms response', [
+                'phone_suffix' => substr($phone, -4),
+                'status' => $response->status(),
+                'response' => $result,
+            ]);
+
+            return $result;
         } catch (\Exception $e) {
             Log::error('Termii sendSms failed', ['error' => $e->getMessage()]);
 

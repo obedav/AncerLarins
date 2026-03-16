@@ -1,16 +1,17 @@
 services:
-  # ── PostgreSQL with PostGIS ────────────────────────────
-  postgres:
-    image: postgis/postgis:16-3.4-alpine
+  # ── MySQL ──────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_DATABASE:-ancerlarins}
-      POSTGRES_USER: ${DB_USERNAME:-ancerlarins}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE:-ancerlarins}
+      MYSQL_USER: ${DB_USERNAME:-ancerlarins}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-${DB_PASSWORD}}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-ancerlarins}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -56,46 +57,6 @@ services:
     networks:
       - ancerlarins
 
-  # ── PgBouncer (Connection Pooling) ─────────────────────
-  pgbouncer:
-    image: bitnami/pgbouncer:1.22.1
-    restart: unless-stopped
-    environment:
-      PGBOUNCER_DATABASE: ${DB_DATABASE:-ancerlarins}
-      POSTGRESQL_HOST: postgres
-      POSTGRESQL_PORT: 5432
-      POSTGRESQL_USERNAME: ${DB_USERNAME:-ancerlarins}
-      POSTGRESQL_PASSWORD: ${DB_PASSWORD}
-      PGBOUNCER_PORT: 6432
-      PGBOUNCER_POOL_MODE: transaction
-      PGBOUNCER_MAX_CLIENT_CONN: 200
-      PGBOUNCER_DEFAULT_POOL_SIZE: 20
-      PGBOUNCER_MIN_POOL_SIZE: 5
-      PGBOUNCER_RESERVE_POOL_SIZE: 5
-      PGBOUNCER_SERVER_RESET_QUERY: "DISCARD ALL"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 6432 -U ${DB_USERNAME:-ancerlarins}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    security_opt:
-      - no-new-privileges:true
-    logging:
-      driver: json-file
-      options:
-        max-size: "5m"
-        max-file: "3"
-    deploy:
-      resources:
-        limits:
-          memory: 128m
-          cpus: "0.25"
-    networks:
-      - ancerlarins
-
   # ── Laravel Backend (PHP-FPM) ──────────────────────────
   backend:
     build:
@@ -104,10 +65,10 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DB_HOST: pgbouncer
-      DB_PORT: 6432
+      DB_HOST: mysql
+      DB_PORT: 3306
     depends_on:
-      pgbouncer:
+      mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -149,11 +110,11 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DB_HOST: pgbouncer
-      DB_PORT: 6432
+      DB_HOST: mysql
+      DB_PORT: 3306
     command: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
     depends_on:
-      pgbouncer:
+      mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -182,11 +143,11 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DB_HOST: pgbouncer
-      DB_PORT: 6432
+      DB_HOST: mysql
+      DB_PORT: 3306
     command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
     depends_on:
-      pgbouncer:
+      mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -273,18 +234,18 @@ services:
     networks:
       - ancerlarins
 
-  # ── Database Backups (daily pg_dump) ───────────────────
+  # ── Database Backups (daily mysqldump) ─────────────────
   backup:
-    image: postgis/postgis:16-3.4-alpine
+    image: mysql:8.0
     restart: unless-stopped
     env_file: .env
     volumes:
       - ./backup-db.sh:/usr/local/bin/backup-db.sh:ro
       - db_backups:/backups
-    entrypoint: "/bin/sh -c 'apk add --no-cache aws-cli 2>/dev/null; chmod +x /usr/local/bin/backup-db.sh && /usr/local/bin/backup-db.sh && trap exit TERM; while :; do sleep 86400; /usr/local/bin/backup-db.sh; done'"
+    entrypoint: "/bin/sh -c 'chmod +x /usr/local/bin/backup-db.sh && /usr/local/bin/backup-db.sh && trap exit TERM; while :; do sleep 86400; /usr/local/bin/backup-db.sh; done'"
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
+      DB_HOST: mysql
+      DB_PORT: 3306
       DB_DATABASE: ${DB_DATABASE:-ancerlarins}
       DB_USERNAME: ${DB_USERNAME:-ancerlarins}
       DB_PASSWORD: ${DB_PASSWORD}
@@ -295,7 +256,7 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-af-south-1}
     depends_on:
-      postgres:
+      mysql:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "test -d /backups"]
@@ -458,17 +419,14 @@ services:
     networks:
       - ancerlarins
 
-  # ── Monitoring: PostgreSQL Exporter ───────────────────
-  # NOTE: Create a dedicated readonly metrics user in PostgreSQL:
-  #   CREATE USER metrics_exporter WITH PASSWORD '${PG_EXPORTER_PASSWORD}';
-  #   GRANT pg_monitor TO metrics_exporter;
-  postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:v0.15.0
+  # ── Monitoring: MySQL Exporter ────────────────────────
+  mysql-exporter:
+    image: prom/mysqld-exporter:v0.15.1
     restart: unless-stopped
     environment:
-      DATA_SOURCE_NAME: "postgresql://${PG_EXPORTER_USER:-metrics_exporter}:${PG_EXPORTER_PASSWORD}@postgres:5432/${DB_DATABASE:-ancerlarins}?sslmode=disable"
+      DATA_SOURCE_NAME: "${DB_USERNAME:-ancerlarins}:${DB_PASSWORD}@(mysql:3306)/${DB_DATABASE:-ancerlarins}"
     depends_on:
-      postgres:
+      mysql:
         condition: service_healthy
     security_opt:
       - no-new-privileges:true
@@ -594,7 +552,7 @@ services:
       - ancerlarins
 
 volumes:
-  postgres_data:
+  mysql_data:
   redis_data:
   backend_storage:
   backend_logs:

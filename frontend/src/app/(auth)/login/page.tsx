@@ -8,28 +8,17 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLoginMutation, useVerifyOtpMutation } from '@/store/api/authApi';
 import { useAuth, getRoleRedirect } from '@/hooks/useAuth';
+import { usePasskeyLogin } from '@/hooks/usePasskey';
+import { isWebAuthnSupported } from '@/lib/webauthn';
 import { loginSchema, otpSchema, type LoginFormData, type OtpFormData } from '@/lib/schemas/auth';
 
 export default function LoginPage() {
   const router = useRouter();
   const { user, isAuthenticated, loginSuccess } = useAuth();
-
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      router.replace(getRoleRedirect(user.role));
-    }
-  }, [isAuthenticated, user, router]);
-
-  if (isAuthenticated && user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-text-muted text-sm">Redirecting...</div>
-      </div>
-    );
-  }
   const [login, { isLoading: loginLoading }] = useLoginMutation();
   const [verifyOtp, { isLoading: otpLoading }] = useVerifyOtpMutation();
-
+  const { login: passkeyLogin, isLoading: passkeyLoading, error: passkeyError } = usePasskeyLogin();
+  const [supportsPasskey, setSupportsPasskey] = useState(false);
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [phone, setPhone] = useState('');
   const [apiError, setApiError] = useState('');
@@ -43,6 +32,34 @@ export default function LoginPage() {
     resolver: zodResolver(otpSchema),
     defaultValues: { otp: '' },
   });
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      router.replace(getRoleRedirect(user.role));
+    }
+  }, [isAuthenticated, user, router]);
+
+  useEffect(() => {
+    setSupportsPasskey(isWebAuthnSupported());
+  }, []);
+
+  if (isAuthenticated && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-text-muted text-sm">Redirecting...</div>
+      </div>
+    );
+  }
+
+  const handlePasskeyLogin = async () => {
+    setApiError('');
+    const loggedInUser = await passkeyLogin();
+    if (loggedInUser) {
+      router.push(getRoleRedirect(loggedInUser.role));
+    } else if (passkeyError) {
+      setApiError(passkeyError);
+    }
+  };
 
   const handleSendOtp = async (data: LoginFormData) => {
     setApiError('');
@@ -93,6 +110,30 @@ export default function LoginPage() {
 
         {apiError && (
           <div className="bg-error/10 text-error p-3 rounded-lg mb-4 text-sm" role="alert">{apiError}</div>
+        )}
+
+        {supportsPasskey && step === 'phone' && (
+          <>
+            <button
+              type="button"
+              onClick={handlePasskeyLogin}
+              disabled={passkeyLoading}
+              className="w-full flex items-center justify-center gap-2 bg-surface border border-border hover:bg-background text-text-primary py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 mb-4"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+              </svg>
+              {passkeyLoading ? 'Authenticating...' : 'Sign in with passkey'}
+            </button>
+            <div className="relative mb-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-surface px-3 text-text-muted">or use phone</span>
+              </div>
+            </div>
+          </>
         )}
 
         {step === 'phone' ? (

@@ -32,7 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen bg-background">
       {/* Top bar */}
-      <header className="bg-primary border-b border-white/10">
+      <header className="bg-primary border-b border-white/10 shadow-sm">
         <div className="container-app flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-1.5">
             <Image src="/images/logo-white.png" alt="AncerLarins" width={32} height={32} className="h-8 w-auto" />
@@ -41,19 +41,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Link>
 
           <div className="flex items-center gap-4">
-            <Link href="/" className="text-white/60 hover:text-white text-sm">
+            <Link href="/" className="text-white/60 hover:text-white text-sm hidden sm:inline-flex items-center gap-1.5 transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              </svg>
               View Site
             </Link>
             <ThemeToggle />
             <NotificationBell />
             <div className="flex items-center gap-3">
-              {user.avatar_url ? (
-                <Image src={user.avatar_url} alt={user.full_name || 'Profile'} width={32} height={32} className="w-8 h-8 rounded-full object-cover" unoptimized />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent text-sm font-bold">
-                  {user.first_name.charAt(0)}
-                </div>
-              )}
+              <div className="relative">
+                {user.avatar_url ? (
+                  <Image src={user.avatar_url} alt={user.full_name || 'Profile'} width={32} height={32} className="w-8 h-8 rounded-full object-cover ring-2 ring-white/20" unoptimized />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent text-sm font-bold ring-2 ring-white/20">
+                    {user.first_name.charAt(0)}
+                  </div>
+                )}
+                {/* Online status dot */}
+                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success rounded-full border-2 border-primary" />
+              </div>
               <div className="hidden sm:block">
                 <p className="text-sm text-white font-medium leading-tight">{user.full_name}</p>
                 <p className="text-xs text-white/40 capitalize">{user.role}</p>
@@ -61,7 +68,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             <button
               onClick={logout}
-              className="text-white/40 hover:text-white text-sm ml-2"
+              className="text-white/40 hover:text-white text-sm ml-2 transition-colors"
               aria-label="Log out"
             >
               Logout
@@ -87,7 +94,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* Mobile Bottom Tab Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border z-40" aria-label="Dashboard navigation">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border z-40 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]" aria-label="Dashboard navigation">
         <div className="flex items-center justify-around h-16">
           {[
             { href: '/dashboard', label: 'Home', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>, exact: true },
@@ -101,11 +108,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`flex flex-col items-center justify-center gap-0.5 px-2 py-1 min-w-0 transition-colors ${
+                className={`flex flex-col items-center justify-center gap-0.5 px-2 py-1 min-w-0 transition-colors relative ${
                   isActive ? 'text-accent-dark' : 'text-text-muted'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
               >
+                {/* Gold accent bar on active */}
+                {isActive && (
+                  <span className="absolute -top-0 left-2 right-2 h-0.5 bg-accent-dark rounded-full" />
+                )}
                 {tab.icon}
                 <span className="text-[10px] font-medium leading-tight">{tab.label}</span>
               </Link>

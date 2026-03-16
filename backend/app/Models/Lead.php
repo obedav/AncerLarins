@@ -63,11 +63,17 @@ class Lead extends Model
 
     /**
      * Compute a deterministic HMAC-SHA256 blind index for an email address.
-     * Uses APP_KEY so the hash is app-specific and cannot be rainbow-tabled.
+     * Uses a dedicated BLIND_INDEX_KEY (separate from APP_KEY) so it survives key rotation.
      */
     public static function hashEmail(string $email): string
     {
-        return hash_hmac('sha256', strtolower(trim($email)), config('app.blind_index_key'));
+        $key = config('app.blind_index_key');
+
+        if (empty($key)) {
+            throw new \RuntimeException('BLIND_INDEX_KEY is not configured. Generate one with: php -r "echo base64_encode(random_bytes(32));"');
+        }
+
+        return hash_hmac('sha256', strtolower(trim($email)), $key);
     }
 
     // ── Relationships ────────────────────────────────────
