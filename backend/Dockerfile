@@ -34,6 +34,8 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
 COPY docker/fpm-health.conf /usr/local/etc/php-fpm.d/zz-health.conf
+# Remove any default Nginx site and install our config
+RUN rm -f /etc/nginx/http.d/default.conf
 COPY docker/nginx-do.conf /etc/nginx/http.d/default.conf
 
 WORKDIR /var/www/html
