@@ -14,6 +14,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('leads', 'email_hash')) {
+            return;
+        }
+
         Schema::table('leads', function (Blueprint $table) {
             $table->string('email_hash', 64)->nullable()->after('email');
             $table->index('email_hash');

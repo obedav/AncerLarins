@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('properties', 'fraud_score')) {
+            return;
+        }
+
         Schema::table('properties', function (Blueprint $table) {
             $table->unsignedSmallInteger('fraud_score')->default(0)->after('rejection_reason');
             $table->json('fraud_flags')->nullable()->after('fraud_score');

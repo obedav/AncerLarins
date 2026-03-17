@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('properties', 'estate_id')) {
+            return;
+        }
+
         Schema::table('properties', function (Blueprint $table) {
             $table->foreignUuid('estate_id')->nullable()->after('area_id')->constrained()->nullOnDelete();
             $table->index('estate_id');

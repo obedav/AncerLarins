@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('leads', 'tracking_ref')) {
+            return;
+        }
+
         Schema::table('leads', function (Blueprint $table) {
             // Inspection scheduling fields
             $table->date('inspection_date')->nullable()->after('inspection_at');

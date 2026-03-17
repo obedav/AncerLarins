@@ -8,9 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('leads', function (Blueprint $table) {
-            $table->index(['status', 'created_at'], 'leads_status_created_at_index');
-            $table->index(['agent_id', 'status'], 'leads_agent_id_status_index');
+        $indexes = collect(Schema::getIndexListing('leads'));
+
+        Schema::table('leads', function (Blueprint $table) use ($indexes) {
+            if (! $indexes->contains('leads_status_created_at_index')) {
+                $table->index(['status', 'created_at'], 'leads_status_created_at_index');
+            }
+            if (! $indexes->contains('leads_agent_id_status_index')) {
+                $table->index(['agent_id', 'status'], 'leads_agent_id_status_index');
+            }
         });
     }
 

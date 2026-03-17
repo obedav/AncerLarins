@@ -9,6 +9,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('properties', 'min_stay_days')) {
+            return;
+        }
+
         // MySQL: modify enum columns to add new values
         DB::statement("ALTER TABLE properties MODIFY COLUMN listing_type ENUM('rent', 'sale', 'short_let') NOT NULL");
         DB::statement("ALTER TABLE properties MODIFY COLUMN rent_period ENUM('yearly', 'monthly', 'quarterly', 'weekly', 'daily') NULL");

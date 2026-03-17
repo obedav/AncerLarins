@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasColumn('agent_profiles', 'id_document_number')) {
+            return;
+        }
+
         Schema::table('agent_profiles', function (Blueprint $table) {
             $table->string('id_document_number', 100)->nullable()->after('id_document_type');
             $table->string('id_document_front_url')->nullable()->after('id_document_url');

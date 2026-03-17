@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('webauthn_credentials')) {
+            return;
+        }
+
         Schema::create('webauthn_credentials', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('user_id');

@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('property_images', 'cloudinary_public_id')) {
+            return;
+        }
+
         Schema::table('property_images', function (Blueprint $table) {
             $table->string('cloudinary_public_id')->nullable()->after('watermarked_url');
         });

@@ -14,6 +14,12 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Skip if columns are already text type (migration already ran)
+        $colType = Schema::getColumnType('leads', 'full_name');
+        if ($colType === 'text') {
+            return;
+        }
+
         Schema::table('leads', function (Blueprint $table) {
             $table->text('full_name')->nullable()->change();
             $table->text('email')->nullable()->change();

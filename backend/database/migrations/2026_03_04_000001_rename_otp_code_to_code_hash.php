@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('otp_codes', 'code_hash')) {
+            return;
+        }
+
         Schema::table('otp_codes', function (Blueprint $table) {
             $table->renameColumn('code', 'code_hash');
         });
