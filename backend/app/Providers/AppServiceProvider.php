@@ -30,7 +30,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(\App\Contracts\SmsService::class, function ($app) {
+            return match (config('services.sms.provider', 'termii')) {
+                '80kobo' => new \App\Services\EightyKoboSmsService,
+                default => new \App\Services\TermiiService,
+            };
+        });
     }
 
     /**

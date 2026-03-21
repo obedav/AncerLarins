@@ -3,7 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Services\AuthService;
-use App\Services\TermiiService;
+use App\Contracts\SmsService;
 use PHPUnit\Framework\TestCase;
 
 class AuthServiceTest extends TestCase
@@ -14,8 +14,8 @@ class AuthServiceTest extends TestCase
     {
         parent::setUp();
 
-        $termii = $this->createMock(TermiiService::class);
-        $this->authService = new AuthService($termii);
+        $smsService = $this->createMock(SmsService::class);
+        $this->authService = new AuthService($smsService);
     }
 
     public function test_normalize_adds_country_code(): void

@@ -6,7 +6,7 @@ use App\Models\Notification;
 use App\Models\PushToken;
 use App\Models\User;
 use App\Services\FCMService;
-use App\Services\TermiiService;
+use App\Contracts\SmsService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -32,7 +32,7 @@ class SendNotificationJob implements ShouldQueue
         protected array $data = [],
     ) {}
 
-    public function handle(FCMService $fcmService, TermiiService $termiiService): void
+    public function handle(FCMService $fcmService, SmsService $smsService): void
     {
         $notification = Notification::find($this->notificationId);
         $user = User::find($this->userId);
@@ -52,7 +52,7 @@ class SendNotificationJob implements ShouldQueue
         }
 
         if (in_array('whatsapp', $this->channels)) {
-            $this->sendWhatsApp($user, $termiiService);
+            $this->sendWhatsApp($user, $smsService);
             $notification->update(['sent_whatsapp' => true]);
         }
     }
@@ -83,14 +83,14 @@ class SendNotificationJob implements ShouldQueue
         });
     }
 
-    protected function sendWhatsApp(User $user, TermiiService $termiiService): void
+    protected function sendWhatsApp(User $user, SmsService $smsService): void
     {
         if (! $user->phone) {
             return;
         }
 
         $message = "{$this->title}\n\n{$this->body}";
-        $termiiService->sendSms($user->phone, $message);
+        $smsService->sendSms($user->phone, $message);
     }
 
     public function failed(\Throwable $exception): void

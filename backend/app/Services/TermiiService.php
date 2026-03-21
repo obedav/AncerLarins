@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
+use App\Contracts\SmsService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class TermiiService
+class TermiiService implements SmsService
 {
     protected string $apiKey;
 
@@ -23,12 +24,14 @@ class TermiiService
     public function sendOtp(string $phone): array
     {
         try {
+            $channel = config('services.termii.channel', 'dft');
+
             $response = Http::post("{$this->baseUrl}/sms/otp/send", [
                 'api_key' => $this->apiKey,
                 'message_type' => 'NUMERIC',
                 'to' => $phone,
                 'from' => $this->senderId,
-                'channel' => 'generic',
+                'channel' => $channel,
                 'pin_attempts' => 3,
                 'pin_time_limit' => 10,
                 'pin_length' => 6,
@@ -68,13 +71,15 @@ class TermiiService
             // Termii requires international format without '+' prefix
             $phone = ltrim($phone, '+');
 
+            $channel = config('services.termii.channel', 'dft');
+
             $response = Http::post("{$this->baseUrl}/sms/send", [
                 'api_key' => $this->apiKey,
                 'to' => $phone,
                 'from' => $this->senderId,
                 'sms' => $message,
                 'type' => 'plain',
-                'channel' => 'generic',
+                'channel' => $channel,
             ]);
 
             $result = $response->json();

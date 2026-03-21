@@ -7,7 +7,7 @@ use App\Enums\UserRole;
 use App\Models\OtpCode;
 use App\Models\RefreshToken;
 use App\Models\User;
-use App\Services\TermiiService;
+use App\Contracts\SmsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Tests\Traits\CreatesTestData;
@@ -20,7 +20,7 @@ class AuthFlowTest extends TestCase
     {
         parent::setUp();
 
-        $this->mock(TermiiService::class, function ($mock) {
+        $this->mock(SmsService::class, function ($mock) {
             $mock->shouldReceive('sendOtp')->andReturn(true);
             $mock->shouldReceive('sendSms')->andReturn(['code' => 'ok', 'message_id' => 'test']);
         });

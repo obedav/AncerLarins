@@ -20,7 +20,7 @@ class WhatsAppBotService
     ];
 
     public function __construct(
-        protected TermiiService $termiiService,
+        protected \App\Contracts\SmsService $smsService,
     ) {}
 
     /**
@@ -338,11 +338,11 @@ class WhatsAppBotService
     }
 
     /**
-     * Send an SMS via Termii.
+     * Send an SMS via the configured SMS provider.
      */
     protected function sendMessage(string $phone, string $text): void
     {
-        $this->termiiService->sendSms($phone, $text);
+        $this->smsService->sendSms($phone, $text);
     }
 
     protected function formatPrice(?int $kobo): string

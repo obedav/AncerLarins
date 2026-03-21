@@ -37,12 +37,24 @@ return [
 
     // ── AncerLarins Services ─────────────────────────────
 
+    'sms' => [
+        'provider' => env('SMS_PROVIDER', 'termii'),
+    ],
+
     'termii' => [
         'api_key' => env('TERMII_API_KEY'),
         'base_url' => env('TERMII_BASE_URL', 'https://v3.api.termii.com/api'),
         'sender_id' => env('TERMII_SENDER_ID', 'AncerLarins'),
+        'channel' => env('TERMII_CHANNEL', 'dft'),
         'webhook_secret' => env('TERMII_WEBHOOK_SECRET'),
         'webhook_ips' => array_filter(explode(',', env('TERMII_WEBHOOK_IPS', ''))),
+    ],
+
+    '80kobo' => [
+        'email' => env('EIGHTY_KOBO_EMAIL'),
+        'password' => env('EIGHTY_KOBO_PASSWORD'),
+        'sender_name' => env('EIGHTY_KOBO_SENDER_NAME', 'AncerLarins'),
+        'base_url' => env('EIGHTY_KOBO_BASE_URL', 'https://api.80kobosms.com/v2/app'),
     ],
 
     'turnstile' => [

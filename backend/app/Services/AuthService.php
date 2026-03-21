@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 class AuthService
 {
     public function __construct(
-        protected TermiiService $termiiService,
+        protected \App\Contracts\SmsService $smsService,
     ) {}
 
     public function register(array $data): array
@@ -212,9 +212,15 @@ class AuthService
             'expires_at' => now()->addMinutes(10),
         ]);
 
-        $termiiKey = config('services.termii.api_key');
-        if (empty($termiiKey) || str_starts_with($termiiKey, 'your_')) {
-            Log::warning('OTP delivery skipped — Termii not configured', [
+        $provider = config('services.sms.provider', 'termii');
+        $configured = match ($provider) {
+            '80kobo' => ! empty(config('services.80kobo.email')) && ! empty(config('services.80kobo.password')),
+            default => ! empty(config('services.termii.api_key')) && ! str_starts_with(config('services.termii.api_key'), 'your_'),
+        };
+
+        if (! $configured) {
+            Log::warning('OTP delivery skipped — SMS provider not configured', [
+                'provider' => $provider,
                 'phone_suffix' => substr($phone, -4),
                 'purpose' => $purpose->value,
             ]);
@@ -224,10 +230,11 @@ class AuthService
 
         try {
             $message = "Your AncerLarins verification code is {$code}. Valid for 10 minutes.";
-            $response = $this->termiiService->sendSms($phone, $message);
+            $response = $this->smsService->sendSms($phone, $message);
 
             if (isset($response['code']) && $response['code'] === 'ok') {
                 Log::info('OTP sent via SMS', [
+                    'provider' => $provider,
                     'phone_suffix' => substr($phone, -4),
                     'purpose' => $purpose->value,
                 ]);
@@ -235,7 +242,8 @@ class AuthService
                 return ['sent' => true];
             }
 
-            Log::error('OTP delivery rejected by Termii', [
+            Log::error('OTP delivery rejected by SMS provider', [
+                'provider' => $provider,
                 'phone_suffix' => substr($phone, -4),
                 'purpose' => $purpose->value,
                 'response' => $response,
