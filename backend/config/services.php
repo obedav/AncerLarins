@@ -45,7 +45,6 @@ return [
         'api_key' => env('TERMII_API_KEY'),
         'base_url' => env('TERMII_BASE_URL', 'https://v3.api.termii.com/api'),
         'sender_id' => env('TERMII_SENDER_ID', 'AncerLarins'),
-        'channel' => env('TERMII_CHANNEL', 'dft'),
         'webhook_secret' => env('TERMII_WEBHOOK_SECRET'),
         'webhook_ips' => array_filter(explode(',', env('TERMII_WEBHOOK_IPS', ''))),
     ],

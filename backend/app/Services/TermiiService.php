@@ -24,16 +24,14 @@ class TermiiService implements SmsService
     public function sendOtp(string $phone): array
     {
         try {
-            $channel = config('services.termii.channel', 'dft');
-
             $response = Http::post("{$this->baseUrl}/sms/otp/send", [
                 'api_key' => $this->apiKey,
                 'message_type' => 'NUMERIC',
                 'to' => $phone,
                 'from' => $this->senderId,
-                'channel' => $channel,
+                'channel' => 'generic',
                 'pin_attempts' => 3,
-                'pin_time_limit' => 10,
+                'pin_time_to_live' => 10,
                 'pin_length' => 6,
                 'pin_placeholder' => '< 1234 >',
                 'message_text' => 'Your AncerLarins verification code is < 1234 >. Valid for 10 minutes.',
@@ -71,15 +69,13 @@ class TermiiService implements SmsService
             // Termii requires international format without '+' prefix
             $phone = ltrim($phone, '+');
 
-            $channel = config('services.termii.channel', 'dft');
-
             $response = Http::post("{$this->baseUrl}/sms/send", [
                 'api_key' => $this->apiKey,
                 'to' => $phone,
                 'from' => $this->senderId,
                 'sms' => $message,
                 'type' => 'plain',
-                'channel' => $channel,
+                'channel' => 'generic',
             ]);
 
             $result = $response->json();
