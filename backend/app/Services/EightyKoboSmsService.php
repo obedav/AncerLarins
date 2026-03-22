@@ -47,9 +47,7 @@ class EightyKoboSmsService implements SmsService
                 'response' => $result,
             ]);
 
-            // Normalize response to match expected format
-            // 80kobo doesn't return 'code' => 'ok', so we check HTTP status
-            if ($response->successful()) {
+            if ($response->successful() && (!isset($result['status']) || $result['status'] == 1)) {
                 $result['code'] = 'ok';
             }
 

@@ -213,14 +213,23 @@ class AuthService
         ]);
 
         $provider = config('services.sms.provider', 'termii');
-        $configured = match ($provider) {
+        $fallback = config('services.sms.fallback');
+
+        $primaryConfigured = match ($provider) {
             '80kobo' => ! empty(config('services.80kobo.email')) && ! empty(config('services.80kobo.password')),
             default => ! empty(config('services.termii.api_key')) && ! str_starts_with(config('services.termii.api_key'), 'your_'),
         };
 
-        if (! $configured) {
-            Log::warning('OTP delivery skipped — SMS provider not configured', [
+        $fallbackConfigured = match ($fallback) {
+            '80kobo' => ! empty(config('services.80kobo.email')) && ! empty(config('services.80kobo.password')),
+            'termii' => ! empty(config('services.termii.api_key')) && ! str_starts_with(config('services.termii.api_key'), 'your_'),
+            default => false,
+        };
+
+        if (! $primaryConfigured && ! $fallbackConfigured) {
+            Log::warning('OTP delivery skipped — no SMS provider configured', [
                 'provider' => $provider,
+                'fallback' => $fallback,
                 'phone_suffix' => substr($phone, -4),
                 'purpose' => $purpose->value,
             ]);
