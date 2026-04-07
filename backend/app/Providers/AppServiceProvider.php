@@ -31,10 +31,26 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(\App\Contracts\SmsService::class, function ($app) {
-            return match (config('services.sms.provider', 'termii')) {
+            $primary = match (config('services.sms.provider', 'termii')) {
                 '80kobo' => new \App\Services\EightyKoboSmsService,
                 default => new \App\Services\TermiiService,
             };
+
+            $fallbackProvider = config('services.sms.fallback');
+
+            if ($fallbackProvider) {
+                $fallback = match ($fallbackProvider) {
+                    '80kobo' => new \App\Services\EightyKoboSmsService,
+                    'termii' => new \App\Services\TermiiService,
+                    default => null,
+                };
+
+                if ($fallback) {
+                    return new \App\Services\FallbackSmsService($primary, $fallback, $app->make(\Psr\Log\LoggerInterface::class));
+                }
+            }
+
+            return $primary;
         });
     }
 

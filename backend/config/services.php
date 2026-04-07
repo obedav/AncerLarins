@@ -39,6 +39,7 @@ return [
 
     'sms' => [
         'provider' => env('SMS_PROVIDER', 'termii'),
+        'fallback' => env('SMS_FALLBACK'),
     ],
 
     'termii' => [
