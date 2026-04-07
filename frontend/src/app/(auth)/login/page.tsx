@@ -19,19 +19,21 @@ export default function LoginPage() {
   const [verifyOtp, { isLoading: otpLoading }] = useVerifyOtpMutation();
   const { login: passkeyLogin, isLoading: passkeyLoading, error: passkeyError } = usePasskeyLogin();
   const [supportsPasskey] = useState(() => isWebAuthnSupported());
-  const [step, setStep] = useState<'phone' | 'otp'>('phone');
-  const [phone, setPhone] = useState('');
+  const [step, setStep] = useState<'credentials' | 'otp'>('credentials');
+  const [identifier, setIdentifier] = useState<{ phone?: string; email?: string }>({});
   const [apiError, setApiError] = useState('');
 
-  const phoneForm = useForm<LoginFormData>({
+  const credForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { phone: '' },
+    defaultValues: { method: 'phone', phone: '', email: '' },
   });
 
   const otpForm = useForm<OtpFormData>({
     resolver: zodResolver(otpSchema),
     defaultValues: { otp: '' },
   });
+
+  const method = credForm.watch('method');
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -60,19 +62,22 @@ export default function LoginPage() {
   const handleSendOtp = async (data: LoginFormData) => {
     setApiError('');
     try {
-      await login({ phone: data.phone }).unwrap();
-      setPhone(data.phone);
+      const body = data.method === 'email'
+        ? { email: data.email, channel: 'email' }
+        : { phone: data.phone };
+      await login(body).unwrap();
+      setIdentifier(data.method === 'email' ? { email: data.email } : { phone: data.phone });
       setStep('otp');
     } catch (err: unknown) {
       const apiErr = err as { data?: { message?: string } };
-      setApiError(apiErr?.data?.message || 'Failed to send OTP. Check your phone number.');
+      setApiError(apiErr?.data?.message || 'Failed to send OTP. Please check your details.');
     }
   };
 
   const handleVerifyOtp = async (data: OtpFormData) => {
     setApiError('');
     try {
-      const result = await verifyOtp({ phone, code: data.otp, purpose: 'login' }).unwrap();
+      const result = await verifyOtp({ ...identifier, code: data.otp, purpose: 'login' }).unwrap();
       if (result.data) {
         loginSuccess(result.data.user);
         router.push(getRoleRedirect(result.data.user.role));
@@ -82,6 +87,8 @@ export default function LoginPage() {
       setApiError(apiErr?.data?.message || 'Invalid OTP. Please try again.');
     }
   };
+
+  const displayIdentifier = identifier.email || identifier.phone || '';
 
   const inputClass = 'w-full px-4 py-3 border border-border rounded-xl bg-background focus:outline-none focus:border-accent-dark text-text-primary';
   const errorClass = 'text-xs text-error mt-1';
@@ -96,19 +103,19 @@ export default function LoginPage() {
         </Link>
 
         <h1 className="text-xl font-semibold text-text-primary mb-2">
-          {step === 'phone' ? 'Sign in to your account' : 'Enter verification code'}
+          {step === 'credentials' ? 'Sign in to your account' : 'Enter verification code'}
         </h1>
         <p className="text-sm text-text-muted mb-6">
-          {step === 'phone'
-            ? 'We\'ll send a verification code to your phone'
-            : `We sent a 6-digit code to ${phone}`}
+          {step === 'credentials'
+            ? 'We\'ll send a verification code to your phone or email'
+            : `We sent a 6-digit code to ${displayIdentifier}`}
         </p>
 
         {apiError && (
           <div className="bg-error/10 text-error p-3 rounded-lg mb-4 text-sm" role="alert">{apiError}</div>
         )}
 
-        {supportsPasskey && step === 'phone' && (
+        {supportsPasskey && step === 'credentials' && (
           <>
             <button
               type="button"
@@ -126,29 +133,65 @@ export default function LoginPage() {
                 <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-surface px-3 text-text-muted">or use phone</span>
+                <span className="bg-surface px-3 text-text-muted">or use phone / email</span>
               </div>
             </div>
           </>
         )}
 
-        {step === 'phone' ? (
-          <form onSubmit={phoneForm.handleSubmit(handleSendOtp)} className="space-y-4">
-            <div>
-              <label htmlFor="login-phone" className="block text-sm font-medium text-text-secondary mb-1.5">Phone Number</label>
-              <input
-                id="login-phone"
-                type="tel"
-                autoComplete="tel"
-                {...phoneForm.register('phone')}
-                placeholder="+234 801 234 5678"
-                className={inputClass}
-              />
-              {phoneForm.formState.errors.phone
-                ? <p className={errorClass} role="alert">{phoneForm.formState.errors.phone.message}</p>
-                : <p className="text-xs text-text-muted mt-1">Nigerian phone number (e.g. +2348012345678 or 08012345678)</p>
-              }
+        {step === 'credentials' ? (
+          <form onSubmit={credForm.handleSubmit(handleSendOtp)} className="space-y-4">
+            <div className="flex rounded-xl border border-border overflow-hidden">
+              <button
+                type="button"
+                onClick={() => { credForm.setValue('method', 'phone'); setApiError(''); }}
+                className={`flex-1 py-2.5 text-sm font-medium transition-colors ${method === 'phone' ? 'bg-primary text-white' : 'bg-background text-text-secondary hover:bg-background/80'}`}
+              >
+                Phone
+              </button>
+              <button
+                type="button"
+                onClick={() => { credForm.setValue('method', 'email'); setApiError(''); }}
+                className={`flex-1 py-2.5 text-sm font-medium transition-colors ${method === 'email' ? 'bg-primary text-white' : 'bg-background text-text-secondary hover:bg-background/80'}`}
+              >
+                Email
+              </button>
             </div>
+
+            {method === 'phone' ? (
+              <div>
+                <label htmlFor="login-phone" className="block text-sm font-medium text-text-secondary mb-1.5">Phone Number</label>
+                <input
+                  id="login-phone"
+                  type="tel"
+                  autoComplete="tel"
+                  {...credForm.register('phone')}
+                  placeholder="+234 801 234 5678"
+                  className={inputClass}
+                />
+                {credForm.formState.errors.phone
+                  ? <p className={errorClass} role="alert">{credForm.formState.errors.phone.message}</p>
+                  : <p className="text-xs text-text-muted mt-1">Nigerian phone number (e.g. +2348012345678 or 08012345678)</p>
+                }
+              </div>
+            ) : (
+              <div>
+                <label htmlFor="login-email" className="block text-sm font-medium text-text-secondary mb-1.5">Email Address</label>
+                <input
+                  id="login-email"
+                  type="email"
+                  autoComplete="email"
+                  {...credForm.register('email')}
+                  placeholder="you@example.com"
+                  className={inputClass}
+                />
+                {credForm.formState.errors.phone
+                  ? <p className={errorClass} role="alert">{credForm.formState.errors.phone.message}</p>
+                  : <p className="text-xs text-text-muted mt-1">We&apos;ll send a verification code to your email</p>
+                }
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loginLoading}
@@ -185,10 +228,10 @@ export default function LoginPage() {
             </button>
             <button
               type="button"
-              onClick={() => { setStep('phone'); otpForm.reset(); setApiError(''); }}
+              onClick={() => { setStep('credentials'); otpForm.reset(); setApiError(''); }}
               className="w-full text-text-muted hover:text-text-secondary text-sm py-2"
             >
-              Change phone number
+              Use a different {identifier.email ? 'email' : 'phone number'}
             </button>
           </form>
         )}

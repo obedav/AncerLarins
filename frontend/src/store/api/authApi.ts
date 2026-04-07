@@ -12,18 +12,18 @@ export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     register: builder.mutation<
       ApiResponse<{ user: User }>,
-      { first_name: string; last_name: string; phone: string; email?: string; role?: string }
+      { first_name: string; last_name: string; phone: string; email?: string; role?: string; channel?: string }
     >({
       query: (body) => ({ url: '/auth/register', method: 'POST', body }),
     }),
 
-    login: builder.mutation<ApiResponse<null>, { phone: string }>({
+    login: builder.mutation<ApiResponse<null>, { phone?: string; email?: string; channel?: string }>({
       query: (body) => ({ url: '/auth/login', method: 'POST', body }),
     }),
 
     verifyOtp: builder.mutation<
       ApiResponse<{ user: User } & AuthTokens>,
-      { phone: string; code: string; purpose: string }
+      { phone?: string; email?: string; code: string; purpose: string }
     >({
       query: (body) => ({ url: '/auth/verify-otp', method: 'POST', body }),
     }),

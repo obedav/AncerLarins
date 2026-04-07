@@ -20,7 +20,7 @@ function RegisterContent() {
   const defaultRole = (searchParams.get('role') || 'user') as 'user' | 'agent';
 
   const [step, setStep] = useState<'info' | 'otp'>('info');
-  const [phone, setPhone] = useState('');
+  const [identifier, setIdentifier] = useState<{ phone?: string; email?: string }>({});
   const [apiError, setApiError] = useState('');
 
   const infoForm = useForm<RegisterFormData>({
@@ -29,7 +29,9 @@ function RegisterContent() {
       first_name: '',
       last_name: '',
       phone: '',
+      email: '',
       role: defaultRole,
+      channel: undefined,
     },
   });
 
@@ -37,6 +39,9 @@ function RegisterContent() {
     resolver: zodResolver(otpSchema),
     defaultValues: { otp: '' },
   });
+
+  const email = infoForm.watch('email');
+  const channel = infoForm.watch('channel');
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -57,8 +62,20 @@ function RegisterContent() {
   const handleRegister = async (data: RegisterFormData) => {
     setApiError('');
     try {
-      await registerApi(data).unwrap();
-      setPhone(data.phone);
+      const body: Record<string, string | undefined> = {
+        first_name: data.first_name,
+        last_name: data.last_name,
+        phone: data.phone,
+        role: data.role,
+      };
+      if (data.email) {
+        body.email = data.email;
+        body.channel = data.channel || 'sms';
+      }
+      await registerApi(body as Parameters<typeof registerApi>[0]).unwrap();
+
+      const usedEmail = data.channel === 'email' && data.email;
+      setIdentifier(usedEmail ? { email: data.email } : { phone: data.phone });
       setStep('otp');
     } catch (err: unknown) {
       const apiErr = err as { data?: { message?: string; errors?: Record<string, string[]> } };
@@ -74,7 +91,11 @@ function RegisterContent() {
   const handleVerifyOtp = async (data: OtpFormData) => {
     setApiError('');
     try {
-      const result = await verifyOtp({ phone, code: data.otp, purpose: 'registration' }).unwrap();
+      const result = await verifyOtp({
+        ...identifier,
+        code: data.otp,
+        purpose: 'registration',
+      }).unwrap();
       if (result.data) {
         loginSuccess(result.data.user);
         router.push(getRoleRedirect(result.data.user.role));
@@ -84,6 +105,8 @@ function RegisterContent() {
       setApiError(apiErr?.data?.message || 'Invalid OTP.');
     }
   };
+
+  const displayIdentifier = identifier.email || identifier.phone || '';
 
   const inputClass = 'w-full px-4 py-3 border border-border rounded-xl bg-background focus:outline-none focus:border-accent-dark text-text-primary';
   const errorClass = 'text-xs text-error mt-1';
@@ -98,12 +121,12 @@ function RegisterContent() {
         </Link>
 
         <h1 className="text-xl font-semibold text-text-primary mb-2">
-          {step === 'info' ? 'Create your account' : 'Verify your phone'}
+          {step === 'info' ? 'Create your account' : 'Verify your account'}
         </h1>
         <p className="text-sm text-text-muted mb-6">
           {step === 'info'
             ? 'Join AncerLarins to find your perfect property'
-            : `Enter the 6-digit code sent to ${phone}`}
+            : `Enter the 6-digit code sent to ${displayIdentifier}`}
         </p>
 
         {apiError && (
@@ -136,6 +159,43 @@ function RegisterContent() {
               />
               {infoForm.formState.errors.phone && <p className={errorClass} role="alert">{infoForm.formState.errors.phone.message}</p>}
             </div>
+            <div>
+              <label htmlFor="reg-email" className="block text-sm font-medium text-text-secondary mb-1.5">
+                Email Address <span className="text-text-muted font-normal">(optional)</span>
+              </label>
+              <input
+                id="reg-email"
+                type="email"
+                autoComplete="email"
+                {...infoForm.register('email')}
+                placeholder="you@example.com"
+                className={inputClass}
+              />
+              {infoForm.formState.errors.email && <p className={errorClass} role="alert">{infoForm.formState.errors.email.message}</p>}
+            </div>
+
+            {email && email.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1.5">Send verification code via</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => infoForm.setValue('channel', 'sms')}
+                    className={`px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${!channel || channel === 'sms' ? 'bg-primary text-white border-primary' : 'bg-background text-text-secondary border-border hover:border-accent-dark'}`}
+                  >
+                    SMS
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => infoForm.setValue('channel', 'email')}
+                    className={`px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${channel === 'email' ? 'bg-primary text-white border-primary' : 'bg-background text-text-secondary border-border hover:border-accent-dark'}`}
+                  >
+                    Email
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">I am a...</label>
               <div className="grid grid-cols-2 gap-2">

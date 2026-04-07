@@ -163,6 +163,10 @@ class AuthService
                 $updates['phone_verified'] = true;
             }
 
+            if ($email) {
+                $updates['email_verified'] = true;
+            }
+
             $user->forceFill($updates)->save();
 
             $tokens = $this->generateTokens($user);
