@@ -3,26 +3,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-const STORAGE_KEY = 'cookie-consent';
+const COOKIE_NAME = 'cookie-consent';
 
-interface ConsentData {
-  accepted: boolean;
-  level: 'all' | 'essential';
-  timestamp: string;
-}
-
-function getConsent(): ConsentData | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
+function getConsent(): boolean {
+  if (typeof document === 'undefined') return true;
+  return document.cookie.split('; ').some((c) => c.startsWith(`${COOKIE_NAME}=`));
 }
 
 function saveConsent(level: 'all' | 'essential') {
-  const data: ConsentData = { accepted: true, level, timestamp: new Date().toISOString() };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  const maxAge = 365 * 24 * 60 * 60; // 1 year
+  document.cookie = `${COOKIE_NAME}=${level}; path=/; max-age=${maxAge}; SameSite=Lax`;
 }
 
 export default function CookieConsent() {
