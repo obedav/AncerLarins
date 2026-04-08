@@ -25,7 +25,7 @@ export default function LoginPage() {
 
   const credForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { method: 'phone', phone: '', email: '' },
+    defaultValues: { method: 'email', phone: '', email: '' },
   });
 
   const otpForm = useForm<OtpFormData>({
@@ -107,7 +107,7 @@ export default function LoginPage() {
         </h1>
         <p className="text-sm text-text-muted mb-6">
           {step === 'credentials'
-            ? 'We\'ll send a verification code to your phone or email'
+            ? 'We\'ll send a verification code to your email'
             : `We sent a 6-digit code to ${displayIdentifier}`}
         </p>
 
@@ -133,7 +133,7 @@ export default function LoginPage() {
                 <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-surface px-3 text-text-muted">or use phone / email</span>
+                <span className="bg-surface px-3 text-text-muted">or use email</span>
               </div>
             </div>
           </>
@@ -141,41 +141,9 @@ export default function LoginPage() {
 
         {step === 'credentials' ? (
           <form onSubmit={credForm.handleSubmit(handleSendOtp)} className="space-y-4">
-            <div className="flex rounded-xl border border-border overflow-hidden">
-              <button
-                type="button"
-                onClick={() => { credForm.setValue('method', 'phone'); setApiError(''); }}
-                className={`flex-1 py-2.5 text-sm font-medium transition-colors ${method === 'phone' ? 'bg-primary text-white' : 'bg-background text-text-secondary hover:bg-background/80'}`}
-              >
-                Phone
-              </button>
-              <button
-                type="button"
-                onClick={() => { credForm.setValue('method', 'email'); setApiError(''); }}
-                className={`flex-1 py-2.5 text-sm font-medium transition-colors ${method === 'email' ? 'bg-primary text-white' : 'bg-background text-text-secondary hover:bg-background/80'}`}
-              >
-                Email
-              </button>
-            </div>
+            {/* Phone toggle hidden until SMS is fixed */}
 
-            {method === 'phone' ? (
-              <div>
-                <label htmlFor="login-phone" className="block text-sm font-medium text-text-secondary mb-1.5">Phone Number</label>
-                <input
-                  id="login-phone"
-                  type="tel"
-                  autoComplete="tel"
-                  {...credForm.register('phone')}
-                  placeholder="+234 801 234 5678"
-                  className={inputClass}
-                />
-                {credForm.formState.errors.phone
-                  ? <p className={errorClass} role="alert">{credForm.formState.errors.phone.message}</p>
-                  : <p className="text-xs text-text-muted mt-1">Nigerian phone number (e.g. +2348012345678 or 08012345678)</p>
-                }
-              </div>
-            ) : (
-              <div>
+            <div>
                 <label htmlFor="login-email" className="block text-sm font-medium text-text-secondary mb-1.5">Email Address</label>
                 <input
                   id="login-email"
@@ -190,7 +158,6 @@ export default function LoginPage() {
                   : <p className="text-xs text-text-muted mt-1">We&apos;ll send a verification code to your email</p>
                 }
               </div>
-            )}
 
             <button
               type="submit"

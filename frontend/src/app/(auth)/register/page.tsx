@@ -68,14 +68,11 @@ function RegisterContent() {
         phone: data.phone,
         role: data.role,
       };
-      if (data.email) {
-        body.email = data.email;
-        body.channel = data.channel || 'sms';
-      }
+      body.email = data.email;
+      body.channel = 'email';
       await registerApi(body as Parameters<typeof registerApi>[0]).unwrap();
 
-      const usedEmail = data.channel === 'email' && data.email;
-      setIdentifier(usedEmail ? { email: data.email } : { phone: data.phone });
+      setIdentifier({ email: data.email });
       setStep('otp');
     } catch (err: unknown) {
       const apiErr = err as { data?: { message?: string; errors?: Record<string, string[]> } };
@@ -147,21 +144,10 @@ function RegisterContent() {
                 {infoForm.formState.errors.last_name && <p className={errorClass} role="alert">{infoForm.formState.errors.last_name.message}</p>}
               </div>
             </div>
-            <div>
-              <label htmlFor="reg-phone" className="block text-sm font-medium text-text-secondary mb-1.5">Phone Number</label>
-              <input
-                id="reg-phone"
-                type="tel"
-                autoComplete="tel"
-                {...infoForm.register('phone')}
-                placeholder="+234 801 234 5678"
-                className={inputClass}
-              />
-              {infoForm.formState.errors.phone && <p className={errorClass} role="alert">{infoForm.formState.errors.phone.message}</p>}
-            </div>
+            {/* Phone field hidden until SMS is fixed */}
             <div>
               <label htmlFor="reg-email" className="block text-sm font-medium text-text-secondary mb-1.5">
-                Email Address <span className="text-text-muted font-normal">(optional)</span>
+                Email Address
               </label>
               <input
                 id="reg-email"
@@ -174,27 +160,7 @@ function RegisterContent() {
               {infoForm.formState.errors.email && <p className={errorClass} role="alert">{infoForm.formState.errors.email.message}</p>}
             </div>
 
-            {email && email.length > 0 && (
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">Send verification code via</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => infoForm.setValue('channel', 'sms')}
-                    className={`px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${!channel || channel === 'sms' ? 'bg-primary text-white border-primary' : 'bg-background text-text-secondary border-border hover:border-accent-dark'}`}
-                  >
-                    SMS
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => infoForm.setValue('channel', 'email')}
-                    className={`px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${channel === 'email' ? 'bg-primary text-white border-primary' : 'bg-background text-text-secondary border-border hover:border-accent-dark'}`}
-                  >
-                    Email
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* SMS/Email channel selector hidden until SMS is fixed */}
 
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">I am a...</label>

@@ -12,7 +12,7 @@ export const loginSchema = z.object({
     return z.string().email().safeParse(data.email).success;
   },
   {
-    message: 'Enter a valid phone number or email address',
+    message: 'Enter a valid email address',
     path: ['phone'],
   },
 );
@@ -24,8 +24,8 @@ export const otpSchema = z.object({
 export const registerSchema = z.object({
   first_name: z.string().min(2, 'First name must be at least 2 characters').max(50),
   last_name: z.string().min(2, 'Last name must be at least 2 characters').max(50),
-  phone: z.string().regex(NIGERIAN_PHONE, 'Enter a valid Nigerian phone number (e.g. 08012345678)'),
-  email: z.string().email('Enter a valid email address').optional().or(z.literal('')),
+  phone: z.string().regex(NIGERIAN_PHONE, 'Enter a valid Nigerian phone number (e.g. 08012345678)').optional().or(z.literal('')),
+  email: z.string().email('Enter a valid email address'),
   role: z.enum(['user', 'agent']),
   channel: z.enum(['sms', 'email']).optional(),
 });
