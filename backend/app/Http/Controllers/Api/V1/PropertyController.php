@@ -277,13 +277,23 @@ class PropertyController extends Controller
     }
 
     /** @authenticated */
-    public function removeImage(Request $request, PropertyImage $image): JsonResponse
+    public function removeImage(Request $request, Property $property, PropertyImage $image): JsonResponse
     {
-        $this->authorize('update', $image->property);
+        $this->authorize('update', $property);
 
         $this->propertyService->removeImage($image);
 
         return response()->json(null, 204);
+    }
+
+    public function setCoverImage(Request $request, Property $property, PropertyImage $image): JsonResponse
+    {
+        $this->authorize('update', $property);
+
+        $property->images()->update(['is_cover' => false]);
+        $image->update(['is_cover' => true]);
+
+        return $this->successResponse(null, 'Cover image updated.');
     }
 
     /** @authenticated */

@@ -202,7 +202,8 @@ Route::prefix('v1')->group(function () {
             Route::post('/properties/{property}/images', [PropertyController::class, 'uploadImages']);
             Route::post('/properties/{property}/video', [PropertyController::class, 'uploadVideo']);
             Route::delete('/properties/{property}/video', [PropertyController::class, 'removeVideo']);
-            Route::delete('/images/{image}', [PropertyController::class, 'removeImage']);
+            Route::delete('/properties/{property}/images/{image}', [PropertyController::class, 'removeImage']);
+            Route::put('/properties/{property}/images/{image}/cover', [PropertyController::class, 'setCoverImage']);
 
             // Property request responses
             Route::post('/property-requests/{propertyRequest}/respond', [PropertyRequestController::class, 'respond']);
@@ -230,6 +231,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('/properties/{property}', [AdminController::class, 'destroyProperty']);
 
             // Agent moderation
+            Route::get('/agents', [AdminController::class, 'adminAgents']);
             Route::get('/agents/pending', [AdminController::class, 'pendingAgents']);
             Route::get('/agents/{agent}/documents', [AdminController::class, 'agentDocuments']);
             Route::post('/agents/verify', [AdminController::class, 'verifyAgent']);

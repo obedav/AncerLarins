@@ -139,6 +139,25 @@ class AdminController extends Controller
         return response()->json(null, 204);
     }
 
+    public function adminAgents(Request $request): JsonResponse
+    {
+        $query = AgentProfile::query()
+            ->with('user')
+            ->latest();
+
+        if ($request->filled('verification_status')) {
+            $query->where('verification_status', $request->input('verification_status'));
+        }
+
+        $agents = $query->paginate($request->perPage(20));
+
+        return $this->paginatedResponse(
+            $agents->setCollection(
+                $agents->getCollection()->map(fn ($a) => new AgentListResource($a))
+            )
+        );
+    }
+
     public function pendingAgents(Request $request): JsonResponse
     {
         $agents = AgentProfile::pending()
